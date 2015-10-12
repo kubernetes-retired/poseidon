@@ -1,3 +1,0 @@
-[submodule "firmament"]
-	path = src/firmament
-	url = https://github.com/ms705/firmament.git
