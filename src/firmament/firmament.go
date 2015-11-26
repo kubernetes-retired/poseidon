@@ -1,3 +1,0 @@
-package firmament
-
-import "C"
