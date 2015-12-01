@@ -1,4 +1,4 @@
-Poseidon is Firmament's (http://camsas.org/firmament) integration with
+Poseidon is Firmament's (http://www.firmament.io) integration with
 Kubernetes.
 
 ***Note: nothing to see here at present -- we will push our initial prototype
@@ -6,9 +6,15 @@ work here, but do not expect working code! :)***
 
 ## System requirements
 
- * Go 1.4, SWIG 3.0
+ * CMake 2.8+
  * Docker 1.7+
- * Kubernetes v1.1
+ * Kubernetes v1.1+
+
+The build process will install local version of Poseidon's dependencies, which
+currently include:
+
+ * [swagger-codegen](https://github.com/swagger-api/swagger-codegen/) v2.1.4
+ * the [Microsoft C++ REST SDK](https://github.com/Microsoft/cpprestsdk) v2.7.0
 
 ## Contributing
 
