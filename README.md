@@ -16,6 +16,20 @@ currently include:
  * [swagger-codegen](https://github.com/swagger-api/swagger-codegen/) v2.1.4
  * the [Microsoft C++ REST SDK](https://github.com/Microsoft/cpprestsdk) v2.7.0
 
+# Getting started
+
+First, generate the build infrastructure:
+
+```
+$ cmake .
+```
+
+Then, build Poseidon:
+
+```
+$ make
+```
+
 ## Contributing
 
 We always welcome contributions to Poseidon. We use GerritHub for our code
