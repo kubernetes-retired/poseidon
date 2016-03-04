@@ -37,3 +37,23 @@ ExternalProject_Get_Property(cpp-rest-sdk SOURCE_DIR)
 ExternalProject_Get_Property(cpp-rest-sdk BINARY_DIR)
 set(cpp-rest-sdk_SOURCE_DIR ${SOURCE_DIR})
 set(cpp-rest-sdk_BINARY_DIR ${BINARY_DIR}/Binaries)
+
+# Add Firmament as a dependency
+ExternalProject_Add(
+    firmament
+    GIT_REPOSITORY https://github.com/ms705/firmament
+    TIMEOUT 10
+    PREFIX ${Poseidon_ROOT_DIR}/firmament
+    # N.B.: only build the integration library target
+    BUILD_COMMAND make firmament_scheduling
+    # no installation required
+    INSTALL_COMMAND ""
+    # Wrap download, configure and build steps in a script to log output
+    LOG_DOWNLOAD ON
+    LOG_BUILD ON)
+
+ExternalProject_Get_Property(firmament SOURCE_DIR)
+ExternalProject_Get_Property(firmament BINARY_DIR)
+set(Firmament_ROOT_DIR ${SOURCE_DIR})
+set(Firmament_SOURCE_DIR ${Firmament_ROOT_DIR}/src)
+set(Firmament_BINARY_DIR ${BINARY_DIR})

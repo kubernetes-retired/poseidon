@@ -33,3 +33,4 @@ include_directories(${cpp-rest-sdk_SOURCE_DIR}/Release/include)
 
 # Set subdirectories
 subdirs(src/apiclient)
+subdirs(src/firmament)
