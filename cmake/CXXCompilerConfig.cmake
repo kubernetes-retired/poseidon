@@ -20,10 +20,10 @@ endif (COMPILER_SUPPORTS_CXX11)
 
 # Optimization flags
 if (${CMAKE_BUILD_TYPE} Debug)
-  set(CMAKE_CXX_OPTFLAGS "-O3")
-else (${CMAKE_BUILD_TYPE} Debug)
   set(CMAKE_CXX_OPTFLAGS "-O0 -g")
-endif (${CMAKE_BUILD_TYPE} Debug)
+else ()
+  set(CMAKE_CXX_OPTFLAGS "-O3")
+endif ()
 
 # Shared compiler flags used by all builds
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_OPTFLAGS} -fPIC -Wall -Wextra -pedantic")
@@ -35,7 +35,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=unused-parameter -Wno-error=u
 # Compiler-specific flags
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   # using clang
+  message("Using clang!")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=language-extension-token")
 else()
+  message("Using ${CMAKE_CXX_COMPILER}")
   # other compilers, usually g++
 endif()
