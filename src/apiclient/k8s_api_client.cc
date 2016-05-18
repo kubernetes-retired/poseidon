@@ -11,6 +11,10 @@
 #include "cpprest/http_client.h"
 #include "cpprest/json.h"
 
+#include "apiclient/utils.h"
+
+#include "apiclient/k8s_api_client.h"
+
 using namespace std;
 using namespace web;
 using namespace json;
@@ -18,39 +22,16 @@ using namespace utility;
 using namespace http;
 using namespace http::client;
 
-http_response PrintResponse(const std::string &url,
-                            const http_response &response) {
-    ucout << "Got response for '" << url << "': "
-          << response.extract_json().get().serialize()
-          << endl;
-    return response;
-}
-
-// In case of any failure to fetch data from a service,
-// create a json object with "error" key and value containing the exception
-// details.
-pplx::task<json::value> handle_exception(
-    pplx::task<json::value>& task,
-    const utility::string_t& field_name) {
-  try {
-    task.get();
-  } catch (const std::exception& ex) {
-    json::value error_json = json::value::object();
-    error_json[field_name] = json::value::object();
-    error_json[field_name][U("error")] =
-      json::value::string(utility::conversions::to_string_t(ex.what()));
-    return pplx::task_from_result<json::value>(error_json);
-  }
-
-  return task;
-}
+namespace poseidon {
+namespace apiclient {
 
 // Given base URI and label selector, fetch list of nodes that match.
 // Returns a task of json::value of node data
 // JSON result Format:
 // {"items":["metadata": { "name": "..." }, ... ]}
-pplx::task<json::value> GetNodes(const utility::string_t& base_uri,
-                                 const utility::string_t& label_selector) {
+pplx::task<json::value> K8sApiClient::get_nodes_task(
+    const utility::string_t& base_uri,
+    const utility::string_t& label_selector) {
   uri_builder ub(base_uri);
 
   ub.append_path(U("/api/v1/nodes"));
@@ -61,7 +42,6 @@ pplx::task<json::value> GetNodes(const utility::string_t& base_uri,
 
   http_client node_client(node_uri);
   return node_client.request(methods::GET).then([](http_response resp) {
-    //PrintResponse(full_uri.to_string(), apiClient.request(methods::GET, buf.str()).get());
     return resp.extract_json();
   }).then([](json::value nodes_json) {
     json::value nodes_result_node = json::value::object();
@@ -89,18 +69,19 @@ pplx::task<json::value> GetNodes(const utility::string_t& base_uri,
 
     return nodes_result_node;
   }).then([=](pplx::task<json::value> t) {
-    return handle_exception(t, U("nodes"));
+    return HandleTaskException(t, U("nodes"));
   });
 }
 
-int main(int argc, char *argv[]) {
-  utility::string_t port = U("8080");
-  utility::string_t address = U("http://localhost:");
+K8sApiClient::K8sApiClient(const string& host, const string& port) {
+  utility::string_t address = U("http://" + U(host) + ":" + U(port));
   address.append(port);
 
-  http::uri base_uri = http::uri(address);
+  base_uri_ = http::uri(address);
+}
 
-  pplx::task<json::value> t = GetNodes(base_uri.to_string(), "");
+int K8sApiClient::AllNodes(void) {
+  pplx::task<json::value> t = get_nodes_task(base_uri_.to_string(), "");
 
   t.wait();
 
@@ -110,3 +91,16 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
+int K8sApiClient::NodesWithLabel(const string& label) {
+  pplx::task<json::value> t = get_nodes_task(base_uri_.to_string(), U(label));
+
+  t.wait();
+
+  json::value jval = t.get();
+  ucout << jval.to_string() << endl;
+
+  return 0;
+}
+
+}  // namespace apiclient
+}  // namespace poseidon
