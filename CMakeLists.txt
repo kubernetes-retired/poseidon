@@ -25,12 +25,11 @@ include(CXXCompilerConfig)
 include(ExternalDependencies)
 
 # Specify include directories
-include_directories(${Poseidon_SOURCE_DIR}/src/include)
+include_directories(${Poseidon_SOURCE_DIR})
 include_directories(${cpp-rest-sdk_SOURCE_DIR}/Release/include)
 
 # TODO(malte): not needed?
 #link_directories(third_party/ms-cpprestsdk/src/cpp-rest-sdk-build/Binaries)
 
 # Set subdirectories
-subdirs(src/apiclient)
-subdirs(src/firmament)
+subdirs(src)
