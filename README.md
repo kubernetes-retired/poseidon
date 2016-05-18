@@ -9,12 +9,18 @@ work here, but do not expect working code! :)***
  * CMake 2.8+
  * Docker 1.7+
  * Kubernetes v1.1+
+ * Boost 1.54+
+ * libssl 1.0.0+
 
 The build process will install local version of Poseidon's dependencies, which
 currently include:
 
- * [swagger-codegen](https://github.com/swagger-api/swagger-codegen/) v2.1.4
  * the [Microsoft C++ REST SDK](https://github.com/Microsoft/cpprestsdk) v2.7.0
+ * the [Firmament scheduler](https://github.com/camsas/firmament) (HEAD)
+
+and their dependencies.
+
+A known-good build environment is Ubuntu 16.04 with gcc 5.1.3.
 
 # Getting started
 
@@ -29,6 +35,16 @@ Then, build Poseidon:
 ```
 $ make
 ```
+
+To start up, run
+
+```
+$ build/poseidon --k8s_api_server_host=<hostname> --k8s_api_server_port=8080
+```
+
+Additional arguments (e.g. to choose a scheduling policy) follow those
+[accepted by Firmament](https://github.com/camsas/firmament/README.md).
+
 
 ## Contributing
 
