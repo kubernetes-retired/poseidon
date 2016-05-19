@@ -1,3 +1,4 @@
+#include "base/resource_status.h"
 #include "base/resource_topology_node_desc.pb.h"
 #include "misc/utils.h"
 #include "misc/trace_generator.h"
@@ -6,17 +7,24 @@
 #include "scheduling/flow/flow_scheduler.h"
 #include "storage/stub_object_store.h"
 
+#include "apiclient/k8s_api_client.h"
+
 #include <glog/logging.h>
 #include <gflags/gflags.h>
 
+DEFINE_string(k8s_apiserver_host, "localhost",
+              "Hostname of the Kubernetes API server.");
+DEFINE_string(k8s_apiserver_port, "8080",
+              "Port number for Kubernetes API server.");
+// XXX(malte): hack to make things compile
 DEFINE_string(listen_uri, "", "");
 
-using boost::shared_ptr;
 using firmament::BaseMessage;
 using firmament::JobMap_t;
 using firmament::ResourceDescriptor;
 using firmament::ResourceMap_t;
 using firmament::ResourceID_t;
+using firmament::ResourceStatus;
 using firmament::TaskMap_t;
 using firmament::KnowledgeBase;
 using firmament::ResourceTopologyNodeDescriptor;
@@ -27,35 +35,65 @@ using firmament::scheduler::FlowScheduler;
 using firmament::scheduler::ObjectStoreInterface;
 using firmament::scheduler::TopologyManager;
 
-shared_ptr<JobMap_t> job_map_;
-shared_ptr<KnowledgeBase> knowledge_base_;
-shared_ptr<ObjectStoreInterface> obj_store_;
-shared_ptr<ResourceMap_t> resource_map_;
-shared_ptr<TaskMap_t> task_map_;
-shared_ptr<TopologyManager> topology_manager_;
+using poseidon::apiclient::K8sApiClient;
+
+boost::shared_ptr<JobMap_t> job_map_;
+boost::shared_ptr<KnowledgeBase> knowledge_base_;
+boost::shared_ptr<ObjectStoreInterface> obj_store_;
+boost::shared_ptr<ResourceMap_t> resource_map_;
+boost::shared_ptr<TaskMap_t> task_map_;
+boost::shared_ptr<TopologyManager> topology_manager_;
 
 int main(int argc, char** argv) {
-
   google::ParseCommandLineFlags(&argc, &argv, false);
   google::InitGoogleLogging(argv[0]);
 
   job_map_.reset(new JobMap_t);
+  resource_map_.reset(new ResourceMap_t);
 
   ResourceID_t res_id = firmament::GenerateResourceID();
 
-  ResourceTopologyNodeDescriptor rtnd;
-  rtnd.mutable_resource_desc()->set_uuid(
-    firmament::to_string(res_id));
-  rtnd.mutable_resource_desc()->set_type(
-      ResourceDescriptor::RESOURCE_COORDINATOR);
+  ResourceTopologyNodeDescriptor* rtnd = new ResourceTopologyNodeDescriptor();
+  ResourceDescriptor* rd = rtnd->mutable_resource_desc();
+  rd->set_uuid(firmament::to_string(res_id));
+  rd->set_type(ResourceDescriptor::RESOURCE_COORDINATOR);
+  ResourceStatus* rs = new ResourceStatus(rd, rtnd, "localhost", 0);
+  CHECK(InsertIfNotPresent(resource_map_.get(), res_id, rs));
 
   SimulatedMessagingAdapter<BaseMessage> ma;
   WallTime wall_time;
   TraceGenerator tg(&wall_time);
 
-  FlowScheduler fs(job_map_, resource_map_, &rtnd, obj_store_,
+  FlowScheduler fs(job_map_, resource_map_, rtnd, obj_store_,
                    task_map_, knowledge_base_, topology_manager_,
                    &ma, NULL, res_id, "", &wall_time, &tg);
 
   LOG(INFO) << fs;
+
+  K8sApiClient api_client(FLAGS_k8s_apiserver_host, FLAGS_k8s_apiserver_port);
+
+
+  while (true) {
+    vector<string> nodes = api_client.AllNodes();
+
+    if (!nodes.empty()) {
+      for (auto& n : nodes) {
+        ResourceID_t rid = firmament::ResourceIDFromString(n);
+        if (!ContainsKey(*resource_map_, rid)) {
+          LOG(INFO) << "Adding new node's resource with RID " << rid;
+          ResourceTopologyNodeDescriptor* r =
+            new ResourceTopologyNodeDescriptor();
+          ResourceDescriptor* rd = r->mutable_resource_desc();
+          rd->set_uuid(firmament::to_string(rid));
+          rd->set_type(ResourceDescriptor::RESOURCE_MACHINE);
+          r->set_parent_id(firmament::to_string(res_id));
+          ResourceStatus* rs = new ResourceStatus(rd, r, "", 0);
+          CHECK(InsertIfNotPresent(resource_map_.get(), rid, rs));
+          fs.RegisterResource(r, false, false);
+        }
+      }
+    }
+
+    sleep(10);
+  }
 }
