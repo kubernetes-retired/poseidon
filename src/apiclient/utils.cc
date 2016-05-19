@@ -33,7 +33,7 @@ pplx::task<json::value> HandleTaskException(
     json::value error_json = json::value::object();
     error_json[field_name] = json::value::object();
     error_json[field_name][U("error")] =
-      json::value::string(utility::conversions::to_string_t(ex.what()));
+      json::value(utility::conversions::to_string_t(ex.what()));
     return pplx::task_from_result<json::value>(error_json);
   }
 
