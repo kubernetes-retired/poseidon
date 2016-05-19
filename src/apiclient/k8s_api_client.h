@@ -19,8 +19,8 @@ namespace apiclient {
 class K8sApiClient {
  public:
   K8sApiClient(const string& host, const string& port);
-  int AllNodes(void);
-  int NodesWithLabel(const string& label);
+  vector<string> AllNodes(void);
+  vector<string> NodesWithLabel(const string& label);
 
  private:
   pplx::task<json::value> get_nodes_task(
