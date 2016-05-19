@@ -44,7 +44,7 @@ $ build/poseidon --k8s_apiserver_host=<hostname> --k8s_apiserver_port=8080
 ```
 
 Additional arguments (e.g. to choose a scheduling policy) follow those
-[accepted by Firmament](https://github.com/camsas/firmament/README.md).
+[accepted by Firmament](https://github.com/camsas/firmament/blob/master/README.md).
 
 
 ## Contributing
