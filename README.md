@@ -1,8 +1,9 @@
 Poseidon is Firmament's (http://www.firmament.io) integration with
 Kubernetes.
 
-***Note: nothing to see here at present -- we will push our initial prototype
-work here, but do not expect working code! :)***
+[![Build Status](https://travis-ci.org/camsas/poseidon.svg)](https://travis-ci.org/camsas/poseidon)
+
+***Note: this repo contains an initial prototype, it may break at any time! :)***
 
 ## System requirements
 

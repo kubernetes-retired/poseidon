@@ -1,0 +1,27 @@
+language: cpp
+
+sudo: required
+
+dist: trusty
+
+compiler:
+  - clang
+
+before_install:
+  - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get -y update; fi
+  - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get -y install g++ git make libboost-all-dev libssl-dev cmake; fi
+
+before_script: mkdir build && cd build && cmake .. -DCMAKE_CXX_COMPILER=$COMPILER
+
+script: make
+
+branches:
+  only:
+    - master
+
+notifications:
+  email: true
+    - firmament-dev@camsas.org
+
+os:
+  - linux
