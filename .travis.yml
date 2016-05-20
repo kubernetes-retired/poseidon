@@ -26,3 +26,8 @@ notifications:
 
 os:
   - linux
+
+cache:
+  directories:
+    - build/firmament
+    - build/third_party
