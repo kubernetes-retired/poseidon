@@ -63,7 +63,8 @@ pplx::task<json::value> K8sApiClient::GetNodesTask(
           LOG(ERROR) << "Failed to find machineID for node!";
         }
         nodes_result_node[U("nodes")][index][U("id")] = nName->second;
-        nodes_result_node[U("nodes")][i][U("hostname")] = node[U("metadata")][U("name")];
+        nodes_result_node[U("nodes")][index][U("hostname")] =
+            node[U("metadata")][U("name")];
         ++index;
       }
     } else {
