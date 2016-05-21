@@ -21,6 +21,8 @@ DEFINE_string(k8s_apiserver_host, "localhost",
               "Hostname of the Kubernetes API server.");
 DEFINE_string(k8s_apiserver_port, "8080",
               "Port number for Kubernetes API server.");
+DEFINE_string(k8s_api_version, "v1",
+              "Kubernetes API version to use.");
 
 using namespace std;
 using namespace web;
@@ -31,6 +33,10 @@ using namespace http::client;
 
 namespace poseidon {
 namespace apiclient {
+
+inline string api_prefix(void) {
+  return "/api/" + FLAGS_k8s_api_version;
+}
 
 K8sApiClient::K8sApiClient() {
   utility::string_t address = U("http://" + U(FLAGS_k8s_apiserver_host) +
@@ -51,7 +57,7 @@ pplx::task<json::value> K8sApiClient::GetNodesTask(
     const utility::string_t& label_selector) {
   uri_builder ub(base_uri);
 
-  ub.append_path(U("/api/v1/nodes"));
+  ub.append_path(U(api_prefix() + "/nodes"));
   if (!label_selector.empty()) {
     ub.append_query("labelSelector", label_selector);
   }
