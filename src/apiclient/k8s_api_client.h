@@ -20,10 +20,15 @@ class K8sApiClient {
  public:
   K8sApiClient();
   vector<string> AllNodes(void);
+  vector<string> AllPods(void);
   vector<string> NodesWithLabel(const string& label);
+  vector<string> PodsWithLabel(const string& label);
 
  private:
   pplx::task<json::value> GetNodesTask(
+      const utility::string_t& base_uri,
+      const utility::string_t& label_selector);
+  pplx::task<json::value> GetPodsTask(
       const utility::string_t& base_uri,
       const utility::string_t& label_selector);
 
