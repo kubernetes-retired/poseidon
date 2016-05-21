@@ -69,8 +69,10 @@ int main(int argc, char** argv) {
 
   LOG(INFO) << "Firmament scheduler instantiated: " << fs;
 
+  // main loop -- keep looking for nodes and pods
   while (true) {
     vector<string> nodes = api_client.AllNodes();
+    vector<string> pods = api_client.AllPods();
 
     if (!nodes.empty()) {
       for (auto& n : nodes) {
@@ -88,6 +90,12 @@ int main(int argc, char** argv) {
           CHECK(InsertIfNotPresent(resource_map_.get(), rid, rs));
           fs.RegisterResource(r, false, false);
         }
+      }
+    }
+
+    if (!pods.empty()) {
+      for (auto& p : pods) {
+        LOG(INFO) << "Pod: " << p;
       }
     }
 
