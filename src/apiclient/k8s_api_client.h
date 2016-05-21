@@ -18,7 +18,7 @@ namespace apiclient {
 
 class K8sApiClient {
  public:
-  K8sApiClient(const string& host, const string& port);
+  K8sApiClient();
   vector<string> AllNodes(void);
   vector<string> NodesWithLabel(const string& label);
 

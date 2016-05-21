@@ -12,10 +12,6 @@
 #include <glog/logging.h>
 #include <gflags/gflags.h>
 
-DEFINE_string(k8s_apiserver_host, "localhost",
-              "Hostname of the Kubernetes API server.");
-DEFINE_string(k8s_apiserver_port, "8080",
-              "Port number for Kubernetes API server.");
 // XXX(malte): hack to make things compile
 DEFINE_string(listen_uri, "", "");
 
@@ -48,6 +44,9 @@ int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, false);
   google::InitGoogleLogging(argv[0]);
 
+  // Kubernetes API client
+  K8sApiClient api_client;
+
   job_map_.reset(new JobMap_t);
   resource_map_.reset(new ResourceMap_t);
 
@@ -68,10 +67,7 @@ int main(int argc, char** argv) {
                    task_map_, knowledge_base_, topology_manager_,
                    &ma, NULL, res_id, "", &wall_time, &tg);
 
-  LOG(INFO) << fs;
-
-  K8sApiClient api_client(FLAGS_k8s_apiserver_host, FLAGS_k8s_apiserver_port);
-
+  LOG(INFO) << "Firmament scheduler instantiated: " << fs;
 
   while (true) {
     vector<string> nodes = api_client.AllNodes();

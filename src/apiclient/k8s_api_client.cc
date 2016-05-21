@@ -17,6 +17,11 @@
 
 #include "apiclient/k8s_api_client.h"
 
+DEFINE_string(k8s_apiserver_host, "localhost",
+              "Hostname of the Kubernetes API server.");
+DEFINE_string(k8s_apiserver_port, "8080",
+              "Port number for Kubernetes API server.");
+
 using namespace std;
 using namespace web;
 using namespace json;
@@ -26,6 +31,16 @@ using namespace http::client;
 
 namespace poseidon {
 namespace apiclient {
+
+K8sApiClient::K8sApiClient() {
+  utility::string_t address = U("http://" + U(FLAGS_k8s_apiserver_host) +
+      ":" + U(FLAGS_k8s_apiserver_port));
+
+  base_uri_ = http::uri(address);
+
+  LOG(INFO) << "Starting K8sApiClient for API server at "
+            << base_uri_.to_string();
+}
 
 // Given base URI and label selector, fetch list of nodes that match.
 // Returns a task of json::value of node data
@@ -81,13 +96,8 @@ pplx::task<json::value> K8sApiClient::GetNodesTask(
   });
 }
 
-K8sApiClient::K8sApiClient(const string& host, const string& port) {
-  utility::string_t address = U("http://" + U(host) + ":" + U(port));
 
-  base_uri_ = http::uri(address);
 
-  LOG(INFO) << "Starting K8sApiClient for API server at "
-            << base_uri_.to_string();
 }
 
 vector<string> K8sApiClient::AllNodes(void) {
