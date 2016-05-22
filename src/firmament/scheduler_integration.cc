@@ -96,6 +96,12 @@ int main(int argc, char** argv) {
     if (!pods.empty()) {
       for (auto& p : pods) {
         LOG(INFO) << "Pod: " << p;
+        // XXX(malte): test hack -- always bind to first node
+        // Note that this will try to re-bind even already bound pods at the
+        // moment.
+        if (!nodes.empty()) {
+          api_client.BindPodToNode(p, nodes[0].second);
+        }
       }
     }
 
