@@ -35,7 +35,7 @@ namespace poseidon {
 namespace apiclient {
 
 inline string api_prefix(void) {
-  return "/api/" + FLAGS_k8s_api_version;
+  return "/api/" + FLAGS_k8s_api_version + "/";
 }
 
 K8sApiClient::K8sApiClient() {
@@ -57,7 +57,7 @@ pplx::task<json::value> K8sApiClient::GetNodesTask(
     const utility::string_t& label_selector) {
   uri_builder ub(base_uri);
 
-  ub.append_path(U(api_prefix() + "/nodes"));
+  ub.append_path(U(api_prefix() + "nodes"));
   if (!label_selector.empty()) {
     ub.append_query("labelSelector", label_selector);
   }
@@ -107,7 +107,7 @@ pplx::task<json::value> K8sApiClient::GetPodsTask(
     const utility::string_t& label_selector) {
   uri_builder ub(base_uri);
 
-  ub.append_path(U(api_prefix() + "/pods"));
+  ub.append_path(U(api_prefix() + "pods"));
   if (!label_selector.empty()) {
     ub.append_query("labelSelector", label_selector);
   }
