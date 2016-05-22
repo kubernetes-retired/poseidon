@@ -23,8 +23,15 @@ class K8sApiClient {
   vector<string> AllPods(void);
   vector<pair<string, string>> NodesWithLabel(const string& label);
   vector<string> PodsWithLabel(const string& label);
+  bool BindPodToNode(const string& pod_name,
+                     const string& node_name);
 
  private:
+  pplx::task<json::value> BindPodTask(
+      const utility::string_t& base_uri,
+      const string& k8s_namespace,
+      const string& pod_name,
+      const string& node_name);
   pplx::task<json::value> GetNodesTask(
       const utility::string_t& base_uri,
       const utility::string_t& label_selector);

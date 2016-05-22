@@ -48,6 +48,37 @@ K8sApiClient::K8sApiClient() {
             << base_uri_.to_string();
 }
 
+pplx::task<json::value> K8sApiClient::BindPodTask(
+    const utility::string_t& base_uri,
+    const string& k8s_namespace,
+    const string& pod_name,
+    const string& node_name) {
+  uri_builder ub(base_uri);
+
+  ub.append_path(U(api_prefix() + "namespaces/" + U(k8s_namespace) +
+        "/bindings"));
+
+  json::value body_json = json::value::object();
+  body_json["target"] = json::value::object();
+  body_json["target"]["name"] = json::value::string(node_name);
+  body_json["metadata"] = json::value::object();
+  body_json["metadata"]["name"] = json::value::string(pod_name);
+
+  http_client node_client(ub.to_uri());
+  return node_client.request(methods::POST, U(""), U(body_json))
+    .then([=](http_response resp) {
+    return resp.extract_json();
+  }).then([=](json::value resp) {
+    LOG(INFO) << "Parsing binding response: " << resp;
+    json::value result = json::value::object();
+
+    return result;
+  }).then([=](pplx::task<json::value> t) {
+    // If there was an exception, modify the response to contain an error
+    return HandleTaskException(t, U("status"));
+  });
+}
+
 // Given base URI and label selector, fetch list of nodes that match.
 // Returns a task of json::value of node data
 // JSON result Format:
@@ -153,6 +184,29 @@ vector<pair<string, string>> K8sApiClient::AllNodes(void) {
 
 vector<string> K8sApiClient::AllPods(void) {
   return PodsWithLabel("");
+}
+
+bool K8sApiClient::BindPodToNode(const string& pod_name,
+                                 const string& node_name) {
+  pplx::task<json::value> t =
+    BindPodTask(base_uri_.to_string(), U("default"), pod_name, node_name);
+
+  try {
+    t.wait();
+
+    json::value jval = t.get();
+
+    if (jval[U("status")].is_null() ||
+        jval[U("status")].as_object()[U("error")].is_null()) {
+      LOG(INFO) << "Bound " << pod_name << " to " << node_name;
+    } else {
+      LOG(ERROR) << "Failed to bind pod: " << jval[U("status")][U("error")];
+    }
+  } catch (const std::exception &e) {
+    LOG(ERROR) << "Exception while binding pod: " << e.what();
+    return false;
+  }
+  return true;
 }
 
 vector<pair<string, string>> K8sApiClient::NodesWithLabel(const string& label) {
