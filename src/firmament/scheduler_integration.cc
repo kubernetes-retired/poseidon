@@ -71,12 +71,12 @@ int main(int argc, char** argv) {
 
   // main loop -- keep looking for nodes and pods
   while (true) {
-    vector<string> nodes = api_client.AllNodes();
+    vector<pair<string, string>> nodes = api_client.AllNodes();
     vector<string> pods = api_client.AllPods();
 
     if (!nodes.empty()) {
       for (auto& n : nodes) {
-        ResourceID_t rid = firmament::ResourceIDFromString(n);
+        ResourceID_t rid = firmament::ResourceIDFromString(n.first);
         if (!ContainsKey(*resource_map_, rid)) {
           LOG(INFO) << "Adding new node's resource with RID " << rid;
           ResourceTopologyNodeDescriptor* r =

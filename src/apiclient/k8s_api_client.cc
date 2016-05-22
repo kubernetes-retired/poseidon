@@ -147,7 +147,7 @@ pplx::task<json::value> K8sApiClient::GetPodsTask(
   });
 }
 
-vector<string> K8sApiClient::AllNodes(void) {
+vector<pair<string, string>> K8sApiClient::AllNodes(void) {
   return NodesWithLabel("");
 }
 
@@ -155,8 +155,8 @@ vector<string> K8sApiClient::AllPods(void) {
   return PodsWithLabel("");
 }
 
-vector<string> K8sApiClient::NodesWithLabel(const string& label) {
-  vector<string> nodes;
+vector<pair<string, string>> K8sApiClient::NodesWithLabel(const string& label) {
+  vector<pair<string, string>> nodes;
   pplx::task<json::value> t = GetNodesTask(base_uri_.to_string(), U(label));
 
   try {
@@ -167,7 +167,9 @@ vector<string> K8sApiClient::NodesWithLabel(const string& label) {
     if (jval[U("status")].is_null() ||
         jval[U("status")].as_object()[U("error")].is_null()) {
       for (auto& iter : jval["nodes"].as_array()) {
-        nodes.push_back(iter["id"].as_string());
+        nodes.push_back(
+            pair<string, string>(iter["id"].as_string(),
+                                 iter["hostname"].as_string()));
       }
     } else {
       LOG(ERROR) << "Failed to get nodes: " << jval[U("status")][U("error")];
