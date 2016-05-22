@@ -40,6 +40,39 @@ boost::shared_ptr<ResourceMap_t> resource_map_;
 boost::shared_ptr<TaskMap_t> task_map_;
 boost::shared_ptr<TopologyManager> topology_manager_;
 
+ResourceStatus* CreateTopLevelResource(void) {
+  ResourceID_t res_id = firmament::GenerateResourceID();
+  ResourceTopologyNodeDescriptor* rtnd = new ResourceTopologyNodeDescriptor();
+  // Set up the RD
+  ResourceDescriptor* rd = rtnd->mutable_resource_desc();
+  rd->set_uuid(firmament::to_string(res_id));
+  rd->set_type(ResourceDescriptor::RESOURCE_COORDINATOR);
+  // Need to maintain a ResourceStatus for the resource map
+  // TODO(malte): don't pass localhost here
+  ResourceStatus* rs = new ResourceStatus(rd, rtnd, "localhost", 0);
+  // Insert into resource map
+  CHECK(InsertIfNotPresent(resource_map_.get(), res_id, rs));
+  return rs;
+}
+
+ResourceStatus* CreateResourceForNode(ResourceID_t node_id,
+                                      ResourceID_t parent_id) {
+  ResourceTopologyNodeDescriptor* r =
+    new ResourceTopologyNodeDescriptor();
+  // Create and initialize RD
+  ResourceDescriptor* rd = r->mutable_resource_desc();
+  rd->set_uuid(firmament::to_string(node_id));
+  rd->set_type(ResourceDescriptor::RESOURCE_MACHINE);
+  rd->set_state(ResourceDescriptor::RESOURCE_IDLE);
+  r->set_parent_id(firmament::to_string(parent_id));
+  // Need to maintain a ResourceStatus for the resource map
+  // TODO(malte): set hostname correctly
+  ResourceStatus* rs = new ResourceStatus(rd, r, "", 0);
+  // Insert into resource map
+  CHECK(InsertIfNotPresent(resource_map_.get(), node_id, rs));
+  return rs;
+}
+
 int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, false);
   google::InitGoogleLogging(argv[0]);
@@ -50,49 +83,40 @@ int main(int argc, char** argv) {
   job_map_.reset(new JobMap_t);
   resource_map_.reset(new ResourceMap_t);
 
-  ResourceID_t res_id = firmament::GenerateResourceID();
-
-  ResourceTopologyNodeDescriptor* rtnd = new ResourceTopologyNodeDescriptor();
-  ResourceDescriptor* rd = rtnd->mutable_resource_desc();
-  rd->set_uuid(firmament::to_string(res_id));
-  rd->set_type(ResourceDescriptor::RESOURCE_COORDINATOR);
-  ResourceStatus* rs = new ResourceStatus(rd, rtnd, "localhost", 0);
-  CHECK(InsertIfNotPresent(resource_map_.get(), res_id, rs));
+  ResourceStatus* toplevel_res_status = CreateTopLevelResource();
+  ResourceID_t toplevel_res_id =
+    firmament::ResourceIDFromString(toplevel_res_status->descriptor().uuid());
 
   SimulatedMessagingAdapter<BaseMessage> ma;
   WallTime wall_time;
   TraceGenerator tg(&wall_time);
 
-  FlowScheduler fs(job_map_, resource_map_, rtnd, obj_store_,
+  FlowScheduler fs(job_map_, resource_map_,
+                   toplevel_res_status->mutable_topology_node(), obj_store_,
                    task_map_, knowledge_base_, topology_manager_,
-                   &ma, NULL, res_id, "", &wall_time, &tg);
-
+                   &ma, NULL, toplevel_res_id, "", &wall_time, &tg);
   LOG(INFO) << "Firmament scheduler instantiated: " << fs;
 
   // main loop -- keep looking for nodes and pods
   while (true) {
+    // Poll nodes
     vector<pair<string, string>> nodes = api_client.AllNodes();
-    vector<string> pods = api_client.AllPods();
-
     if (!nodes.empty()) {
       for (auto& n : nodes) {
         ResourceID_t rid = firmament::ResourceIDFromString(n.first);
+        // Check if we know about this node already
         if (!ContainsKey(*resource_map_, rid)) {
           LOG(INFO) << "Adding new node's resource with RID " << rid;
-          ResourceTopologyNodeDescriptor* r =
-            new ResourceTopologyNodeDescriptor();
-          ResourceDescriptor* rd = r->mutable_resource_desc();
-          rd->set_uuid(firmament::to_string(rid));
-          rd->set_type(ResourceDescriptor::RESOURCE_MACHINE);
-          rd->set_state(ResourceDescriptor::RESOURCE_IDLE);
-          r->set_parent_id(firmament::to_string(res_id));
-          ResourceStatus* rs = new ResourceStatus(rd, r, "", 0);
-          CHECK(InsertIfNotPresent(resource_map_.get(), rid, rs));
-          fs.RegisterResource(r, false, false);
+          // Create a new Firmament resource
+          ResourceStatus* rs = CreateResourceForNode(rid, toplevel_res_id);
+          // Register with the scheudler
+          fs.RegisterResource(rs->mutable_topology_node(), false, false);
         }
       }
     }
 
+    // Poll pods
+    vector<string> pods = api_client.AllPods();
     if (!pods.empty()) {
       for (auto& p : pods) {
         LOG(INFO) << "Pod: " << p;
