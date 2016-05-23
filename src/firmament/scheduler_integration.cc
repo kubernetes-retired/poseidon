@@ -94,7 +94,7 @@ ResourceStatus* CreateResourceForNode(ResourceID_t node_id,
   // Create and initialize RD
   ResourceDescriptor* rd = r->mutable_resource_desc();
   rd->set_uuid(firmament::to_string(node_id));
-  rd->set_type(ResourceDescriptor::RESOURCE_MACHINE);
+  rd->set_type(ResourceDescriptor::RESOURCE_PU);
   rd->set_state(ResourceDescriptor::RESOURCE_IDLE);
   r->set_parent_id(firmament::to_string(parent_id));
   // Need to maintain a ResourceStatus for the resource map
@@ -143,7 +143,11 @@ int main(int argc, char** argv) {
           // Create a new Firmament resource
           ResourceStatus* rs = CreateResourceForNode(rid, toplevel_res_id);
           // Register with the scheudler
-          fs.RegisterResource(rs->mutable_topology_node(), false, false);
+          // TODO(malte): we use a hack here -- we pass simulated=true to
+          // avoid Firmament instantiating an actual executor for this resource.
+          // Instead, we rely on the no-op SimulatedExecutor. We should change
+          // it such that Firmament does not mandatorily create an executor.
+          fs.RegisterResource(rs->mutable_topology_node(), false, true);
         }
       }
     }
