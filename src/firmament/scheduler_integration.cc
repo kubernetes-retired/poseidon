@@ -13,6 +13,8 @@
 #include <glog/logging.h>
 #include <gflags/gflags.h>
 
+DEFINE_int64(polling_frequency, 10000000,
+    "K8s API polling frequency, in microseconds");
 // XXX(malte): hack to make things compile
 DEFINE_string(listen_uri, "", "");
 
@@ -176,6 +178,6 @@ int main(int argc, char** argv) {
     // XXX(malte): TODO
 
     // Sleep a bit until we poll again
-    sleep(10);
+    usleep(FLAGS_polling_frequency);
   }
 }
