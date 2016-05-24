@@ -5,6 +5,26 @@ Kubernetes.
 
 ***Note: this repo contains an initial prototype, it may break at any time! :)***
 
+# Getting started
+
+The easiest way to get Poseidon up and running is to use our Docker image:
+
+```
+$ docker pull camsas/poseidon:dev
+```
+Once the image has downloaded, you can start Poseidon as follows:
+```
+$ docker run camsas/poseidon:dev /usr/bin/poseidon \
+    --logtostderr \
+    --k8s_apiserver_host=<host> \
+    --k8s_apiserver_port=<port> \
+    --cs2_binary=/usr/bin/cs2.exe
+```
+Note that Poseidon will try to schedule for Kubernetes even if `kube-scheduler`
+is running -- to avoid conflicts, shut it down first.
+
+# Building from source
+
 ## System requirements
 
  * CMake 2.8+
@@ -23,21 +43,24 @@ and their dependencies.
 
 A known-good build environment is Ubuntu 16.04 with gcc 5.1.3.
 
-# Getting started
+
+## Build process
 
 First, generate the build infrastructure:
 
 ```
-$ cmake .
+$ mkdir build
+$ cd build
+build$ cmake ..
 ```
 
 Then, build Poseidon:
 
 ```
-$ make
+build$ make
 ```
 
-To start up, run
+To start up, run from the root directory:
 
 ```
 $ build/poseidon --k8s_apiserver_host=<hostname> --k8s_apiserver_port=8080
@@ -45,6 +68,10 @@ $ build/poseidon --k8s_apiserver_host=<hostname> --k8s_apiserver_port=8080
 
 Additional arguments (e.g. to choose a scheduling policy) follow those
 [accepted by Firmament](https://github.com/camsas/firmament/blob/master/README.md).
+
+You will likely need to specify the `--cs2_binary` option, which should point to
+the local installation of the cs2 min-cost flow solver. Normally, the cs2 binary
+is located in `build/firmament/src/firmament-build/third_party/cs2/src/cs2/cs2.exe`.
 
 
 ## Contributing
