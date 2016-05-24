@@ -19,7 +19,8 @@ RUN apt-get update \
 RUN mkdir -p /usr/lib
 COPY libcpprest.so.2.7 /usr/lib/
 COPY libfirmament_scheduling.so /usr/lib/
+COPY cs2.exe /usr/bin
 COPY poseidon /usr/bin/
 
 EXPOSE 8080
-ENTRYPOINT ["/usr/bin/poseidon", "--logtostderr"]
+ENTRYPOINT ["/usr/bin/poseidon", "--logtostderr", "--cs2_binary=/usr/bin/cs2"]
