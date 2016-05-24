@@ -23,4 +23,4 @@ COPY cs2.exe /usr/bin
 COPY poseidon /usr/bin/
 
 EXPOSE 8080
-ENTRYPOINT ["/usr/bin/poseidon", "--logtostderr", "--cs2_binary=/usr/bin/cs2"]
+ENTRYPOINT ["/usr/bin/poseidon", "--logtostderr", "--cs2_binary=/usr/bin/cs2", "--max_tasks_per_pu=10"]

@@ -63,7 +63,11 @@ build$ make
 To start up, run from the root directory:
 
 ```
-$ build/poseidon --k8s_apiserver_host=<hostname> --k8s_apiserver_port=8080
+$ build/poseidon --logtostderr \
+                 --k8s_apiserver_host=<hostname> \
+                 --k8s_apiserver_port=8080 \
+                 --max_tasks_per_pu=<max pods per node> \
+                 --cs2_binary=build/firmament/src/firmament-build/third_party/cs2/src/cs2/cs2.exe
 ```
 
 Additional arguments (e.g. to choose a scheduling policy) follow those
