@@ -18,10 +18,15 @@ $ docker run camsas/poseidon:dev /usr/bin/poseidon \
     --logtostderr \
     --k8s_apiserver_host=<host> \
     --k8s_apiserver_port=<port> \
-    --cs2_binary=/usr/bin/cs2.exe
+    --cs2_binary=/usr/bin/cs2.exe \
+    --max_tasks_per_pu=<max pods per node>
 ```
 Note that Poseidon will try to schedule for Kubernetes even if `kube-scheduler`
 is running -- to avoid conflicts, shut it down first.
+
+You will also need to ensure that the API server is reachable from the Poseidon
+container's network (e.g., using `--net=host` if you're running a local
+development cluster).
 
 # Building from source
 
