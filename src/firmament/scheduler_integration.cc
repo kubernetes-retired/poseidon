@@ -5,6 +5,7 @@
 #include "misc/trace_generator.h"
 #include "misc/wall_time.h"
 #include "platforms/sim/simulated_messaging_adapter.h"
+#include "scheduling/scheduling_delta.pb.h"
 #include "scheduling/flow/flow_scheduler.h"
 #include "storage/stub_object_store.h"
 
@@ -50,7 +51,9 @@ boost::shared_ptr<ResourceMap_t> resource_map_;
 boost::shared_ptr<TaskMap_t> task_map_;
 boost::shared_ptr<TopologyManager> topology_manager_;
 
+map<ResourceID_t, string> node_map_;
 unordered_map<string, TaskID_t> pod_to_task_map_;
+unordered_map<TaskID_t, string> task_to_pod_map_;
 
 JobDescriptor* CreateJobForPod(const string& pod) {
   // Fake out a job for this pod
@@ -140,6 +143,7 @@ int main(int argc, char** argv) {
         // Check if we know about this node already
         if (!ContainsKey(*resource_map_, rid)) {
           LOG(INFO) << "Adding new node's resource with RID " << rid;
+          CHECK(InsertIfNotPresent(&node_map_, rid, n.second));
           // Create a new Firmament resource
           ResourceStatus* rs = CreateResourceForNode(rid, toplevel_res_id);
           // Register with the scheudler
@@ -168,6 +172,8 @@ int main(int argc, char** argv) {
             JobDescriptor* jd = CreateJobForPod(p);
             CHECK(InsertIfNotPresent(&pod_to_task_map_, p,
                                      jd->root_task().uid()));
+            CHECK(InsertIfNotPresent(&task_to_pod_map_,
+                                     jd->root_task().uid(), p));
             fs.AddJob(jd);
           }
         );
@@ -176,10 +182,25 @@ int main(int argc, char** argv) {
 
     // Invoke Firmament scheduling
     firmament::scheduler::SchedulerStats sstat;
-    fs.ScheduleAllJobs(&sstat);
+    vector<firmament::SchedulingDelta> deltas;
+    fs.ScheduleAllJobs(&sstat, &deltas);
 
     // Apply results
-    // XXX(malte): TODO
+    LOG(INFO) << "Got " << deltas.size() << " scheduling deltas";
+    for (auto& d : deltas) {
+      LOG(INFO) << "Delta: " << d.DebugString();
+      if (d.type() == firmament::SchedulingDelta::PLACE) {
+        const string* pod = FindOrNull(task_to_pod_map_, d.task_id());
+        const string* node = FindOrNull(node_map_,
+            firmament::ResourceIDFromString(d.resource_id()));
+        CHECK_NOTNULL(pod);
+        CHECK_NOTNULL(node);
+        api_client.BindPodToNode(*pod, *node);
+      } else {
+        LOG(WARNING) << "Encountered unsupported scheduling delta of type "
+                     << firmament::to_string(d.type());
+      }
+    }
 
     // Sleep a bit until we poll again
     usleep(FLAGS_polling_frequency);
