@@ -10,7 +10,7 @@ compiler:
 
 before_install:
   - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get -y update; fi
-  - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get -y install build-essential cmake g++ git libboost-all-dev libjansson-dev libprotobuf-dev libssl-dev make protobuf-compiler; fi
+  - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get -y install build-essential cmake g++ git libboost-all-dev libbz2-dev libctemplate-dev libgflags-dev libgoogle-glog-dev libhwloc-dev libjansson-dev libprotobuf-dev libssl-dev make protobuf-compiler; fi
 
 before_script: mkdir -p build && cd build && cmake .. -DCMAKE_CXX_COMPILER=$COMPILER
 
