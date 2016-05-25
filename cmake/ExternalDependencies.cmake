@@ -28,10 +28,7 @@ ExternalProject_Add(
     CONFIGURE_COMMAND cmake ../cpp-rest-sdk/Release -DCMAKE_BUILD_TYPE=Release -DBUILD_SAMPLES=false -DBUILD_TESTS=false
     BUILD_COMMAND make
     # no installation required
-    INSTALL_COMMAND ""
-    # Wrap download, configure and build steps in a script to log output
-    LOG_DOWNLOAD ON
-    LOG_BUILD ON)
+    INSTALL_COMMAND "")
 
 ExternalProject_Get_Property(cpp-rest-sdk SOURCE_DIR)
 ExternalProject_Get_Property(cpp-rest-sdk BINARY_DIR)
@@ -46,10 +43,7 @@ ExternalProject_Add(
     TIMEOUT 10
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/third_party/gtest
     # no install required, we link the library from the build tree
-    INSTALL_COMMAND ""
-    # Wrap download, configure and build steps in a script to log output
-    LOG_DOWNLOAD ON
-    LOG_BUILD ON)
+    INSTALL_COMMAND "")
 
 ExternalProject_Get_Property(gtest BINARY_DIR)
 ExternalProject_Get_Property(gtest SOURCE_DIR)
@@ -75,10 +69,7 @@ ExternalProject_Add(
     # N.B.: only build the integration library target
     BUILD_COMMAND make firmament_scheduling
     # no installation required
-    INSTALL_COMMAND ""
-    # Wrap download, configure and build steps in a script to log output
-    LOG_DOWNLOAD ON
-    LOG_BUILD ON)
+    INSTALL_COMMAND "")
 
 ExternalProject_Get_Property(firmament SOURCE_DIR)
 ExternalProject_Get_Property(firmament BINARY_DIR)
