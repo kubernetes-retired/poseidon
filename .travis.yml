@@ -6,7 +6,6 @@ dist: trusty
 
 compiler:
   - g++
-  - clang
 
 before_install:
   - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get -y update; fi
