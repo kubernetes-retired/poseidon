@@ -10,7 +10,7 @@ compiler:
 
 before_install:
   - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get -y update; fi
-  - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get -y install g++ git make libboost-all-dev libssl-dev cmake; fi
+  - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get -y install g++ git make libboost-all-dev libjansson-dev libssl-dev cmake; fi
 
 before_script: mkdir -p build && cd build && cmake .. -DCMAKE_CXX_COMPILER=$COMPILER
 
