@@ -1,21 +1,21 @@
 #include "base/resource_status.h"
 #include "base/resource_topology_node_desc.pb.h"
 #include "misc/map-util.h"
-#include "misc/utils.h"
 #include "misc/trace_generator.h"
+#include "misc/utils.h"
 #include "misc/wall_time.h"
 #include "platforms/sim/simulated_messaging_adapter.h"
-#include "scheduling/scheduling_delta.pb.h"
 #include "scheduling/flow/flow_scheduler.h"
+#include "scheduling/scheduling_delta.pb.h"
 #include "storage/stub_object_store.h"
 
 #include "apiclient/k8s_api_client.h"
 
-#include <glog/logging.h>
 #include <gflags/gflags.h>
+#include <glog/logging.h>
 
 DEFINE_int64(polling_frequency, 10000000,
-    "K8s API polling frequency, in microseconds");
+             "K8s API polling frequency, in microseconds");
 // XXX(malte): hack to make things compile
 DEFINE_string(listen_uri, "", "");
 
@@ -92,8 +92,7 @@ ResourceStatus* CreateTopLevelResource(void) {
 
 ResourceStatus* CreateResourceForNode(ResourceID_t node_id,
                                       ResourceID_t parent_id) {
-  ResourceTopologyNodeDescriptor* r =
-    new ResourceTopologyNodeDescriptor();
+  ResourceTopologyNodeDescriptor* r = new ResourceTopologyNodeDescriptor();
   // Create and initialize RD
   ResourceDescriptor* rd = r->mutable_resource_desc();
   rd->set_uuid(firmament::to_string(node_id));
@@ -121,7 +120,7 @@ int main(int argc, char** argv) {
 
   ResourceStatus* toplevel_res_status = CreateTopLevelResource();
   ResourceID_t toplevel_res_id =
-    firmament::ResourceIDFromString(toplevel_res_status->descriptor().uuid());
+      firmament::ResourceIDFromString(toplevel_res_status->descriptor().uuid());
 
   SimulatedMessagingAdapter<BaseMessage> ma;
   WallTime wall_time;
@@ -129,8 +128,8 @@ int main(int argc, char** argv) {
 
   FlowScheduler fs(job_map_, resource_map_,
                    toplevel_res_status->mutable_topology_node(), obj_store_,
-                   task_map_, knowledge_base_, topology_manager_,
-                   &ma, NULL, toplevel_res_id, "", &wall_time, &tg);
+                   task_map_, knowledge_base_, topology_manager_, &ma, NULL,
+                   toplevel_res_id, "", &wall_time, &tg);
   LOG(INFO) << "Firmament scheduler instantiated: " << fs;
 
   // main loop -- keep looking for nodes and pods
@@ -160,23 +159,21 @@ int main(int argc, char** argv) {
     vector<string> pods = api_client.AllPods();
     if (!pods.empty()) {
       vector<string>::iterator unscheduled_pods_iter =
-        find_if(pods.begin(), pods.end(),
-          [](const string& p) -> bool {
+          find_if(pods.begin(), pods.end(), [](const string& p) -> bool {
             // TODO(malte): should use p.state() == "Pending" or similar
             return firmament::FindOrNull(pod_to_task_map_, p) == NULL;
           });
       if (unscheduled_pods_iter != pods.end()) {
-        for_each (unscheduled_pods_iter, next(unscheduled_pods_iter, 1),
-          [&](string p) {
-            LOG(INFO) << "New unscheduled pod: " << p;
-            JobDescriptor* jd = CreateJobForPod(p);
-            CHECK(InsertIfNotPresent(&pod_to_task_map_, p,
-                                     jd->root_task().uid()));
-            CHECK(InsertIfNotPresent(&task_to_pod_map_,
-                                     jd->root_task().uid(), p));
-            fs.AddJob(jd);
-          }
-        );
+        for_each(unscheduled_pods_iter, next(unscheduled_pods_iter, 1),
+                 [&](string p) {
+                   LOG(INFO) << "New unscheduled pod: " << p;
+                   JobDescriptor* jd = CreateJobForPod(p);
+                   CHECK(InsertIfNotPresent(&pod_to_task_map_, p,
+                                            jd->root_task().uid()));
+                   CHECK(InsertIfNotPresent(&task_to_pod_map_,
+                                            jd->root_task().uid(), p));
+                   fs.AddJob(jd);
+                 });
       }
     }
 
@@ -191,8 +188,8 @@ int main(int argc, char** argv) {
       LOG(INFO) << "Delta: " << d.DebugString();
       if (d.type() == firmament::SchedulingDelta::PLACE) {
         const string* pod = FindOrNull(task_to_pod_map_, d.task_id());
-        const string* node = FindOrNull(node_map_,
-            firmament::ResourceIDFromString(d.resource_id()));
+        const string* node = FindOrNull(
+            node_map_, firmament::ResourceIDFromString(d.resource_id()));
         CHECK_NOTNULL(pod);
         CHECK_NOTNULL(node);
         api_client.BindPodToNode(*pod, *node);

@@ -1,14 +1,14 @@
-#include <iostream>
+#include <exception>
 #include <fstream>
+#include <iostream>
 #include <map>
 #include <sstream>
 #include <streambuf>
 #include <string>
-#include <exception>
 #include <vector>
 
-#include <glog/logging.h>
 #include <gflags/gflags.h>
+#include <glog/logging.h>
 
 #include "cpprest/http_client.h"
 #include "cpprest/json.h"
@@ -21,8 +21,7 @@ DEFINE_string(k8s_apiserver_host, "localhost",
               "Hostname of the Kubernetes API server.");
 DEFINE_string(k8s_apiserver_port, "8080",
               "Port number for Kubernetes API server.");
-DEFINE_string(k8s_api_version, "v1",
-              "Kubernetes API version to use.");
+DEFINE_string(k8s_api_version, "v1", "Kubernetes API version to use.");
 
 using namespace std;
 using namespace web;
@@ -34,13 +33,11 @@ using namespace http::client;
 namespace poseidon {
 namespace apiclient {
 
-inline string api_prefix(void) {
-  return "/api/" + FLAGS_k8s_api_version + "/";
-}
+inline string api_prefix(void) { return "/api/" + FLAGS_k8s_api_version + "/"; }
 
 K8sApiClient::K8sApiClient() {
-  utility::string_t address = U("http://" + U(FLAGS_k8s_apiserver_host) +
-      ":" + U(FLAGS_k8s_apiserver_port));
+  utility::string_t address = U("http://" + U(FLAGS_k8s_apiserver_host) + ":" +
+                                U(FLAGS_k8s_apiserver_port));
 
   base_uri_ = http::uri(address);
 
@@ -49,14 +46,12 @@ K8sApiClient::K8sApiClient() {
 }
 
 pplx::task<json::value> K8sApiClient::BindPodTask(
-    const utility::string_t& base_uri,
-    const string& k8s_namespace,
-    const string& pod_name,
-    const string& node_name) {
+    const utility::string_t& base_uri, const string& k8s_namespace,
+    const string& pod_name, const string& node_name) {
   uri_builder ub(base_uri);
 
-  ub.append_path(U(api_prefix() + "namespaces/" + U(k8s_namespace) +
-        "/bindings"));
+  ub.append_path(
+      U(api_prefix() + "namespaces/" + U(k8s_namespace) + "/bindings"));
 
   json::value body_json = json::value::object();
   body_json["target"] = json::value::object();
@@ -66,17 +61,17 @@ pplx::task<json::value> K8sApiClient::BindPodTask(
 
   http_client node_client(ub.to_uri());
   return node_client.request(methods::POST, U(""), U(body_json))
-    .then([=](http_response resp) {
-    return resp.extract_json();
-  }).then([=](json::value resp) {
-    LOG(INFO) << "Parsing binding response: " << resp;
-    json::value result = json::value::object();
+      .then([=](http_response resp) { return resp.extract_json(); })
+      .then([=](json::value resp) {
+        LOG(INFO) << "Parsing binding response: " << resp;
+        json::value result = json::value::object();
 
-    return result;
-  }).then([=](pplx::task<json::value> t) {
-    // If there was an exception, modify the response to contain an error
-    return HandleTaskException(t, U("status"));
-  });
+        return result;
+      })
+      .then([=](pplx::task<json::value> t) {
+        // If there was an exception, modify the response to contain an error
+        return HandleTaskException(t, U("status"));
+      });
 }
 
 // Given base URI and label selector, fetch list of nodes that match.
@@ -94,43 +89,45 @@ pplx::task<json::value> K8sApiClient::GetNodesTask(
   }
 
   http_client node_client(ub.to_uri());
-  return node_client.request(methods::GET).then([=](http_response resp) {
-    return resp.extract_json();
-  }).then([=](json::value nodes_json) {
-    VLOG(3) << "Parsing response: " << nodes_json;
-    json::value nodes_result_node = json::value::object();
+  return node_client.request(methods::GET)
+      .then([=](http_response resp) { return resp.extract_json(); })
+      .then([=](json::value nodes_json) {
+        VLOG(3) << "Parsing response: " << nodes_json;
+        json::value nodes_result_node = json::value::object();
 
-    if (nodes_json.is_object() &&
-        !nodes_json.as_object()[U("items")].is_null()) {
-      auto& nList = nodes_json[U("items")].as_array();
-      nodes_result_node[U("nodes")] = json::value::array(nList.size());
+        if (nodes_json.is_object() &&
+            !nodes_json.as_object()[U("items")].is_null()) {
+          auto& nList = nodes_json[U("items")].as_array();
+          nodes_result_node[U("nodes")] = json::value::array(nList.size());
 
-      uint32_t index = 0;
-      for (auto& iter : nList) {
-        auto& node = iter.as_object();
-        auto& nStatus = node[U("status")].as_object();
-        auto& nInfo = nStatus[U("nodeInfo")].as_object();
-        const auto& nName = nInfo.find(U("machineID"));
-        if (nName == nInfo.end()) {
-          LOG(ERROR) << "Failed to find machineID for node!";
+          uint32_t index = 0;
+          for (auto& iter : nList) {
+            auto& node = iter.as_object();
+            auto& nStatus = node[U("status")].as_object();
+            auto& nInfo = nStatus[U("nodeInfo")].as_object();
+            const auto& nName = nInfo.find(U("machineID"));
+            if (nName == nInfo.end()) {
+              LOG(ERROR) << "Failed to find machineID for node!";
+            }
+            nodes_result_node[U("nodes")][index][U("id")] = nName->second;
+            nodes_result_node[U("nodes")][index][U("hostname")] =
+                node[U("metadata")][U("name")];
+            ++index;
+          }
+        } else {
+          LOG(ERROR)
+              << "No nodes found in API server response for label selector "
+              << label_selector;
+          // Node data is null, we hit an error, so return empty list.
+          nodes_result_node[U("nodes")] = json::value::array(0);
         }
-        nodes_result_node[U("nodes")][index][U("id")] = nName->second;
-        nodes_result_node[U("nodes")][index][U("hostname")] =
-            node[U("metadata")][U("name")];
-        ++index;
-      }
-    } else {
-      LOG(ERROR) << "No nodes found in API server response for label selector "
-                 << label_selector;
-      // Node data is null, we hit an error, so return empty list.
-      nodes_result_node[U("nodes")] = json::value::array(0);
-    }
 
-    return nodes_result_node;
-  }).then([=](pplx::task<json::value> t) {
-    // If there was an exception, modify the response to contain an error
-    return HandleTaskException(t, U("status"));
-  });
+        return nodes_result_node;
+      })
+      .then([=](pplx::task<json::value> t) {
+        // If there was an exception, modify the response to contain an error
+        return HandleTaskException(t, U("status"));
+      });
 }
 
 pplx::task<json::value> K8sApiClient::GetPodsTask(
@@ -144,52 +141,52 @@ pplx::task<json::value> K8sApiClient::GetPodsTask(
   }
 
   http_client node_client(ub.to_uri());
-  return node_client.request(methods::GET).then([=](http_response resp) {
-    return resp.extract_json();
-  }).then([=](json::value pods_json) {
-    VLOG(3) << "Parsing response: " << pods_json;
-    json::value result = json::value::object();
+  return node_client.request(methods::GET)
+      .then([=](http_response resp) { return resp.extract_json(); })
+      .then([=](json::value pods_json) {
+        VLOG(3) << "Parsing response: " << pods_json;
+        json::value result = json::value::object();
 
-    if (pods_json.is_object() &&
-        !pods_json.as_object()[U("items")].is_null()) {
-      auto& pList = pods_json[U("items")].as_array();
-      result[U("pods")] = json::value::array(pList.size());
+        if (pods_json.is_object() &&
+            !pods_json.as_object()[U("items")].is_null()) {
+          auto& pList = pods_json[U("items")].as_array();
+          result[U("pods")] = json::value::array(pList.size());
 
-      uint32_t index = 0;
-      for (auto& iter : pList) {
-        auto& pod = iter.as_object();
-        auto& pName = pod[U("metadata")].as_object()[U("name")];
-        result[U("pods")][index][U("name")] = pName;
-        auto& pStatus = pod[U("status")].as_object();
-        result[U("pods")][index][U("state")] = pStatus[U("phase")];
-        ++index;
-      }
-    } else {
-      LOG(ERROR) << "No pods found in API server response for label selector "
-                 << label_selector;
-      // Node data is null, we hit an error, so return empty list.
-      result[U("pods")] = json::value::array(0);
-    }
+          uint32_t index = 0;
+          for (auto& iter : pList) {
+            auto& pod = iter.as_object();
+            auto& pName = pod[U("metadata")].as_object()[U("name")];
+            result[U("pods")][index][U("name")] = pName;
+            auto& pStatus = pod[U("status")].as_object();
+            result[U("pods")][index][U("state")] = pStatus[U("phase")];
+            ++index;
+          }
+        } else {
+          LOG(ERROR)
+              << "No pods found in API server response for label selector "
+              << label_selector;
+          // Node data is null, we hit an error, so return empty list.
+          result[U("pods")] = json::value::array(0);
+        }
 
-    return result;
-  }).then([=](pplx::task<json::value> t) {
-    // If there was an exception, modify the response to contain an error
-    return HandleTaskException(t, U("status"));
-  });
+        return result;
+      })
+      .then([=](pplx::task<json::value> t) {
+        // If there was an exception, modify the response to contain an error
+        return HandleTaskException(t, U("status"));
+      });
 }
 
 vector<pair<string, string>> K8sApiClient::AllNodes(void) {
   return NodesWithLabel("");
 }
 
-vector<string> K8sApiClient::AllPods(void) {
-  return PodsWithLabel("");
-}
+vector<string> K8sApiClient::AllPods(void) { return PodsWithLabel(""); }
 
 bool K8sApiClient::BindPodToNode(const string& pod_name,
                                  const string& node_name) {
   pplx::task<json::value> t =
-    BindPodTask(base_uri_.to_string(), U("default"), pod_name, node_name);
+      BindPodTask(base_uri_.to_string(), U("default"), pod_name, node_name);
 
   try {
     t.wait();
@@ -202,7 +199,7 @@ bool K8sApiClient::BindPodToNode(const string& pod_name,
     } else {
       LOG(ERROR) << "Failed to bind pod: " << jval[U("status")][U("error")];
     }
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     LOG(ERROR) << "Exception while binding pod: " << e.what();
     return false;
   }
@@ -221,14 +218,13 @@ vector<pair<string, string>> K8sApiClient::NodesWithLabel(const string& label) {
     if (jval[U("status")].is_null() ||
         jval[U("status")].as_object()[U("error")].is_null()) {
       for (auto& iter : jval["nodes"].as_array()) {
-        nodes.push_back(
-            pair<string, string>(iter["id"].as_string(),
-                                 iter["hostname"].as_string()));
+        nodes.push_back(pair<string, string>(iter["id"].as_string(),
+                                             iter["hostname"].as_string()));
       }
     } else {
       LOG(ERROR) << "Failed to get nodes: " << jval[U("status")][U("error")];
     }
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     LOG(ERROR) << "Exception while waiting for node list: " << e.what();
   }
 
@@ -252,7 +248,7 @@ vector<string> K8sApiClient::PodsWithLabel(const string& label) {
     } else {
       LOG(ERROR) << "Failed to get pods: " << jval[U("status")][U("error")];
     }
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     LOG(ERROR) << "Exception while waiting for pod list: " << e.what();
   }
 
