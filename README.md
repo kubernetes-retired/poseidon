@@ -15,7 +15,7 @@ work here, but do not expect working code! :)***
 We always welcome contributions to Poseidon. We use GerritHub for our code
 reviews, and you can find the Poseidon review board there:
 
-https://review.gerrithub.io/#/q/project:ms705/poseidon+is:open
+https://review.gerrithub.io/#/q/project:camsas/poseidon+is:open
 
 In order to do code reviews, you will need an account on GerritHub (you can link
 your GitHub account).
