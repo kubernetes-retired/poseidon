@@ -7,7 +7,6 @@
 #include "platforms/sim/simulated_messaging_adapter.h"
 #include "scheduling/flow/flow_scheduler.h"
 #include "scheduling/scheduling_delta.pb.h"
-#include "storage/stub_object_store.h"
 
 #include "apiclient/k8s_api_client.h"
 

@@ -17,7 +17,8 @@
 #    LOG_BUILD ON
 #    LOG_INSTALL ON)
 
-# Add MS CPP REST SDK dependency
+###############################################################################
+# MS CPP REST SDK
 ExternalProject_Add(
     cpp-rest-sdk
     GIT_REPOSITORY https://github.com/Microsoft/cpprestsdk
@@ -36,7 +37,8 @@ set(cpp-rest-sdk_SOURCE_DIR ${SOURCE_DIR})
 set(cpp-rest-sdk_INCLUDE_DIR ${SOURCE_DIR}/Release/include)
 set(cpp-rest-sdk_BINARY_DIR ${BINARY_DIR}/Binaries)
 
-# Add Google Test dependency
+###############################################################################
+# Google Test
 ExternalProject_Add(
     gtest
     GIT_REPOSITORY https://github.com/google/googletest.git
@@ -59,10 +61,34 @@ include_directories(${gmock_INCLUDE_DIR})
 set(gmock_LIBRARY ${gtest_BINARY_DIR}/googlemock/libgmock.a)
 set(gmock_MAIN_LIBRARY ${gtest_BINARY_DIR}/googlemock/libgmock_main.a)
 
-# Add Firmament as a dependency
+###############################################################################
+# protobuf3
+ExternalProject_Add(
+    protobuf3
+    GIT_REPOSITORY https://github.com/google/protobuf
+    GIT_TAG v3.1.0
+    TIMEOUT 10
+    PREFIX ${CMAKE_CURRENT_BINARY_DIR}/third_party/protobuf3
+    CONFIGURE_COMMAND "${CMAKE_COMMAND}"
+                      "-H${CMAKE_CURRENT_BINARY_DIR}/third_party/protobuf3/src/protobuf3/cmake"
+                      "-B${CMAKE_CURRENT_BINARY_DIR}/third_party/protobuf3/src/protobuf3-build"
+                      "-Dprotobuf_BUILD_TESTS=off" "-DCMAKE_CXX_FLAGS=\"-fPIC\""
+    # no install required, we link the library from the build tree
+    INSTALL_COMMAND "")
+
+ExternalProject_Get_Property(protobuf3 SOURCE_DIR)
+ExternalProject_Get_Property(protobuf3 BINARY_DIR)
+set(protobuf3_SOURCE_DIR ${SOURCE_DIR})
+set(protobuf3_BINARY_DIR ${BINARY_DIR})
+set(protobuf3_INCLUDE_DIR ${protobuf3_SOURCE_DIR}/src)
+include_directories(${protobuf3_INCLUDE_DIR})
+set(protobuf3_LIBRARY ${protobuf3_BINARY_DIR}/libprotobuf.a)
+
+###############################################################################
+# Firmament
 ExternalProject_Add(
     firmament
-    GIT_REPOSITORY https://github.com/ms705/firmament
+    GIT_REPOSITORY https://github.com/camsas/firmament
     TIMEOUT 10
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/firmament
     CMAKE_ARGS -DHTTP_UI=off -DENABLE_HDFS=off

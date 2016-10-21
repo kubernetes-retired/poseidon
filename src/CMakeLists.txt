@@ -14,6 +14,6 @@ add_definitions(-D__PLATFORM_HAS_BOOST__)
 
 target_link_libraries(poseidon
   boost_filesystem boost_system boost_thread
-  crypto ctemplate gflags glog protobuf ssl
+  crypto ctemplate gflags glog ${protobuf3_LIBRARY} ssl
   firmament_scheduling
   ${cpp-rest-sdk_BINARY_DIR}/libcpprest.so)
