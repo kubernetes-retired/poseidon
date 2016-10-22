@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
     }
 
     // Poll pods
-    vector<string> pods = api_client.AllPods();
+    vector<pair<string, string>> pods = api_client.AllPods();
     unordered_map<string, string>* pod_node_bindings =
       scheduler_bridge.RunScheduler(pods);
     for (auto& pod_node : *pod_node_bindings) {

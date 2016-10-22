@@ -181,7 +181,9 @@ vector<pair<string, string>> K8sApiClient::AllNodes(void) {
   return NodesWithLabel("");
 }
 
-vector<string> K8sApiClient::AllPods(void) { return PodsWithLabel(""); }
+vector<pair<string, string>> K8sApiClient::AllPods(void) {
+  return PodsWithLabel("");
+}
 
 bool K8sApiClient::BindPodToNode(const string& pod_name,
                                  const string& node_name) {
@@ -231,19 +233,18 @@ vector<pair<string, string>> K8sApiClient::NodesWithLabel(const string& label) {
   return nodes;
 }
 
-vector<string> K8sApiClient::PodsWithLabel(const string& label) {
-  vector<string> pods;
+vector<pair<string, string>> K8sApiClient::PodsWithLabel(const string& label) {
+  vector<pair<string, string>> pods;
   pplx::task<json::value> t = GetPodsTask(base_uri_.to_string(), U(label));
 
   try {
     t.wait();
-
     json::value jval = t.get();
-
     if (jval[U("status")].is_null() ||
         jval[U("status")].as_object()[U("error")].is_null()) {
       for (auto& iter : jval["pods"].as_array()) {
-        pods.push_back(iter["name"].as_string());
+        pods.push_back(pair<string, string>(iter["name"].as_string(),
+                                            iter["state"].as_string()));
       }
     } else {
       LOG(ERROR) << "Failed to get pods: " << jval[U("status")][U("error")];

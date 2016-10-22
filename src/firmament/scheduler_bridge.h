@@ -50,7 +50,8 @@ class SchedulerBridge {
   ~SchedulerBridge();
   JobDescriptor* CreateJobForPod(const string& pod);
   bool CreateResourceForNode(const string& node_id, const string& node_name);
-  unordered_map<string, string>* RunScheduler(const vector<string>& pods);
+  unordered_map<string, string>* RunScheduler(
+      const vector<pair<string, string>>& pods);
 
  private:
   ResourceStatus* CreateTopLevelResource();
