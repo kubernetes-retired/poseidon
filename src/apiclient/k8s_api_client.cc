@@ -6,7 +6,7 @@
 #include <streambuf>
 #include <string>
 #include <vector>
-
+#include <boost/lexical_cast.hpp>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 
@@ -23,6 +23,7 @@ DEFINE_string(k8s_apiserver_port, "8080",
               "Port number for Kubernetes API server.");
 DEFINE_string(k8s_api_version, "v1", "Kubernetes API version to use.");
 
+using boost::lexical_cast;
 using namespace std;
 using namespace web;
 using namespace json;
@@ -105,6 +106,8 @@ pplx::task<json::value> K8sApiClient::GetNodesTask(
             auto& node = iter.as_object();
             auto& nStatus = node[U("status")].as_object();
             auto& nInfo = nStatus[U("nodeInfo")].as_object();
+            auto& nCapacity = nStatus[U("capacity")].as_object();
+            auto& nAllocatable = nStatus[U("allocatable")].as_object();
             const auto& nName = nInfo.find(U("machineID"));
             if (nName == nInfo.end()) {
               LOG(ERROR) << "Failed to find machineID for node!";
@@ -112,6 +115,14 @@ pplx::task<json::value> K8sApiClient::GetNodesTask(
             nodes_result_node[U("nodes")][index][U("id")] = nName->second;
             nodes_result_node[U("nodes")][index][U("hostname")] =
                 node[U("metadata")][U("name")];
+            nodes_result_node[U("nodes")][index][U("cpu_allocatable")] =
+              nAllocatable.find(U("cpu"))->second;
+            nodes_result_node[U("nodes")][index][U("cpu_capacity")] =
+              nCapacity.find(U("cpu"))->second;
+            nodes_result_node[U("nodes")][index][U("mem_allocatable")] =
+              nAllocatable.find(U("memory"))->second;
+            nodes_result_node[U("nodes")][index][U("mem_capacity")] =
+              nCapacity.find(U("memory"))->second;
             ++index;
           }
         } else {
@@ -159,6 +170,8 @@ pplx::task<json::value> K8sApiClient::GetPodsTask(
             result[U("pods")][index][U("name")] = pName;
             auto& pStatus = pod[U("status")].as_object();
             result[U("pods")][index][U("state")] = pStatus[U("phase")];
+            result[U("pods")][index][U("containers")] =
+              pod[U("spec")].as_object()[U("containers")];
             ++index;
           }
         } else {
@@ -177,11 +190,11 @@ pplx::task<json::value> K8sApiClient::GetPodsTask(
       });
 }
 
-vector<pair<string, string>> K8sApiClient::AllNodes(void) {
+vector<pair<string, NodeStatistics>> K8sApiClient::AllNodes(void) {
   return NodesWithLabel("");
 }
 
-vector<pair<string, string>> K8sApiClient::AllPods(void) {
+vector<PodStatistics> K8sApiClient::AllPods(void) {
   return PodsWithLabel("");
 }
 
@@ -208,8 +221,9 @@ bool K8sApiClient::BindPodToNode(const string& pod_name,
   return true;
 }
 
-vector<pair<string, string>> K8sApiClient::NodesWithLabel(const string& label) {
-  vector<pair<string, string>> nodes;
+vector<pair<string, NodeStatistics>> K8sApiClient::NodesWithLabel(
+    const string& label) {
+  vector<pair<string, NodeStatistics>> nodes;
   pplx::task<json::value> t = GetNodesTask(base_uri_.to_string(), U(label));
 
   try {
@@ -220,8 +234,22 @@ vector<pair<string, string>> K8sApiClient::NodesWithLabel(const string& label) {
     if (jval[U("status")].is_null() ||
         jval[U("status")].as_object()[U("error")].is_null()) {
       for (auto& iter : jval["nodes"].as_array()) {
-        nodes.push_back(pair<string, string>(iter["id"].as_string(),
-                                             iter["hostname"].as_string()));
+        // TODO(ionel): Correctly parse the units.
+        NodeStatistics node_stats;
+        node_stats.hostname_ = iter["hostname"].as_string();
+        node_stats.cpu_capacity_ =
+          boost::lexical_cast<double>(iter["cpu_capacity"].as_string());
+        node_stats.cpu_allocatable_ =
+          boost::lexical_cast<double>(iter["cpu_allocatable"].as_string());
+        auto& mem_cap = iter["mem_capacity"].as_string();
+        node_stats.memory_capacity_kb_ =
+          boost::lexical_cast<uint64_t>(mem_cap.substr(0, mem_cap.size() - 2));
+        auto& mem_allocatable = iter["mem_allocatable"].as_string();
+        node_stats.memory_allocatable_kb_ =
+          boost::lexical_cast<uint64_t>(
+            mem_allocatable.substr(0, mem_allocatable.size() - 2));
+        nodes.push_back(pair<string, NodeStatistics>(iter["id"].as_string(),
+                                                     node_stats));
       }
     } else {
       LOG(ERROR) << "Failed to get nodes: " << jval[U("status")][U("error")];
@@ -233,8 +261,9 @@ vector<pair<string, string>> K8sApiClient::NodesWithLabel(const string& label) {
   return nodes;
 }
 
-vector<pair<string, string>> K8sApiClient::PodsWithLabel(const string& label) {
-  vector<pair<string, string>> pods;
+vector<PodStatistics> K8sApiClient::PodsWithLabel(
+    const string& label) {
+  vector<PodStatistics> pods;
   pplx::task<json::value> t = GetPodsTask(base_uri_.to_string(), U(label));
 
   try {
@@ -243,8 +272,26 @@ vector<pair<string, string>> K8sApiClient::PodsWithLabel(const string& label) {
     if (jval[U("status")].is_null() ||
         jval[U("status")].as_object()[U("error")].is_null()) {
       for (auto& iter : jval["pods"].as_array()) {
-        pods.push_back(pair<string, string>(iter["name"].as_string(),
-                                            iter["state"].as_string()));
+        auto& pContainerList = iter["containers"].as_array();
+        double cpu_request = 0;
+        uint64_t memory_request = 0;
+        for (auto& iter : pContainerList) {
+          auto& container = iter.as_object();
+          auto& container_res = container[U("resources")].as_object();
+          auto& container_req = container_res[U("requests")].as_object();
+          // TODO(ionel): Correctly parse the units.
+          cpu_request += boost::lexical_cast<double>(
+              container_req.find(U("cpu"))->second.as_string());
+          auto& mem_req = container_req.find(U("memory"))->second.as_string();
+          memory_request += boost::lexical_cast<uint64_t>(
+               mem_req.substr(0, mem_req.size() - 2));
+        }
+        PodStatistics pod_stats;
+        pod_stats.name_ = iter["name"].as_string();
+        pod_stats.state_ = iter["state"].as_string();
+        pod_stats.cpu_request_ = cpu_request;
+        pod_stats.memory_request_ = memory_request;
+        pods.push_back(pod_stats);
       }
     } else {
       LOG(ERROR) << "Failed to get pods: " << jval[U("status")][U("error")];

@@ -6,6 +6,7 @@ link_directories(${Firmament_BINARY_DIR}/src/)
 add_executable(poseidon
   apiclient/k8s_api_client.cc
   apiclient/utils.cc
+  firmament/knowledge_base_populator.cc
   firmament/scheduler_bridge.cc
   firmament/scheduler_integration.cc
   )
