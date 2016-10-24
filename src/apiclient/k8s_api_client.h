@@ -20,9 +20,9 @@ class K8sApiClient {
  public:
   K8sApiClient();
   vector<pair<string, string>> AllNodes(void);
-  vector<string> AllPods(void);
+  vector<pair<string, string>> AllPods(void);
   vector<pair<string, string>> NodesWithLabel(const string& label);
-  vector<string> PodsWithLabel(const string& label);
+  vector<pair<string, string>> PodsWithLabel(const string& label);
   bool BindPodToNode(const string& pod_name, const string& node_name);
 
  private:

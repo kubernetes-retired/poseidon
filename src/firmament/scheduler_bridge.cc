@@ -100,19 +100,31 @@ ResourceStatus* SchedulerBridge::CreateTopLevelResource() {
 }
 
 unordered_map<string, string>* SchedulerBridge::RunScheduler(
-    const vector<string>& pods) {
+    const vector<pair<string, string>>& pods) {
   bool found_new_pod = false;
-  for (const string& pod : pods) {
-    // TODO(malte): should use p.state() == "Pending" or similar
-    if (firmament::FindOrNull(pod_to_task_map_, pod) == NULL) {
-      LOG(INFO) << "New unscheduled pod: " << pod;
-      found_new_pod = true;
-      JobDescriptor* jd_ptr = CreateJobForPod(pod);
-      CHECK(InsertIfNotPresent(&pod_to_task_map_, pod,
-                               jd_ptr->root_task().uid()));
-      CHECK(InsertIfNotPresent(&task_to_pod_map_,
-                               jd_ptr->root_task().uid(), pod));
-      flow_scheduler_->AddJob(jd_ptr);
+  for (const pair<string, string>& pod_state : pods) {
+    if (pod_state.second == "Pending") {
+      if (firmament::FindOrNull(pod_to_task_map_, pod_state.first) == NULL) {
+        LOG(INFO) << "New unscheduled pod: " << pod_state.first;
+        found_new_pod = true;
+        JobDescriptor* jd_ptr = CreateJobForPod(pod_state.first);
+        CHECK(InsertIfNotPresent(&pod_to_task_map_, pod_state.first,
+                                 jd_ptr->root_task().uid()));
+        CHECK(InsertIfNotPresent(&task_to_pod_map_,
+                                 jd_ptr->root_task().uid(), pod_state.first));
+        flow_scheduler_->AddJob(jd_ptr);
+      }
+    } else if (pod_state.second == "Running") {
+      // TODO(ionel): Update pod statistics.
+    } else if (pod_state.second == "Succeeded") {
+      // TODO(ionel): Generate TaskFinalReport if were detecting
+      // for the first time that the pod has succeeded.
+    } else if (pod_state.second == "Failed" ||
+               pod_state.second == "Unknown") {
+      // We don't have to do anything in these cases.
+    } else {
+      LOG(ERROR) << "Pod " << pod_state.first << " is unexpected state "
+                 << pod_state.second;
     }
   }
   unordered_map<string, string>* pod_node_bindings =
