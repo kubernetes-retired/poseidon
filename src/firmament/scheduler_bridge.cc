@@ -10,6 +10,8 @@ SchedulerBridge::SchedulerBridge() {
   job_map_.reset(new JobMap_t);
   task_map_.reset(new TaskMap_t);
   resource_map_.reset(new ResourceMap_t);
+  knowledge_base_.reset(new KnowledgeBase);
+  topology_manager_.reset(new TopologyManager);
   ResourceStatus* top_level_res_status = CreateTopLevelResource();
   top_level_res_id_ =
       firmament::ResourceIDFromString(
@@ -22,6 +24,7 @@ SchedulerBridge::SchedulerBridge() {
                       task_map_, knowledge_base_, topology_manager_,
                       sim_messaging_adapter_, NULL, top_level_res_id_, "",
                       &wall_time_, trace_generator_);
+  kb_populator_ = new KnowledgeBasePopulator(knowledge_base_);
   LOG(INFO) << "Firmament scheduler instantiated: " << flow_scheduler_;
 }
 
@@ -29,6 +32,14 @@ SchedulerBridge::~SchedulerBridge() {
   delete flow_scheduler_;
   delete sim_messaging_adapter_;
   delete trace_generator_;
+  delete kb_populator_;
+}
+
+void SchedulerBridge::AddStatisticsForNode(const string& node_id,
+                                           const NodeStatistics& node_stats) {
+  ResourceID_t rid = firmament::ResourceIDFromString(node_id);
+  CHECK(ContainsKey(*resource_map_, rid));
+  kb_populator_->PopulateNodeStats(firmament::to_string(rid), node_stats);
 }
 
 JobDescriptor* SchedulerBridge::CreateJobForPod(const string& pod) {
@@ -100,31 +111,37 @@ ResourceStatus* SchedulerBridge::CreateTopLevelResource() {
 }
 
 unordered_map<string, string>* SchedulerBridge::RunScheduler(
-    const vector<pair<string, string>>& pods) {
+    const vector<PodStatistics>& pods) {
   bool found_new_pod = false;
-  for (const pair<string, string>& pod_state : pods) {
-    if (pod_state.second == "Pending") {
-      if (firmament::FindOrNull(pod_to_task_map_, pod_state.first) == NULL) {
-        LOG(INFO) << "New unscheduled pod: " << pod_state.first;
+  for (const PodStatistics& pod : pods) {
+    if (pod.state_ == "Pending") {
+      if (firmament::FindOrNull(pod_to_task_map_, pod.name_) == NULL) {
+        LOG(INFO) << "New unscheduled pod: " << pod.name_;
         found_new_pod = true;
-        JobDescriptor* jd_ptr = CreateJobForPod(pod_state.first);
-        CHECK(InsertIfNotPresent(&pod_to_task_map_, pod_state.first,
+        JobDescriptor* jd_ptr = CreateJobForPod(pod.name_);
+        CHECK(InsertIfNotPresent(&pod_to_task_map_, pod.name_,
                                  jd_ptr->root_task().uid()));
         CHECK(InsertIfNotPresent(&task_to_pod_map_,
-                                 jd_ptr->root_task().uid(), pod_state.first));
+                                 jd_ptr->root_task().uid(), pod.name_));
         flow_scheduler_->AddJob(jd_ptr);
       }
-    } else if (pod_state.second == "Running") {
+    } else if (pod.state_ == "Running") {
       // TODO(ionel): Update pod statistics.
-    } else if (pod_state.second == "Succeeded") {
+      string* node = FindOrNull(pod_to_node_map_, pod.name_);
+      CHECK_NOTNULL(node);
+      TaskID_t* tid_ptr = FindOrNull(pod_to_task_map_, pod.name_);
+      CHECK_NOTNULL(tid_ptr);
+      kb_populator_->PopulatePodStats(*tid_ptr, *node, pod);
+    } else if (pod.state_ == "Succeeded") {
       // TODO(ionel): Generate TaskFinalReport if were detecting
       // for the first time that the pod has succeeded.
-    } else if (pod_state.second == "Failed" ||
-               pod_state.second == "Unknown") {
+      // kb_populator_->ProcessFinalPodReport();
+    } else if (pod.state_ == "Failed" ||
+               pod.state_ == "Unknown") {
       // We don't have to do anything in these cases.
     } else {
-      LOG(ERROR) << "Pod " << pod_state.first << " is unexpected state "
-                 << pod_state.second;
+      LOG(ERROR) << "Pod " << pod.name_ << " is unexpected state "
+                 << pod.state_;
     }
   }
   unordered_map<string, string>* pod_node_bindings =
@@ -148,6 +165,7 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
           node_map_, firmament::ResourceIDFromString(d.resource_id()));
       CHECK_NOTNULL(pod);
       CHECK_NOTNULL(node);
+      CHECK(InsertIfNotPresent(&pod_to_node_map_, *pod, *node));
       CHECK(InsertIfNotPresent(pod_node_bindings, *pod, *node));
     } else {
       LOG(WARNING) << "Encountered unsupported scheduling delta of type "

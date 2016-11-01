@@ -4,6 +4,7 @@
 #include <glog/logging.h>
 
 #include "apiclient/k8s_api_client.h"
+#include "apiclient/utils.h"
 #include "firmament/scheduler_bridge.h"
 
 DEFINE_int64(polling_frequency, 10000000,
@@ -23,16 +24,18 @@ int main(int argc, char** argv) {
   // main loop -- keep looking for nodes and pods
   while (true) {
     // Poll nodes
-    vector<pair<string, string>> nodes = api_client.AllNodes();
+    vector<pair<string, poseidon::apiclient::NodeStatistics>> nodes =
+      api_client.AllNodes();
     if (!nodes.empty()) {
       for (auto& n : nodes) {
         // node_id, hostname
-        scheduler_bridge.CreateResourceForNode(n.first, n.second);
+        scheduler_bridge.CreateResourceForNode(n.first, n.second.hostname_);
+        scheduler_bridge.AddStatisticsForNode(n.first, n.second);
       }
     }
 
     // Poll pods
-    vector<pair<string, string>> pods = api_client.AllPods();
+    vector<poseidon::apiclient::PodStatistics> pods = api_client.AllPods();
     unordered_map<string, string>* pod_node_bindings =
       scheduler_bridge.RunScheduler(pods);
     for (auto& pod_node : *pod_node_bindings) {

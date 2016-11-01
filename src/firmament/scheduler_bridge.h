@@ -16,6 +16,10 @@
 #include "platforms/sim/simulated_messaging_adapter.h"
 #include "scheduling/flow/flow_scheduler.h"
 #include "scheduling/scheduling_delta.pb.h"
+#include "storage/simple_object_store.h"
+
+#include "apiclient/utils.h"
+#include "firmament/knowledge_base_populator.h"
 
 using firmament::BaseMessage;
 using firmament::ContainsKey;
@@ -39,6 +43,8 @@ using firmament::scheduler::FlowScheduler;
 using firmament::scheduler::ObjectStoreInterface;
 using firmament::scheduler::TopologyManager;
 using firmament::platform::sim::SimulatedMessagingAdapter;
+using poseidon::apiclient::NodeStatistics;
+using poseidon::apiclient::PodStatistics;
 
 using namespace std;
 
@@ -48,10 +54,12 @@ class SchedulerBridge {
  public:
   SchedulerBridge();
   ~SchedulerBridge();
+  void AddStatisticsForNode(const string& node_id,
+                            const NodeStatistics& node_stats);
   JobDescriptor* CreateJobForPod(const string& pod);
   bool CreateResourceForNode(const string& node_id, const string& node_name);
   unordered_map<string, string>* RunScheduler(
-      const vector<pair<string, string>>& pods);
+      const vector<PodStatistics>& pods);
 
  private:
   ResourceStatus* CreateTopLevelResource();
@@ -68,8 +76,10 @@ class SchedulerBridge {
   boost::shared_ptr<TopologyManager> topology_manager_;
   map<ResourceID_t, string> node_map_;
   unordered_map<string, TaskID_t> pod_to_task_map_;
+  unordered_map<string, string> pod_to_node_map_;
   unordered_map<TaskID_t, string> task_to_pod_map_;
   ResourceID_t top_level_res_id_;
+  KnowledgeBasePopulator* kb_populator_;
 };
 
 }  // namespace poseidon

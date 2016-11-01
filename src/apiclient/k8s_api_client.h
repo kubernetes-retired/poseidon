@@ -6,6 +6,8 @@
 #include "cpprest/http_client.h"
 #include "cpprest/json.h"
 
+#include "apiclient/utils.h"
+
 using namespace std;
 using namespace web;
 using namespace json;
@@ -19,10 +21,10 @@ namespace apiclient {
 class K8sApiClient {
  public:
   K8sApiClient();
-  vector<pair<string, string>> AllNodes(void);
-  vector<pair<string, string>> AllPods(void);
-  vector<pair<string, string>> NodesWithLabel(const string& label);
-  vector<pair<string, string>> PodsWithLabel(const string& label);
+  vector<pair<string, NodeStatistics>> AllNodes(void);
+  vector<PodStatistics> AllPods(void);
+  vector<pair<string, NodeStatistics>> NodesWithLabel(const string& label);
+  vector<PodStatistics> PodsWithLabel(const string& label);
   bool BindPodToNode(const string& pod_name, const string& node_name);
 
  private:

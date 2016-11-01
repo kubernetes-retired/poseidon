@@ -16,6 +16,21 @@ using namespace http::client;
 namespace poseidon {
 namespace apiclient {
 
+struct NodeStatistics {
+  string hostname_;
+  double cpu_capacity_;
+  double cpu_allocatable_;
+  uint64_t memory_capacity_kb_;
+  uint64_t memory_allocatable_kb_;
+};
+
+struct PodStatistics {
+  string name_;
+  string state_;
+  double cpu_request_;
+  uint64_t memory_request_kb_;
+};
+
 http_response PrintHTTPResponse(const string& url,
                                 const http_response& response);
 
