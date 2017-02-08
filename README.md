@@ -67,7 +67,7 @@ Then, build Poseidon:
 build$ make
 ```
 
-Following, make sure you have a Kubernetes cluster running. To deploy one you can execute:
+Following, make sure you have a Kubernetes cluster running. If you're running Ubuntu on amd64 then you can execute:
 
 ```
 ./deploy/build_kubernetes.sh
