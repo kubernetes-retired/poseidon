@@ -22,7 +22,9 @@ $ docker run camsas/poseidon:dev /usr/bin/poseidon \
     --max_tasks_per_pu=<max pods per node>
 ```
 Note that Poseidon will try to schedule for Kubernetes even if `kube-scheduler`
-is running -- to avoid conflicts, shut it down first.
+is running -- to avoid conflicts, shut it down first. If your `kube-scheduler`
+is running locally then you can execute `sudo service kube-scheduler stop`,
+otherwise stop its pod.
 
 You will also need to ensure that the API server is reachable from the Poseidon
 container's network (e.g., using `--net=host` if you're running a local
@@ -65,23 +67,24 @@ Then, build Poseidon:
 build$ make
 ```
 
+Following, make sure you have a Kubernetes cluster running. To deploy one you can execute:
+
+```
+./deploy/build_kubernetes.sh
+./deploy/run_kubernetes.sh
+```
+
 To start up, run from the root directory:
 
 ```
-$ build/poseidon --logtostderr \
+$ build/poseidon --flagfile=deploy/poseidon.cfg \
                  --k8s_apiserver_host=<hostname> \
-                 --k8s_apiserver_port=8080 \
-                 --max_tasks_per_pu=<max pods per node> \
-                 --cs2_binary=build/firmament/src/firmament-build/third_party/cs2/src/cs2/cs2.exe
+                 --k8s_apiserver_port=8080
 ```
 
-Additional arguments (e.g. to choose a scheduling policy) follow those
+Arguments in `deploy/poseidon.cfg` control flow scheduling features
+(e.g. to choose a scheduling policy). For more info check
 [accepted by Firmament](https://github.com/camsas/firmament/blob/master/README.md).
-
-You will likely need to specify the `--cs2_binary` option, which should point to
-the local installation of the cs2 min-cost flow solver. Normally, the cs2 binary
-is located in `build/firmament/src/firmament-build/third_party/cs2/src/cs2/cs2.exe`.
-
 
 ## Contributing
 
