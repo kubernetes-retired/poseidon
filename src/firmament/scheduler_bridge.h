@@ -25,6 +25,7 @@
 
 #include "base/resource_status.h"
 #include "base/resource_topology_node_desc.pb.h"
+#include "base/units.h"
 #include "misc/map-util.h"
 #include "misc/trace_generator.h"
 #include "misc/utils.h"
@@ -48,6 +49,7 @@ using firmament::ResourceDescriptor;
 using firmament::ResourceMap_t;
 using firmament::ResourceID_t;
 using firmament::ResourceStatus;
+using firmament::ResourceVector;
 using firmament::TaskID_t;
 using firmament::TaskDescriptor;
 using firmament::TaskMap_t;
@@ -73,7 +75,8 @@ class SchedulerBridge {
   void AddStatisticsForNode(const string& node_id,
                             const NodeStatistics& node_stats);
   JobDescriptor* CreateJobForPod(const string& pod);
-  bool CreateResourceForNode(const string& node_id, const string& node_name);
+  bool CreateResourceTopologyForNode(const string& node_id,
+                                     const apiclient::NodeStatistics& node_stats);
   unordered_map<string, string>* RunScheduler(
       const vector<PodStatistics>& pods);
 
@@ -91,6 +94,7 @@ class SchedulerBridge {
   boost::shared_ptr<TaskMap_t> task_map_;
   boost::shared_ptr<TopologyManager> topology_manager_;
   map<ResourceID_t, string> node_map_;
+  unordered_map<string, string> pu_to_node_map_;
   unordered_map<string, TaskID_t> pod_to_task_map_;
   unordered_map<string, string> pod_to_node_map_;
   unordered_map<TaskID_t, string> task_to_pod_map_;

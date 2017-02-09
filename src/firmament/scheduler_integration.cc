@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
     if (!nodes.empty()) {
       for (auto& n : nodes) {
         // node_id, hostname
-        scheduler_bridge.CreateResourceForNode(n.first, n.second.hostname_);
+        scheduler_bridge.CreateResourceTopologyForNode(n.first, n.second);
         scheduler_bridge.AddStatisticsForNode(n.first, n.second);
       }
     }
