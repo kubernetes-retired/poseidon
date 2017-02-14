@@ -22,8 +22,9 @@
 
 #include "base/units.h"
 
-using firmament::KnowledgeBase;
 using firmament::CpuUsage;
+using firmament::KB_TO_MB;
+using firmament::KnowledgeBase;
 
 namespace poseidon {
 
@@ -69,9 +70,9 @@ void KnowledgeBasePopulator::PopulateNodeStats(
   machine_stats.set_resource_id(res_id);
   machine_stats.set_timestamp(time_manager_.GetCurrentTimestamp());
   machine_stats.set_total_ram(
-      node_stats.memory_capacity_kb_ / firmament::KB_TO_MB);
+      node_stats.memory_capacity_kb_ / KB_TO_MB);
   machine_stats.set_free_ram(
-      node_stats.memory_allocatable_kb_ / firmament::KB_TO_MB);
+      node_stats.memory_allocatable_kb_ / KB_TO_MB);
   // TODO(ionel): Get more accurate CPU values.
   AddMachineCpuUsage(&machine_stats, node_stats);
   // TODO(ionel): Get real disk and network values.
