@@ -20,8 +20,13 @@
 
 #include "firmament/scheduler_bridge.h"
 
-using firmament::to_string;
+using firmament::GenerateJobID;
+using firmament::GenerateResourceID;
 using firmament::KB_TO_MB;
+using firmament::ResourceIDFromString;
+using firmament::scheduler::SchedulerStats;
+using firmament::SchedulingDelta;
+using firmament::to_string;
 
 namespace poseidon {
 
@@ -33,8 +38,7 @@ SchedulerBridge::SchedulerBridge() {
   topology_manager_.reset(new TopologyManager);
   ResourceStatus* top_level_res_status = CreateTopLevelResource();
   top_level_res_id_ =
-      firmament::ResourceIDFromString(
-          top_level_res_status->descriptor().uuid());
+      ResourceIDFromString(top_level_res_status->descriptor().uuid());
   sim_messaging_adapter_ = new SimulatedMessagingAdapter<BaseMessage>();
   trace_generator_ = new TraceGenerator(&wall_time_);
   flow_scheduler_ =
@@ -56,7 +60,7 @@ SchedulerBridge::~SchedulerBridge() {
 
 void SchedulerBridge::AddStatisticsForNode(const string& node_id,
                                            const NodeStatistics& node_stats) {
-  ResourceID_t rid = firmament::ResourceIDFromString(node_id);
+  ResourceID_t rid = ResourceIDFromString(node_id);
   CHECK(ContainsKey(*resource_map_, rid));
   kb_populator_->PopulateNodeStats(to_string(rid), node_stats);
 }
@@ -65,7 +69,7 @@ JobDescriptor* SchedulerBridge::CreateJobForPod(const string& pod) {
   // Fake out a job for this pod
   // XXX(malte): we should equate a Firmament "job" with a K8s
   // "deployment" and "job" for a more sane notion here.
-  JobID_t job_id = firmament::GenerateJobID();
+  JobID_t job_id = GenerateJobID();
   JobDescriptor new_jd;
   CHECK(InsertIfNotPresent(job_map_.get(), job_id, new_jd));
   JobDescriptor* jd = FindOrNull(*job_map_, job_id);
@@ -73,7 +77,7 @@ JobDescriptor* SchedulerBridge::CreateJobForPod(const string& pod) {
   jd->set_name(pod);
   jd->set_state(JobDescriptor::CREATED);
   TaskDescriptor* root_td = jd->mutable_root_task();
-  root_td->set_uid(firmament::GenerateRootTaskID(*jd));
+  root_td->set_uid(GenerateRootTaskID(*jd));
   root_td->set_name(pod);
   root_td->set_state(TaskDescriptor::CREATED);
   root_td->set_job_id(jd->uuid());
@@ -84,7 +88,7 @@ JobDescriptor* SchedulerBridge::CreateJobForPod(const string& pod) {
 bool SchedulerBridge::CreateResourceTopologyForNode(
     const string& node_id,
     const apiclient::NodeStatistics& node_stats) {
-  ResourceID_t rid = firmament::ResourceIDFromString(node_id);
+  ResourceID_t rid = ResourceIDFromString(node_id);
   // Check if we know about this node already
   if (!ContainsKey(*resource_map_, rid)) {
     LOG(INFO) << "Adding new node's resource with RID " << rid;
@@ -106,7 +110,7 @@ bool SchedulerBridge::CreateResourceTopologyForNode(
     // TODO(ionel): In the future, we want to get real node topology rather
     // than manually connecting PU RDs to the machine RD.
     for (uint32_t num_pu = 0; num_pu < node_stats.cpu_capacity_; num_pu++) {
-      ResourceID_t pu_rid = firmament::GenerateResourceID();
+      ResourceID_t pu_rid = GenerateResourceID();
       string pu_name = node_stats.hostname_ + "_pu" + to_string(num_pu);
       LOG(INFO) << "Adding new PU with RID " << pu_name << " " << pu_rid;
       ResourceTopologyNodeDescriptor* pu_rtnd_ptr = rtnd_ptr->add_children();
@@ -137,7 +141,7 @@ bool SchedulerBridge::CreateResourceTopologyForNode(
 }
 
 ResourceStatus* SchedulerBridge::CreateTopLevelResource() {
-  ResourceID_t res_id = firmament::GenerateResourceID();
+  ResourceID_t res_id = GenerateResourceID();
   ResourceTopologyNodeDescriptor* rtnd_ptr =
     new ResourceTopologyNodeDescriptor();
   // Set up the RD
@@ -157,7 +161,7 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
   bool found_new_pod = false;
   for (const PodStatistics& pod : pods) {
     if (pod.state_ == "Pending") {
-      if (firmament::FindOrNull(pod_to_task_map_, pod.name_) == NULL) {
+      if (FindOrNull(pod_to_task_map_, pod.name_) == NULL) {
         LOG(INFO) << "New unscheduled pod: " << pod.name_;
         found_new_pod = true;
         JobDescriptor* jd_ptr = CreateJobForPod(pod.name_);
@@ -193,20 +197,20 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
     return pod_node_bindings;
   }
   // Invoke Firmament scheduling
-  firmament::scheduler::SchedulerStats sstat;
-  vector<firmament::SchedulingDelta> deltas;
+  SchedulerStats sstat;
+  vector<SchedulingDelta> deltas;
   flow_scheduler_->ScheduleAllJobs(&sstat, &deltas);
 
   // Extract results
   LOG(INFO) << "Got " << deltas.size() << " scheduling deltas";
   for (auto& d : deltas) {
     LOG(INFO) << "Delta: " << d.DebugString();
-    if (d.type() == firmament::SchedulingDelta::PLACE) {
+    if (d.type() == SchedulingDelta::PLACE) {
       const string* pod = FindOrNull(task_to_pod_map_, d.task_id());
       const string* node_rid = FindOrNull(pu_to_node_map_, d.resource_id());
       CHECK_NOTNULL(node_rid);
       const string* node_name = FindOrNull(
-          node_map_, firmament::ResourceIDFromString(*node_rid));
+          node_map_, ResourceIDFromString(*node_rid));
       CHECK_NOTNULL(pod);
       CHECK_NOTNULL(node_name);
       CHECK(InsertIfNotPresent(&pod_to_node_map_, *pod, *node_name));
