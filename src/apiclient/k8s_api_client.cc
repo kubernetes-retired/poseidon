@@ -34,6 +34,8 @@
 #include "cpprest/http_client.h"
 #include "cpprest/json.h"
 
+#include "misc/map-util.h"
+
 #include "apiclient/utils.h"
 
 DEFINE_string(k8s_apiserver_host, "localhost",
@@ -41,6 +43,8 @@ DEFINE_string(k8s_apiserver_host, "localhost",
 DEFINE_string(k8s_apiserver_port, "8080",
               "Port number for Kubernetes API server.");
 DEFINE_string(k8s_api_version, "v1", "Kubernetes API version to use.");
+
+using firmament::ContainsKey;
 
 using namespace std;
 using namespace web;
@@ -292,12 +296,24 @@ vector<PodStatistics> K8sApiClient::PodsWithLabel(
         uint64_t memory_request = 0;
         for (auto& iter : pContainerList) {
           auto& container = iter.as_object();
-          auto& container_res = container[U("resources")].as_object();
-          auto& container_req = container_res[U("requests")].as_object();
-          // TODO(ionel): Correctly parse the units.
-          cpu_request += stod(container_req.find(U("cpu"))->second.as_string());
-          auto& mem_req = container_req.find(U("memory"))->second.as_string();
-          memory_request += stoull(mem_req.substr(0, mem_req.size() - 2));
+          if (ContainsKey(container, "resources")) {
+            auto& container_res = container[U("resources")].as_object();
+            if (ContainsKey(container_res, "requests")) {
+              auto& container_req = container_res[U("requests")].as_object();
+              // TODO(ionel): Correctly parse the units.
+              cpu_request += stod(container_req.find(U("cpu"))->second.as_string());
+              auto& mem_req = container_req.find(U("memory"))->second.as_string();
+              memory_request += stoull(mem_req.substr(0, mem_req.size() - 2));
+            } else {
+              LOG(INFO) << "Container " << container[U("name")].as_string() <<
+                " json object does not have resource requests object";
+              // TODO(ionel): Set resource requests default values.
+            }
+          } else {
+            LOG(INFO) << "Container " << container[U("name")].as_string() <<
+              " json object does not have resources object";
+            // TODO(ionel): Set resource requests default values.
+          }
         }
         PodStatistics pod_stats;
         pod_stats.name_ = iter["name"].as_string();
