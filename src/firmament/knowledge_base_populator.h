@@ -32,6 +32,7 @@
 using firmament::KnowledgeBase;
 using firmament::MachinePerfStatisticsSample;
 using firmament::ResourceID_t;
+using firmament::TaskDescriptor;
 using firmament::TaskFinalReport;
 using firmament::TaskID_t;
 using firmament::TaskPerfStatisticsSample;
@@ -50,7 +51,7 @@ class KnowledgeBasePopulator {
                          const NodeStatistics& node_stats);
   void PopulatePodStats(TaskID_t task_id, const string& node,
                         const PodStatistics& pod_stats);
-  void ProcessFinalPodReport();
+  void PopulateTaskFinalReport(const TaskDescriptor& td, TaskFinalReport* report);
  private:
   boost::shared_ptr<KnowledgeBase> knowledge_base_;
   WallTime time_manager_;
