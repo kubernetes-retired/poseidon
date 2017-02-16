@@ -99,9 +99,9 @@ void KnowledgeBasePopulator::PopulatePodStats(TaskID_t task_id,
   knowledge_base_->AddTaskSample(task_stats);
 }
 
-void KnowledgeBasePopulator::ProcessFinalPodReport() {
+void KnowledgeBasePopulator::PopulateTaskFinalReport(TaskDescriptor* td_ptr,
+                                                     TaskFinalReport* report) {
   // TODO(ionel): Implement!
-  TaskFinalReport task_final_report;
   // task_final_report.set_task_id(task_id);
   // task_final_report.set_start_time();
   // task_final_report.set_finish_time();
@@ -110,7 +110,6 @@ void KnowledgeBasePopulator::ProcessFinalPodReport() {
   // task_final_report.set_llc_refs();
   // task_final_report.set_llc_misses();
   // task_final_report.set_runtime();
-  // knowledge_base_->ProcessTaskFinalReport(equiv_classes, task_final_report);
 }
 
 }  // namespace poseidon

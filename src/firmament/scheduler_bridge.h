@@ -22,6 +22,7 @@
 #define POSEIDON_FIRMAMENT_SCHEDULER_BRIDGE_H
 
 #include <unordered_map>
+#include <unordered_set>
 
 #include "base/resource_status.h"
 #include "base/resource_topology_node_desc.pb.h"
@@ -87,17 +88,35 @@ class SchedulerBridge {
   TraceGenerator* trace_generator_;
   WallTime wall_time_;
   FlowScheduler* flow_scheduler_;
+  // Data structures thare are populated by Firmament. We should never have to
+  // direclty insert values in these data structures. However, we can query them.
   boost::shared_ptr<JobMap_t> job_map_;
   boost::shared_ptr<KnowledgeBase> knowledge_base_;
   boost::shared_ptr<ObjectStoreInterface> obj_store_;
-  boost::shared_ptr<ResourceMap_t> resource_map_;
   boost::shared_ptr<TaskMap_t> task_map_;
   boost::shared_ptr<TopologyManager> topology_manager_;
-  map<ResourceID_t, string> node_map_;
+  // Data structures that we populate in the scheduler_bridge.
+  boost::shared_ptr<ResourceMap_t> resource_map_;
+  // Mapping from ResourceID_t to K8s node hostname.
+  map<ResourceID_t, string> resource_to_node_map_;
+  // Mapping from PU ResourceID_t string to node ResourceID_t string.
   unordered_map<string, string> pu_to_node_map_;
+  // Mapping from pod name to TaskID_t.
   unordered_map<string, TaskID_t> pod_to_task_map_;
+  // Mapping from pod name to K8s node hostname.
   unordered_map<string, string> pod_to_node_map_;
+  // Mapping from TaskID_t to pod name.
   unordered_map<TaskID_t, string> task_to_pod_map_;
+  // Set of pods in Running state.
+  unordered_set<string> running_pods_;
+  // Set of pods in Pending state.
+  unordered_set<string> pending_pods_;
+  // Set of pods in Succeeded state.
+  unordered_set<string> succeeded_pods_;
+  // Set of pods in Failed state.
+  unordered_set<string> failed_pods_;
+  // Set of pods in Unknown state.
+  unordered_set<string> unknown_pods_;
   ResourceID_t top_level_res_id_;
   KnowledgeBasePopulator* kb_populator_;
 };

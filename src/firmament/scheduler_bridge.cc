@@ -92,7 +92,8 @@ bool SchedulerBridge::CreateResourceTopologyForNode(
   // Check if we know about this node already
   if (!ContainsKey(*resource_map_, rid)) {
     LOG(INFO) << "Adding new node's resource with RID " << rid;
-    CHECK(InsertIfNotPresent(&node_map_, rid, node_stats.hostname_));
+    CHECK(InsertIfNotPresent(&resource_to_node_map_, rid,
+                             node_stats.hostname_));
     // Create a new Firmament resource
     ResourceTopologyNodeDescriptor* rtnd_ptr =
       new ResourceTopologyNodeDescriptor();
@@ -158,33 +159,91 @@ ResourceStatus* SchedulerBridge::CreateTopLevelResource() {
 
 unordered_map<string, string>* SchedulerBridge::RunScheduler(
     const vector<PodStatistics>& pods) {
-  bool found_new_pod = false;
+  bool found_pending_pod = false;
   for (const PodStatistics& pod : pods) {
     if (pod.state_ == "Pending") {
-      if (FindOrNull(pod_to_task_map_, pod.name_) == NULL) {
-        LOG(INFO) << "New unscheduled pod: " << pod.name_;
-        found_new_pod = true;
-        JobDescriptor* jd_ptr = CreateJobForPod(pod.name_);
-        CHECK(InsertIfNotPresent(&pod_to_task_map_, pod.name_,
-                                 jd_ptr->root_task().uid()));
-        CHECK(InsertIfNotPresent(&task_to_pod_map_,
-                                 jd_ptr->root_task().uid(), pod.name_));
-        flow_scheduler_->AddJob(jd_ptr);
+      found_pending_pod = true;
+      if (pending_pods_.find(pod.name_) == pending_pods_.end()) {
+        // First time we detect the pod in pending state.
+        pending_pods_.insert(pod.name_);
+        // Erase the pod from the other sets in case it previously was in a
+        // failed or unknown state.
+        failed_pods_.erase(pod.name_);
+        unknown_pods_.erase(pod.name_);
+        // Check if this is the truly first time we see it.
+        if (FindOrNull(pod_to_task_map_, pod.name_) == NULL) {
+          LOG(INFO) << "New unscheduled pod: " << pod.name_;
+          JobDescriptor* jd_ptr = CreateJobForPod(pod.name_);
+          CHECK(InsertIfNotPresent(&pod_to_task_map_, pod.name_,
+                                   jd_ptr->root_task().uid()));
+          CHECK(InsertIfNotPresent(&task_to_pod_map_,
+                                   jd_ptr->root_task().uid(), pod.name_));
+          flow_scheduler_->AddJob(jd_ptr);
+        }
       }
     } else if (pod.state_ == "Running") {
       // TODO(ionel): Update pod statistics.
+      if (running_pods_.find(pod.name_) == running_pods_.end()) {
+        // First time we detect the pod in running state.
+        running_pods_.insert(pod.name_);
+        // Delete the pod from the collection corresponding to its prior state.
+        uint32_t num_pending_erased = pending_pods_.erase(pod.name_);
+        uint32_t num_failed_erased = failed_pods_.erase(pod.name_);
+        uint32_t num_unknown_erased = unknown_pods_.erase(pod.name_);
+        // The pod should have either been in pending, failed or unknown state.
+        CHECK_EQ(num_pending_erased + num_failed_erased + num_unknown_erased,
+                 1);
+      }
       string* node = FindOrNull(pod_to_node_map_, pod.name_);
       CHECK_NOTNULL(node);
       TaskID_t* tid_ptr = FindOrNull(pod_to_task_map_, pod.name_);
       CHECK_NOTNULL(tid_ptr);
       kb_populator_->PopulatePodStats(*tid_ptr, *node, pod);
     } else if (pod.state_ == "Succeeded") {
-      // TODO(ionel): Generate TaskFinalReport if were detecting
-      // for the first time that the pod has succeeded.
-      // kb_populator_->ProcessFinalPodReport();
-    } else if (pod.state_ == "Failed" ||
-               pod.state_ == "Unknown") {
-      // We don't have to do anything in these cases.
+      if (succeeded_pods_.find(pod.name_) == succeeded_pods_.end()) {
+        // First time we detect the pod in succeeded state.
+        succeeded_pods_.insert(pod.name_);
+        // Delete the pod from the running pods or pending set. The pod
+        // can be in the pending set if it got scheduled in the prior
+        // scheduler run and completed before this run.
+        uint32_t num_pending_erased = pending_pods_.erase(pod.name_);
+        uint32_t num_running_erased = running_pods_.erase(pod.name_);
+        CHECK_EQ(num_pending_erased + num_running_erased, 1);
+        // Inform the scheduler that the pod has completed.
+        TaskID_t* tid_ptr = FindOrNull(pod_to_task_map_, pod.name_);
+        CHECK_NOTNULL(tid_ptr);
+        TaskDescriptor* td_ptr = FindPtrOrNull(*task_map_, *tid_ptr);
+        CHECK_NOTNULL(td_ptr);
+        TaskFinalReport report;
+        flow_scheduler_->HandleTaskCompletion(td_ptr, &report);
+        kb_populator_->PopulateTaskFinalReport(td_ptr, &report);
+        flow_scheduler_->HandleTaskFinalReport(report, td_ptr);
+        // Delete the binding between the pod and the K8s node.
+        pod_to_node_map_.erase(pod.name_);
+        // Delete the both mappings between pod and task.
+        task_to_pod_map_.erase(*tid_ptr);
+        pod_to_task_map_.erase(pod.name_);
+        // TODO(ionel): Handle Job completion case.
+      }
+    } else if (pod.state_ == "Failed") {
+      if (failed_pods_.find(pod.name_) == failed_pods_.end()) {
+        // First time we detect the pod in failed state.
+        failed_pods_.insert(pod.name_);
+        // Delete the pod from the running pods set.
+        CHECK_EQ(running_pods_.erase(pod.name_), 1);
+        // Inform the scheduler that the the pod has failed.
+        TaskID_t* tid_ptr = FindOrNull(pod_to_task_map_, pod.name_);
+        CHECK_NOTNULL(tid_ptr);
+        TaskDescriptor* td_ptr = FindPtrOrNull(*task_map_, *tid_ptr);
+        CHECK_NOTNULL(td_ptr);
+        flow_scheduler_->HandleTaskFailure(td_ptr);
+        // Delete the binding between the pod and the K8s node.
+        pod_to_node_map_.erase(pod.name_);
+        // We do not delete the mappings between pod and task in case the
+        // task may be rescheduled.
+      }
+    } else if (pod.state_ == "Unknown") {
+      // TODO(ionel): Handle this case.
     } else {
       LOG(ERROR) << "Pod " << pod.name_ << " is unexpected state "
                  << pod.state_;
@@ -192,8 +251,8 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
   }
   unordered_map<string, string>* pod_node_bindings =
     new unordered_map<string, string>();
-  if (!found_new_pod) {
-    // Do not run the scheduler if there are no new pods.
+  if (!found_pending_pod) {
+    // Do not run the scheduler if there are no pending pods.
     return pod_node_bindings;
   }
   // Invoke Firmament scheduling
@@ -210,12 +269,13 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
       const string* node_rid = FindOrNull(pu_to_node_map_, d.resource_id());
       CHECK_NOTNULL(node_rid);
       const string* node_name = FindOrNull(
-          node_map_, ResourceIDFromString(*node_rid));
+          resource_to_node_map_, ResourceIDFromString(*node_rid));
       CHECK_NOTNULL(pod);
       CHECK_NOTNULL(node_name);
       CHECK(InsertIfNotPresent(&pod_to_node_map_, *pod, *node_name));
       CHECK(InsertIfNotPresent(pod_node_bindings, *pod, *node_name));
     } else {
+      // TODO(ionel): Handle SchedulingDelta::NOOP, PREEMPT, MIGRATE.
       LOG(WARNING) << "Encountered unsupported scheduling delta of type "
                    << to_string(d.type());
     }
