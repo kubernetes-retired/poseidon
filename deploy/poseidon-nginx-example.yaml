@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+spec:
+  replicas: 2
+  template:
+    metadata:
+      annotations:
+        "scheduler.alpha.kubernetes.io/name": poseidon-scheduler
+      labels:
+        app: nginx
+      name: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: "nginx:1.11.1-alpine"
+          ports:
+             - containerPort: 80

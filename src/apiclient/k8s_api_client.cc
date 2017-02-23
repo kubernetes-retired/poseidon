@@ -170,7 +170,7 @@ pplx::task<json::value> K8sApiClient::GetPodsTask(
 
   ub.append_path(U(api_prefix() + "pods"));
   if (!label_selector.empty()) {
-    ub.append_query("labelSelector", label_selector);
+	ub.append_query(U("fieldSelector"), U(label_selector));
   }
 
   http_client node_client(ub.to_uri());
@@ -217,7 +217,7 @@ vector<pair<string, NodeStatistics>> K8sApiClient::AllNodes(void) {
 }
 
 vector<PodStatistics> K8sApiClient::AllPods(void) {
-  return PodsWithLabel("");
+  return PodsWithLabel("spec.nodeName=");
 }
 
 bool K8sApiClient::BindPodToNode(const string& pod_name,
@@ -299,11 +299,21 @@ vector<PodStatistics> K8sApiClient::PodsWithLabel(
           if (ContainsKey(container, "resources")) {
             auto& container_res = container[U("resources")].as_object();
             if (ContainsKey(container_res, "requests")) {
-              auto& container_req = container_res[U("requests")].as_object();
-              // TODO(ionel): Correctly parse the units.
-              cpu_request += stod(container_req.find(U("cpu"))->second.as_string());
-              auto& mem_req = container_req.find(U("memory"))->second.as_string();
-              memory_request += stoull(mem_req.substr(0, mem_req.size() - 2));
+		auto& container_req = container_res[U("requests")].as_object();
+		// TODO(ionel): Correctly parse the units.
+		if (ContainsKey(container_req, "cpu")) {
+		  cpu_request += stod(container_req.find(U("cpu"))->second.as_string());
+		} else {
+		  LOG(INFO) << "Container " << container[U("name")].as_string() <<
+		             " json object does not have cpu resource info";
+		}
+		if (ContainsKey(container_req, "memory")) {
+		  auto& mem_req = container_req.find(U("memory"))->second.as_string();
+		  memory_request += stoull(mem_req.substr(0, mem_req.size() - 2));
+		} else {
+		  LOG(INFO) << "Container " << container[U("name")].as_string() <<
+		              " json object does not have memory resource info";
+		}
             } else {
               LOG(INFO) << "Container " << container[U("name")].as_string() <<
                 " json object does not have resource requests object";
