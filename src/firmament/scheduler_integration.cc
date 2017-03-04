@@ -61,6 +61,13 @@ int main(int argc, char** argv) {
     for (auto& pod_node : *pod_node_bindings) {
       api_client.BindPodToNode(pod_node.first, pod_node.second);
     }
+
+    // Add pod statistics
+    if (!pods.empty()) {
+      for (auto& p : pods) {
+	 scheduler_bridge.AddStatisticsForPod(p);
+      }
+    }
     delete pod_node_bindings;
     // Sleep a bit until we poll again
     usleep(FLAGS_polling_frequency);

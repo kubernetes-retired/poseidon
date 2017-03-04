@@ -75,6 +75,7 @@ class SchedulerBridge {
   ~SchedulerBridge();
   void AddStatisticsForNode(const string& node_id,
                             const NodeStatistics& node_stats);
+  void AddStatisticsForPod(const PodStatistics& pod_stats);
   JobDescriptor* CreateJobForPod(const string& pod);
   bool CreateResourceTopologyForNode(const string& node_id,
                                      const apiclient::NodeStatistics& node_stats);

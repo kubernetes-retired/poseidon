@@ -65,6 +65,18 @@ void SchedulerBridge::AddStatisticsForNode(const string& node_id,
   kb_populator_->PopulateNodeStats(to_string(rid), node_stats);
 }
 
+void SchedulerBridge::AddStatisticsForPod(
+		const PodStatistics& pod) {
+  string* node = FindOrNull(pod_to_node_map_, pod.name_); 
+  if (node) {
+    TaskID_t* tid_ptr = FindOrNull(pod_to_task_map_, pod.name_);
+    if (tid_ptr) {
+      kb_populator_->PopulatePodStats(*tid_ptr, *node, pod);
+      LOG(INFO) << "PopulatePodStats Successfully for pod [" << pod.name_ << "]";
+    }
+  }
+}
+
 JobDescriptor* SchedulerBridge::CreateJobForPod(const string& pod) {
   // Fake out a job for this pod
   // XXX(malte): we should equate a Firmament "job" with a K8s
@@ -171,7 +183,6 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
         unknown_pods_.erase(pod.name_);
         // Check if this is the truly first time we see it.
         if (FindOrNull(pod_to_task_map_, pod.name_) == NULL) {
-          LOG(INFO) << "New unscheduled pod: " << pod.name_;
           JobDescriptor* jd_ptr = CreateJobForPod(pod.name_);
           CHECK(InsertIfNotPresent(&pod_to_task_map_, pod.name_,
                                    jd_ptr->root_task().uid()));
@@ -189,15 +200,10 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
         uint32_t num_pending_erased = pending_pods_.erase(pod.name_);
         uint32_t num_failed_erased = failed_pods_.erase(pod.name_);
         uint32_t num_unknown_erased = unknown_pods_.erase(pod.name_);
-        // The pod should have either been in pending, failed or unknown state.
+	// The pod should have either been in pending, failed or unknown state.
         CHECK_EQ(num_pending_erased + num_failed_erased + num_unknown_erased,
                  1);
       }
-      string* node = FindOrNull(pod_to_node_map_, pod.name_);
-      CHECK_NOTNULL(node);
-      TaskID_t* tid_ptr = FindOrNull(pod_to_task_map_, pod.name_);
-      CHECK_NOTNULL(tid_ptr);
-      kb_populator_->PopulatePodStats(*tid_ptr, *node, pod);
     } else if (pod.state_ == "Succeeded") {
       if (succeeded_pods_.find(pod.name_) == succeeded_pods_.end()) {
         // First time we detect the pod in succeeded state.
@@ -281,5 +287,4 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
   }
   return pod_node_bindings;
 }
-
 }  // namespace poseidon
