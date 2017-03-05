@@ -22,6 +22,7 @@
 
 using firmament::GenerateJobID;
 using firmament::GenerateResourceID;
+using firmament::JobIDFromString;
 using firmament::KB_TO_MB;
 using firmament::ResourceIDFromString;
 using firmament::scheduler::SchedulerStats;
@@ -177,6 +178,8 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
                                    jd_ptr->root_task().uid()));
           CHECK(InsertIfNotPresent(&task_to_pod_map_,
                                    jd_ptr->root_task().uid(), pod.name_));
+          CHECK(InsertIfNotPresent(&job_num_uncompleted_tasks_,
+                                   JobIDFromString(jd_ptr->uuid()), 1));
           flow_scheduler_->AddJob(jd_ptr);
         }
       }
@@ -222,7 +225,23 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
         // Delete the both mappings between pod and task.
         task_to_pod_map_.erase(*tid_ptr);
         pod_to_task_map_.erase(pod.name_);
-        // TODO(ionel): Handle Job completion case.
+        JobID_t job_id = JobIDFromString(td_ptr->job_id());
+        JobDescriptor* jd_ptr = FindOrNull(*job_map_, job_id);
+        // Don't remove the root task so that tasks can still be appended to
+        // the job. We only remove the root task when the job completes.
+        if (td_ptr != jd_ptr->mutable_root_task()) {
+          task_map_->erase(td_ptr->uid());
+        }
+        // Check if it was the last task of the job.
+        uint64_t* num_uncompleted_tasks =
+          FindOrNull(job_num_uncompleted_tasks_, job_id);
+        CHECK_NOTNULL(num_uncompleted_tasks);
+        if (*num_uncompleted_tasks == 0) {
+          flow_scheduler_->HandleJobCompletion(job_id);
+          job_num_uncompleted_tasks_.erase(job_id);
+          task_map_->erase(jd_ptr->root_task().uid());
+          job_map_->erase(job_id);
+        }
       }
     } else if (pod.state_ == "Failed") {
       if (failed_pods_.find(pod.name_) == failed_pods_.end()) {

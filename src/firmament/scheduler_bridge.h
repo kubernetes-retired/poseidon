@@ -119,6 +119,9 @@ class SchedulerBridge {
   unordered_set<string> failed_pods_;
   // Set of pods in Unknown state.
   unordered_set<string> unknown_pods_;
+  // Mapping from JobID_t to number of uncompleted job tasks.
+  unordered_map<JobID_t, uint64_t, boost::hash<boost::uuids::uuid>>
+    job_num_uncompleted_tasks_;
   ResourceID_t top_level_res_id_;
   KnowledgeBasePopulator* kb_populator_;
 };
