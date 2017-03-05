@@ -228,8 +228,12 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
       if (failed_pods_.find(pod.name_) == failed_pods_.end()) {
         // First time we detect the pod in failed state.
         failed_pods_.insert(pod.name_);
-        // Delete the pod from the running pods set.
-        CHECK_EQ(running_pods_.erase(pod.name_), 1);
+        // Delete the pod from the running pods or pending set. The pod
+        // can be in the pending set if it got scheduled in the prior
+        // scheduler run and completed before this run.
+        uint32_t num_running_erased = running_pods_.erase(pod.name_);
+        uint32_t num_pending_erased = pending_pods_.erase(pod.name_);
+        CHECK_EQ(num_pending_erased + num_running_erased, 1);
         // Inform the scheduler that the the pod has failed.
         TaskID_t* tid_ptr = FindOrNull(pod_to_task_map_, pod.name_);
         CHECK_NOTNULL(tid_ptr);
