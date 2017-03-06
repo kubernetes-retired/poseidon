@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: failingcpuspin
+spec:
+  template:
+    metadata:
+      name: cpuspin
+    spec:
+      containers:
+      - name: cpuspin
+        image: firmament/libhdfs3
+        resources:
+          requests:
+            memory: "10Mi"
+            cpu: "1000m"
+          limits:
+            memory: "1024Mi"
+            cpu: "2000m"
+        command: ["/bin/sh", "-c", "/cpu_spin 7 ; exit 1"]
+      restartPolicy: Never
