@@ -145,6 +145,19 @@ pplx::task<json::value> K8sApiClient::GetNodesTask(
               nAllocatable.find(U("memory"))->second;
             nodes_result_node[U("nodes")][index][U("mem_capacity")] =
               nCapacity.find(U("memory"))->second;
+            auto& conditions = nStatus[U("conditions")].as_array();
+            for (auto& iter_condition : conditions) {
+              auto& condition = iter_condition.as_object();
+              auto& condition_type =
+                condition.find(U("type"))->second.as_string();
+              if (condition_type == "OutOfDisk") {
+                nodes_result_node[U("nodes")][index][U("out_of_disk")] =
+                  condition.find(U("status"))->second;
+              } else if (condition_type == "Ready") {
+                nodes_result_node[U("nodes")][index][U("ready")] =
+                  condition.find(U("status"))->second;
+              }
+            }
             ++index;
           }
         } else {
@@ -267,6 +280,27 @@ vector<pair<string, NodeStatistics>> K8sApiClient::NodesWithLabel(
         auto& mem_allocatable = iter["mem_allocatable"].as_string();
         node_stats.memory_allocatable_kb_ =
           stoull(mem_allocatable.substr(0, mem_allocatable.size() - 2));
+        string node_out_of_disk = iter["out_of_disk"].as_string();
+        if (node_out_of_disk == "False") {
+          node_stats.is_out_of_disk_ = false;
+        } else if (node_out_of_disk == "True" ||
+                   node_out_of_disk == "Unknown") {
+          node_stats.is_out_of_disk_ = true;
+        } else {
+          node_stats.is_out_of_disk_ = true;
+          LOG(WARNING) << "Unexpected out of disk state: " << node_out_of_disk
+                       << " for node " << node_stats.hostname_;
+        }
+        string node_ready = iter["ready"].as_string();
+        if (node_ready == "True") {
+          node_stats.is_ready_ = true;
+        } else if (node_ready == "Unknown" || node_ready == "False") {
+          node_stats.is_ready_ = false;
+        } else {
+          node_stats.is_ready_ = false;
+          LOG(WARNING) << "Unexpected ready state: " << node_ready
+                       << " for node " << node_stats.hostname_;
+        }
         nodes.push_back(pair<string, NodeStatistics>(iter["id"].as_string(),
                                                      node_stats));
       }

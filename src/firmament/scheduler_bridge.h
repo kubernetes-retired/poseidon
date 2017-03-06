@@ -76,13 +76,20 @@ class SchedulerBridge {
   void AddStatisticsForNode(const string& node_id,
                             const NodeStatistics& node_stats);
   JobDescriptor* CreateJobForPod(const string& pod);
-  bool CreateResourceTopologyForNode(const string& node_id,
-                                     const apiclient::NodeStatistics& node_stats);
+  bool NodeAdded(const string& node_id,
+                 const apiclient::NodeStatistics& node_stats);
+  void NodeFailed(const string& node_id,
+                  const apiclient::NodeStatistics& node_stats);
   unordered_map<string, string>* RunScheduler(
       const vector<PodStatistics>& pods);
 
  private:
+  void CleanPUStateForDeregisteredResource(
+      ResourceTopologyNodeDescriptor* rtnd_ptr);
   ResourceStatus* CreateTopLevelResource();
+  void CreateResourceTopologyForNode(
+      const ResourceID_t& rid,
+      const apiclient::NodeStatistics& node_stats);
 
   SimulatedMessagingAdapter<BaseMessage>* sim_messaging_adapter_;
   TraceGenerator* trace_generator_;
