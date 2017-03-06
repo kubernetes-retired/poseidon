@@ -36,6 +36,10 @@ using namespace http::client;
 namespace poseidon {
 namespace apiclient {
 
+const uint64_t MB_TO_KB = 1024;
+const uint64_t GB_TO_KB = 1024 * 1024;
+const double MCPU_TO_CPU_UNITS = 1000.0;
+
 struct NodeStatistics {
   string hostname_;
   bool is_ready_;
@@ -59,6 +63,9 @@ http_response PrintHTTPResponse(const string& url,
 pplx::task<json::value> HandleTaskException(
     pplx::task<json::value>& task,
     const utility::string_t& field_name);
+
+double StringRequestToCPU(string request);
+uint64_t StringRequestToKB(string memory_request);
 
 }  // namespace apiclient
 }  // namespace poseidon
