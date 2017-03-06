@@ -21,7 +21,7 @@
 #include "firmament/knowledge_base_populator.h"
 
 #include "base/units.h"
-
+#include "misc/utils.h"
 using firmament::CpuUsage;
 using firmament::KB_TO_MB;
 using firmament::KnowledgeBase;
@@ -101,6 +101,7 @@ void KnowledgeBasePopulator::PopulatePodStats(TaskID_t task_id,
 
 void KnowledgeBasePopulator::PopulateTaskFinalReport(const TaskDescriptor& td,
                                                      TaskFinalReport* report) {
+  LOG(INFO) << "Inside KnowledgeBasePopulator.PopulateTaskFinalReport";
   // TODO(ionel): Implement!
   // task_final_report.set_task_id(task_id);
   // task_final_report.set_start_time();
@@ -110,6 +111,20 @@ void KnowledgeBasePopulator::PopulateTaskFinalReport(const TaskDescriptor& td,
   // task_final_report.set_llc_refs();
   // task_final_report.set_llc_misses();
   // task_final_report.set_runtime();
+  //
+  //Taken from simple_scheduler.cc HandleTaskFinalReport()
+  //boost::lock_guard<boost::recursive_mutex> lock(scheduling_lock_);
+  //EventDrivenScheduler::HandleTaskFinalReport(report, td_ptr);
+  TaskID_t task_id = td.uid();
+  typedef uint64_t EquivClass_t;
+  vector<EquivClass_t> equiv_classes;
+  EquivClass_t task_agg =
+	      static_cast<EquivClass_t>(HashCommandLine(td));
+  equiv_classes.push_back(task_agg);
+  equiv_classes.push_back(task_id);
+  
+  knowledge_base_->ProcessTaskFinalReport(equiv_classes, *report);
+  LOG(INFO) << "End KnowledgeBasePopulator.PopulateTaskFinalReport";
 }
 
 }  // namespace poseidon
