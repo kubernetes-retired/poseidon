@@ -2,6 +2,7 @@ project(Poseidon)
 
 cmake_minimum_required(VERSION 2.8)
 
+set(CMAKE_BUILD_TYPE Debug)
 set(Poseidon_ROOT_DIR ${CMAKE_SOURCE_DIR})
 set(Poseidon_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
 set(Poseidon_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
