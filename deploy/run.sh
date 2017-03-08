@@ -18,5 +18,5 @@ docker tag poseidon-test localhost:5000/poseidon-test
 docker push localhost:5000/poseidon-test
 
 sudo kubectl create -f /home/ubuntu/poseidon-test.yaml
-sleep 1
+sleep 10
 sudo kubectl get pods --all-namespaces

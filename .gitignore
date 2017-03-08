@@ -23,3 +23,10 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+deploy/poseidon
+
+# eclipse generated files/folders
+.project
+.cproject
+.settings
