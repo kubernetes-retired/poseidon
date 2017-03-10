@@ -269,17 +269,16 @@ vector<pair<string, NodeStatistics>> K8sApiClient::NodesWithLabel(
     if (jval[U("status")].is_null() ||
         jval[U("status")].as_object()[U("error")].is_null()) {
       for (auto& iter : jval["nodes"].as_array()) {
-        // TODO(ionel): Correctly parse the units.
         NodeStatistics node_stats;
         node_stats.hostname_ = iter["hostname"].as_string();
-        node_stats.cpu_capacity_ = stod(iter["cpu_capacity"].as_string());
-        node_stats.cpu_allocatable_ = stod(iter["cpu_allocatable"].as_string());
+        node_stats.cpu_capacity_ =
+          StringRequestToCPU(iter["cpu_capacity"].as_string());
+        node_stats.cpu_allocatable_ =
+          StringRequestToCPU(iter["cpu_allocatable"].as_string());
         auto& mem_cap = iter["mem_capacity"].as_string();
-        node_stats.memory_capacity_kb_ =
-          stoull(mem_cap.substr(0, mem_cap.size() - 2));
+        node_stats.memory_capacity_kb_ = StringRequestToKB(mem_cap);
         auto& mem_allocatable = iter["mem_allocatable"].as_string();
-        node_stats.memory_allocatable_kb_ =
-          stoull(mem_allocatable.substr(0, mem_allocatable.size() - 2));
+        node_stats.memory_allocatable_kb_ = StringRequestToKB(mem_allocatable);
         string node_out_of_disk = iter["out_of_disk"].as_string();
         if (node_out_of_disk == "False") {
           node_stats.is_out_of_disk_ = false;
@@ -334,10 +333,12 @@ vector<PodStatistics> K8sApiClient::PodsWithLabel(
             auto& container_res = container[U("resources")].as_object();
             if (ContainsKey(container_res, "requests")) {
               auto& container_req = container_res[U("requests")].as_object();
-              // TODO(ionel): Correctly parse the units.
-              cpu_request += stod(container_req.find(U("cpu"))->second.as_string());
-              auto& mem_req = container_req.find(U("memory"))->second.as_string();
-              memory_request += stoull(mem_req.substr(0, mem_req.size() - 2));
+              cpu_request +=
+                StringRequestToCPU(
+                    container_req.find(U("cpu"))->second.as_string());
+              memory_request +=
+                StringRequestToKB(
+                    container_req.find(U("memory"))->second.as_string());
             } else {
               LOG(INFO) << "Container " << container[U("name")].as_string() <<
                 " json object does not have resource requests object";

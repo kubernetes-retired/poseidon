@@ -18,7 +18,10 @@
  * permissions and limitations under the License.
  */
 
+#include "apiclient/utils.h"
+
 #include <string>
+#include <glog/logging.h>
 
 #include "cpprest/http_client.h"
 #include "cpprest/json.h"
@@ -58,6 +61,31 @@ pplx::task<json::value> HandleTaskException(
   }
 
   return task;
+}
+
+double StringRequestToCPU(string request) {
+  if (request[request.size() - 1] == 'm') {
+    return stod(request.substr(0, request.size() - 1)) / MCPU_TO_CPU_UNITS;
+  } else {
+    return stod(request);
+  }
+}
+
+uint64_t StringRequestToKB(string memory_request) {
+  uint64_t request =
+    stoull(memory_request.substr(0, memory_request.size() - 2));
+  string units =
+    memory_request.substr(memory_request.size() - 2, memory_request.size());
+  if (units == "Ki") {
+    // Already in KB.
+  } else if (units == "Mi") {
+    request *= MB_TO_KB;
+  } else if (units == "Gi") {
+    request *= GB_TO_KB;
+  } else {
+    LOG(ERROR) << "Unexpected memory request: " << memory_request;
+  }
+  return request;
 }
 
 }  // namespace apiclient
