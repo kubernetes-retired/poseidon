@@ -125,8 +125,7 @@ bool SchedulerBridge::CreateResourceTopologyForNode(
       ResourceStatus* pu_rs = new ResourceStatus(pu_rd_ptr, pu_rtnd_ptr, "", 0);
       CHECK(InsertIfNotPresent(resource_map_.get(), pu_rid, pu_rs));
     }
-    // TODO(malte): set hostname correctly
-    ResourceStatus* rs = new ResourceStatus(rd_ptr, rtnd_ptr, "", 0);
+    ResourceStatus* rs = new ResourceStatus(rd_ptr, rtnd_ptr, node_stats.hostname_, 0);
     // Insert into resource map
     CHECK(InsertIfNotPresent(resource_map_.get(), rid, rs));
     // Register with the scheduler
