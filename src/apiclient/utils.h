@@ -38,6 +38,8 @@ namespace apiclient {
 
 struct NodeStatistics {
   string hostname_;
+  bool is_ready_;
+  bool is_out_of_disk_;
   double cpu_capacity_;
   double cpu_allocatable_;
   uint64_t memory_capacity_kb_;

@@ -20,6 +20,8 @@
 
 #include "firmament/scheduler_bridge.h"
 
+#include "misc/pb_utils.h"
+
 using firmament::GenerateJobID;
 using firmament::GenerateResourceID;
 using firmament::JobIDFromString;
@@ -86,59 +88,56 @@ JobDescriptor* SchedulerBridge::CreateJobForPod(const string& pod) {
   return jd;
 }
 
-bool SchedulerBridge::CreateResourceTopologyForNode(
-    const string& node_id,
+void SchedulerBridge::CreateResourceTopologyForNode(
+    const ResourceID_t& rid,
     const apiclient::NodeStatistics& node_stats) {
-  ResourceID_t rid = ResourceIDFromString(node_id);
-  // Check if we know about this node already
-  if (!ContainsKey(*resource_map_, rid)) {
-    LOG(INFO) << "Adding new node's resource with RID " << rid;
-    CHECK(InsertIfNotPresent(&resource_to_node_map_, rid,
-                             node_stats.hostname_));
-    // Create a new Firmament resource
-    ResourceTopologyNodeDescriptor* rtnd_ptr =
-      new ResourceTopologyNodeDescriptor();
-    // Create and initialize machine RD
-    ResourceDescriptor* rd_ptr = rtnd_ptr->mutable_resource_desc();
-    rd_ptr->set_uuid(to_string(rid));
-    rd_ptr->set_type(ResourceDescriptor::RESOURCE_MACHINE);
-    rd_ptr->set_state(ResourceDescriptor::RESOURCE_IDLE);
-    rd_ptr->set_friendly_name(node_stats.hostname_);
-    ResourceVector* res_cap = rd_ptr->mutable_resource_capacity();
-    res_cap->set_ram_cap(node_stats.memory_capacity_kb_ / KB_TO_MB);
-    res_cap->set_cpu_cores(node_stats.cpu_capacity_);
-    rtnd_ptr->set_parent_id(to_string(top_level_res_id_));
-    // Connect PU RDs to the machine RD.
-    // TODO(ionel): In the future, we want to get real node topology rather
-    // than manually connecting PU RDs to the machine RD.
-    for (uint32_t num_pu = 0; num_pu < node_stats.cpu_capacity_; num_pu++) {
-      ResourceID_t pu_rid = GenerateResourceID();
-      string pu_name = node_stats.hostname_ + "_pu" + to_string(num_pu);
-      LOG(INFO) << "Adding new PU with RID " << pu_name << " " << pu_rid;
-      ResourceTopologyNodeDescriptor* pu_rtnd_ptr = rtnd_ptr->add_children();
-      ResourceDescriptor* pu_rd_ptr = pu_rtnd_ptr->mutable_resource_desc();
-      pu_rd_ptr->set_uuid(to_string(pu_rid));
-      pu_rd_ptr->set_type(ResourceDescriptor::RESOURCE_PU);
-      pu_rd_ptr->set_state(ResourceDescriptor::RESOURCE_IDLE);
-      pu_rd_ptr->set_friendly_name(pu_name);
-      pu_rtnd_ptr->set_parent_id(to_string(rid));
-      CHECK(InsertIfNotPresent(&pu_to_node_map_, pu_rid, rid));
-      ResourceStatus* pu_rs = new ResourceStatus(pu_rd_ptr, pu_rtnd_ptr, "", 0);
-      CHECK(InsertIfNotPresent(resource_map_.get(), pu_rid, pu_rs));
-    }
-    // TODO(malte): set hostname correctly
-    ResourceStatus* rs = new ResourceStatus(rd_ptr, rtnd_ptr, "", 0);
-    // Insert into resource map
-    CHECK(InsertIfNotPresent(resource_map_.get(), rid, rs));
-    // Register with the scheduler
-    // TODO(malte): we use a hack here -- we pass simulated=true to
-    // avoid Firmament instantiating an actual executor for this resource.
-    // Instead, we rely on the no-op SimulatedExecutor. We should change
-    // it such that Firmament does not mandatorily create an executor.
-    flow_scheduler_->RegisterResource(rs->mutable_topology_node(), false, true);
-    return true;
+  LOG(INFO) << "Adding new node's resource with RID " << rid;
+  CHECK(InsertIfNotPresent(&resource_to_node_map_, rid,
+                           node_stats.hostname_));
+  ResourceStatus* root_rs_ptr =
+    FindPtrOrNull(*resource_map_, top_level_res_id_);
+  CHECK_NOTNULL(root_rs_ptr);
+  // Create a new Firmament resource
+  ResourceTopologyNodeDescriptor* rtnd_ptr =
+    root_rs_ptr->mutable_topology_node()->add_children();
+  // Create and initialize machine RD
+  ResourceDescriptor* rd_ptr = rtnd_ptr->mutable_resource_desc();
+  rd_ptr->set_uuid(to_string(rid));
+  rd_ptr->set_type(ResourceDescriptor::RESOURCE_MACHINE);
+  rd_ptr->set_state(ResourceDescriptor::RESOURCE_IDLE);
+  rd_ptr->set_friendly_name(node_stats.hostname_);
+  ResourceVector* res_cap = rd_ptr->mutable_resource_capacity();
+  res_cap->set_ram_cap(node_stats.memory_capacity_kb_ / KB_TO_MB);
+  res_cap->set_cpu_cores(node_stats.cpu_capacity_);
+  rtnd_ptr->set_parent_id(to_string(top_level_res_id_));
+  // Connect PU RDs to the machine RD.
+  // TODO(ionel): In the future, we want to get real node topology rather
+  // than manually connecting PU RDs to the machine RD.
+  for (uint32_t num_pu = 0; num_pu < node_stats.cpu_capacity_; num_pu++) {
+    ResourceID_t pu_rid = GenerateResourceID();
+    string pu_name = node_stats.hostname_ + "_pu" + to_string(num_pu);
+    LOG(INFO) << "Adding new PU with RID " << pu_name << " " << pu_rid;
+    ResourceTopologyNodeDescriptor* pu_rtnd_ptr = rtnd_ptr->add_children();
+    ResourceDescriptor* pu_rd_ptr = pu_rtnd_ptr->mutable_resource_desc();
+    pu_rd_ptr->set_uuid(to_string(pu_rid));
+    pu_rd_ptr->set_type(ResourceDescriptor::RESOURCE_PU);
+    pu_rd_ptr->set_state(ResourceDescriptor::RESOURCE_IDLE);
+    pu_rd_ptr->set_friendly_name(pu_name);
+    pu_rtnd_ptr->set_parent_id(to_string(rid));
+    CHECK(InsertIfNotPresent(&pu_to_node_map_, pu_rid, rid));
+    ResourceStatus* pu_rs = new ResourceStatus(pu_rd_ptr, pu_rtnd_ptr, "", 0);
+    CHECK(InsertIfNotPresent(resource_map_.get(), pu_rid, pu_rs));
   }
-  return false;
+  // TODO(malte): set hostname correctly
+  ResourceStatus* rs = new ResourceStatus(rd_ptr, rtnd_ptr, "", 0);
+  // Insert into resource map
+  CHECK(InsertIfNotPresent(resource_map_.get(), rid, rs));
+  // Register with the scheduler
+  // TODO(malte): we use a hack here -- we pass simulated=true to
+  // avoid Firmament instantiating an actual executor for this resource.
+  // Instead, we rely on the no-op SimulatedExecutor. We should change
+  // it such that Firmament does not mandatorily create an executor.
+  flow_scheduler_->RegisterResource(rs->mutable_topology_node(), false, true);
 }
 
 ResourceStatus* SchedulerBridge::CreateTopLevelResource() {
@@ -155,6 +154,44 @@ ResourceStatus* SchedulerBridge::CreateTopLevelResource() {
   // Insert into resource map
   CHECK(InsertIfNotPresent(resource_map_.get(), res_id, rs_ptr));
   return rs_ptr;
+}
+
+bool SchedulerBridge::NodeAdded(const string& node_id,
+                                const apiclient::NodeStatistics& node_stats) {
+  ResourceID_t rid = ResourceIDFromString(node_id);
+  // Check if we know about this node already
+  if (!ContainsKey(*resource_map_, rid)) {
+    CreateResourceTopologyForNode(rid, node_stats);
+    return true;
+  }
+  return false;
+}
+
+void SchedulerBridge::NodeFailed(const string& node_id,
+                                 const apiclient::NodeStatistics& node_stats) {
+  ResourceID_t rid = ResourceIDFromString(node_id);
+  ResourceStatus* rs_ptr = FindPtrOrNull(*resource_map_, rid);
+  if (rs_ptr == NULL) {
+    // We haven't yet seen this node in ready state.
+    return;
+  }
+  LOG(INFO) << "Node " << node_stats.hostname_ << " failed";
+  resource_to_node_map_.erase(rid);
+  ResourceTopologyNodeDescriptor* rtnd_ptr = rs_ptr->mutable_topology_node();
+  DFSTraversePostOrderResourceProtobufTreeReturnRTND(
+      rtnd_ptr,
+      boost::bind(&SchedulerBridge::CleanPUStateForDeregisteredResource,
+                  this, _1));
+  flow_scheduler_->DeregisterResource(rtnd_ptr);
+}
+
+void SchedulerBridge::CleanPUStateForDeregisteredResource(
+    ResourceTopologyNodeDescriptor* rtnd_ptr) {
+  const ResourceDescriptor& rd = rtnd_ptr->resource_desc();
+  if (rd.type() == ResourceDescriptor::RESOURCE_PU) {
+    ResourceID_t res_id = ResourceIDFromString(rd.uuid());
+    pu_to_node_map_.erase(res_id);
+  }
 }
 
 unordered_map<string, string>* SchedulerBridge::RunScheduler(

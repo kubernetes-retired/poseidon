@@ -47,10 +47,15 @@ int main(int argc, char** argv) {
     vector<pair<string, poseidon::apiclient::NodeStatistics>> nodes =
       api_client.AllNodes();
     if (!nodes.empty()) {
-      for (auto& n : nodes) {
-        // node_id, hostname
-        scheduler_bridge.CreateResourceTopologyForNode(n.first, n.second);
-        scheduler_bridge.AddStatisticsForNode(n.first, n.second);
+      for (auto& node_stats : nodes) {
+        // node_id, stats
+        if (node_stats.second.is_ready_ && !node_stats.second.is_out_of_disk_) {
+          scheduler_bridge.NodeAdded(node_stats.first, node_stats.second);
+          scheduler_bridge.AddStatisticsForNode(node_stats.first,
+                                                node_stats.second);
+        } else {
+          scheduler_bridge.NodeFailed(node_stats.first, node_stats.second);
+        }
       }
     }
 
