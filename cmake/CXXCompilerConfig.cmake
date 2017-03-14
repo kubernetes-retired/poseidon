@@ -19,7 +19,7 @@ else (COMPILER_SUPPORTS_CXX11)
 endif (COMPILER_SUPPORTS_CXX11)
 
 # Optimization flags
-if (${CMAKE_BUILD_TYPE} Debug)
+if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
   set(CMAKE_CXX_OPTFLAGS "-O0 -g")
 else ()
   set(CMAKE_CXX_OPTFLAGS "-O3")
