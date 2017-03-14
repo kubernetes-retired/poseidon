@@ -252,6 +252,7 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
         CHECK_NOTNULL(tid_ptr);
         TaskDescriptor* td_ptr = FindPtrOrNull(*task_map_, *tid_ptr);
         CHECK_NOTNULL(td_ptr);
+        td_ptr->set_finish_time(wall_time_.GetCurrentTimestamp());
         TaskFinalReport report;
         flow_scheduler_->HandleTaskCompletion(td_ptr, &report);
         kb_populator_->PopulateTaskFinalReport(*td_ptr, &report);
@@ -324,6 +325,11 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
     LOG(INFO) << "Delta: " << d.DebugString();
     if (d.type() == SchedulingDelta::PLACE) {
       const string* pod = FindOrNull(task_to_pod_map_, d.task_id());
+      TaskID_t* tid_ptr = FindOrNull(pod_to_task_map_, *pod);
+      CHECK_NOTNULL(tid_ptr);
+      TaskDescriptor* td_ptr = FindPtrOrNull(*task_map_, *tid_ptr);
+      CHECK_NOTNULL(td_ptr);
+      td_ptr->set_start_time(wall_time_.GetCurrentTimestamp());
       const ResourceID_t* node_rid =
         FindOrNull(pu_to_node_map_, ResourceIDFromString(d.resource_id()));
       CHECK_NOTNULL(node_rid);
