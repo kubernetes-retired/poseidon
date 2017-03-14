@@ -84,6 +84,7 @@ JobDescriptor* SchedulerBridge::CreateJobForPod(const string& pod) {
   root_td->set_name(pod);
   root_td->set_state(TaskDescriptor::CREATED);
   root_td->set_job_id(jd->uuid());
+  root_td->set_start_time(wall_time_.GetCurrentTimestamp());
   CHECK(InsertIfNotPresent(task_map_.get(), root_td->uid(), root_td));
   return jd;
 }
@@ -253,6 +254,7 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
         CHECK_NOTNULL(tid_ptr);
         TaskDescriptor* td_ptr = FindPtrOrNull(*task_map_, *tid_ptr);
         CHECK_NOTNULL(td_ptr);
+        td_ptr->set_finish_time(wall_time_.GetCurrentTimestamp());
         TaskFinalReport report;
         flow_scheduler_->HandleTaskCompletion(td_ptr, &report);
         kb_populator_->PopulateTaskFinalReport(*td_ptr, &report);
