@@ -3,8 +3,11 @@ kind: Job
 metadata:
   name: cpuspin
 spec:
+  completions: 2
   template:
     metadata:
+      annotations:
+        "scheduler.alpha.kubernetes.io/name": poseidon-scheduler
       name: cpuspin
     spec:
       containers:
