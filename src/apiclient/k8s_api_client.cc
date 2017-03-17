@@ -183,7 +183,7 @@ pplx::task<json::value> K8sApiClient::GetPodsTask(
 
   ub.append_path(U(api_prefix() + "pods"));
   if (!label_selector.empty()) {
-    ub.append_query("labelSelector", label_selector);
+    ub.append_query("fieldSelector", label_selector);
   }
 
   http_client node_client(ub.to_uri());
@@ -201,8 +201,12 @@ pplx::task<json::value> K8sApiClient::GetPodsTask(
           uint32_t index = 0;
           for (auto& iter : pList) {
             auto& pod = iter.as_object();
-            auto& pName = pod[U("metadata")].as_object()[U("name")];
+            auto& metadata = pod[U("metadata")].as_object();
+            auto& pName = metadata[U("name")];
+            auto& pLabels = metadata[U("labels")].as_object();
             result[U("pods")][index][U("name")] = pName;
+            result[U("pods")][index][U("controller-uid")] =
+              pLabels[U("controller-uid")];
             auto& pStatus = pod[U("status")].as_object();
             result[U("pods")][index][U("state")] = pStatus[U("phase")];
             result[U("pods")][index][U("containers")] =
@@ -230,7 +234,7 @@ vector<pair<string, NodeStatistics>> K8sApiClient::AllNodes(void) {
 }
 
 vector<PodStatistics> K8sApiClient::AllPods(void) {
-  return PodsWithLabel("");
+  return PodsWithLabel("spec.nodeName=");
 }
 
 bool K8sApiClient::BindPodToNode(const string& pod_name,
@@ -353,6 +357,7 @@ vector<PodStatistics> K8sApiClient::PodsWithLabel(
         PodStatistics pod_stats;
         pod_stats.name_ = iter["name"].as_string();
         pod_stats.state_ = iter["state"].as_string();
+        pod_stats.controller_id_ = iter["controller-uid"].as_string();
         pod_stats.cpu_request_ = cpu_request;
         pod_stats.memory_request_kb_ = memory_request;
         pods.push_back(pod_stats);

@@ -75,7 +75,9 @@ class SchedulerBridge {
   ~SchedulerBridge();
   void AddStatisticsForNode(const string& node_id,
                             const NodeStatistics& node_stats);
-  JobDescriptor* CreateJobForPod(const string& pod);
+  JobDescriptor* CreateJobForPod(const string& pod, const JobID_t& job_id);
+  TaskID_t AddPodToJob(const string& pod, const JobID_t& job_id,
+                       JobDescriptor* jd);
   bool NodeAdded(const string& node_id,
                  const apiclient::NodeStatistics& node_stats);
   void NodeFailed(const string& node_id,
