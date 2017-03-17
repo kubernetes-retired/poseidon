@@ -68,16 +68,14 @@ void SchedulerBridge::AddStatisticsForNode(const string& node_id,
   kb_populator_->PopulateNodeStats(to_string(rid), node_stats);
 }
 
-JobDescriptor* SchedulerBridge::CreateJobForPod(const string& pod) {
-  // Fake out a job for this pod
-  // XXX(malte): we should equate a Firmament "job" with a K8s
-  // "deployment" and "job" for a more sane notion here.
-  JobID_t job_id = GenerateJobID();
+  JobDescriptor* SchedulerBridge::CreateJobForPod(const string& pod,
+                                                  const string& controller_id,
+                                                  const JobID_t& job_id) {
   JobDescriptor new_jd;
   CHECK(InsertIfNotPresent(job_map_.get(), job_id, new_jd));
   JobDescriptor* jd = FindOrNull(*job_map_, job_id);
   jd->set_uuid(to_string(job_id));
-  jd->set_name(pod);
+  jd->set_name(controller_id);
   jd->set_state(JobDescriptor::CREATED);
   TaskDescriptor* root_td = jd->mutable_root_task();
   root_td->set_uid(GenerateRootTaskID(*jd));
@@ -86,6 +84,17 @@ JobDescriptor* SchedulerBridge::CreateJobForPod(const string& pod) {
   root_td->set_job_id(jd->uuid());
   CHECK(InsertIfNotPresent(task_map_.get(), root_td->uid(), root_td));
   return jd;
+}
+
+TaskID_t SchedulerBridge::AddPodToJob(const string &pod, JobDescriptor* jd) {
+  TaskDescriptor* root_td = jd->mutable_root_task();
+  TaskDescriptor* td = root_td->add_spawned();
+  td->set_uid(GenerateTaskID(*root_td));
+  td->set_name(pod);
+  td->set_state(TaskDescriptor::CREATED);
+  td->set_job_id(jd->uuid());
+  CHECK(InsertIfNotPresent(task_map_.get(), td->uid(), td));
+  return td->uid();
 }
 
 void SchedulerBridge::CreateResourceTopologyForNode(
@@ -209,13 +218,23 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
         // Check if this is the truly first time we see it.
         if (FindOrNull(pod_to_task_map_, pod.name_) == NULL) {
           LOG(INFO) << "New unscheduled pod: " << pod.name_;
-          JobDescriptor* jd_ptr = CreateJobForPod(pod.name_);
-          CHECK(InsertIfNotPresent(&pod_to_task_map_, pod.name_,
-                                   jd_ptr->root_task().uid()));
-          CHECK(InsertIfNotPresent(&task_to_pod_map_,
-                                   jd_ptr->root_task().uid(), pod.name_));
-          CHECK(InsertIfNotPresent(&job_num_incomplete_tasks_,
-                                   JobIDFromString(jd_ptr->uuid()), 1));
+          LOG(INFO) << "Pod's controller ID:  " << pod.controller_id_;
+          JobID_t job_id = GenerateJobID(pod.controller_id_);
+          JobDescriptor* jd_ptr = FindOrNull(*job_map_, job_id);
+          TaskID_t task_id;
+          if (jd_ptr == NULL) {
+            LOG(INFO) << "Creating a new job for pod " << pod.name_;
+            jd_ptr = CreateJobForPod(pod.name_, pod.controller_id_, job_id);
+            task_id = jd_ptr->root_task().uid();
+          } else {
+            LOG(INFO) << "Adding pod " << pod.name_ << " to an existing job.";
+            task_id = AddPodToJob(pod.name_, jd_ptr);
+          }
+          CHECK(InsertIfNotPresent(&pod_to_task_map_, pod.name_, task_id));
+          CHECK(InsertIfNotPresent(&task_to_pod_map_, task_id, pod.name_));
+          if (!InsertIfNotPresent(&job_num_incomplete_tasks_, job_id, 1)) {
+            ++job_num_incomplete_tasks_[job_id];
+          }
           flow_scheduler_->AddJob(jd_ptr);
         }
       }

@@ -53,6 +53,8 @@ struct NodeStatistics {
 struct PodStatistics {
   string name_;
   string state_;
+  // Unique ID of the k8s resource (job or deployment) controlling the pod
+  string controller_id_;
   double cpu_request_;
   uint64_t memory_request_kb_;
 };
