@@ -77,7 +77,6 @@ class SchedulerBridge {
   ~SchedulerBridge();
   void AddStatisticsForNode(const string& node_id,
                             const NodeStatistics& node_stats);
-  JobDescriptor* CreateJobForPod(const string& pod);
   bool NodeAdded(const string& node_id,
                  const apiclient::NodeStatistics& node_stats);
   void NodeFailed(const string& node_id,
@@ -88,9 +87,14 @@ class SchedulerBridge {
  private:
   // Unit tests
   FRIEND_TEST(SchedulerBridgeTest, CreateTopLevelResourceTest);
+
+  TaskID_t AddPodToJob(const string& pod, JobDescriptor* jd);
   void CleanPUStateForDeregisteredResource(
       ResourceTopologyNodeDescriptor* rtnd_ptr);
   ResourceStatus* CreateTopLevelResource();
+  JobDescriptor* CreateJobForPod(const string& pod,
+                                 const string& controller_id,
+                                 const JobID_t& job_id);
   void CreateResourceTopologyForNode(
       const ResourceID_t& rid,
       const apiclient::NodeStatistics& node_stats);
