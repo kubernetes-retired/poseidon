@@ -196,6 +196,48 @@ void SchedulerBridge::CleanPUStateForDeregisteredResource(
 unordered_map<string, string>* SchedulerBridge::RunScheduler(
     const vector<PodStatistics>& pods) {
   bool found_pending_pod = false;
+  // Kubernetes may create a new pod instance if it doesn't receive updates
+  // for an old pod instance. When this happens, the old pod instance and the
+  // new one can simultaneously be detected by Poseidon. The old instance is
+  // detected in "Unknown" state and the new one in "Pending" state.
+  // Hence, we first process the pods in "Unknown" state to make sure Poseidon's
+  // data structures are up-to-date before we try to place the "Pending" pods.
+  unordered_set<string> current_unknown_pods;
+  for (const PodStatistics& pod : pods) {
+    if (pod.state_ == "Unknown") {
+      current_unknown_pods.insert(pod.name_);
+      // Pod migrates to unknown state after master hasn't heard from
+      // it in a while.
+      if (unknown_pods_.find(pod.name_) == unknown_pods_.end()) {
+        unknown_pods_.insert(pod.name_);
+        uint32_t num_running_erased = running_pods_.erase(pod.name_);
+        uint32_t num_pending_erased = pending_pods_.erase(pod.name_);
+        CHECK_EQ(num_pending_erased + num_running_erased, 1);
+        // TODO(ionel): Differentiate between actual pod failure and
+        // pod being in unknown state due to node failure.
+        // Inform the scheduler that the the pod has failed.
+        TaskID_t* tid_ptr = FindOrNull(pod_to_task_map_, pod.name_);
+        CHECK_NOTNULL(tid_ptr);
+        TaskDescriptor* td_ptr = FindPtrOrNull(*task_map_, *tid_ptr);
+        CHECK_NOTNULL(td_ptr);
+        flow_scheduler_->HandleTaskFailure(td_ptr);
+        // Delete the binding between the pod and the K8s node.
+        pod_to_node_map_.erase(pod.name_);
+      }
+    }
+  }
+
+  // K8s silently removes pods in Unknown state after a while. Hence,
+  // we have to update our unknown_pods set to reflect K8s master state.
+  for (unordered_set<string>::iterator it = unknown_pods_.begin();
+       it != unknown_pods_.end();) {
+    if (current_unknown_pods.find(*it) == current_unknown_pods.end()) {
+      it = unknown_pods_.erase(it);
+    } else {
+      it++;
+    }
+  }
+
   for (const PodStatistics& pod : pods) {
     if (pod.state_ == "Pending") {
       found_pending_pod = true;
@@ -205,7 +247,6 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
         // Erase the pod from the other sets in case it previously was in a
         // failed or unknown state.
         failed_pods_.erase(pod.name_);
-        unknown_pods_.erase(pod.name_);
         // Check if this is the truly first time we see it.
         if (FindOrNull(pod_to_task_map_, pod.name_) == NULL) {
           LOG(INFO) << "New unscheduled pod: " << pod.name_;
@@ -225,12 +266,8 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
         // First time we detect the pod in running state.
         running_pods_.insert(pod.name_);
         // Delete the pod from the collection corresponding to its prior state.
-        uint32_t num_pending_erased = pending_pods_.erase(pod.name_);
-        uint32_t num_failed_erased = failed_pods_.erase(pod.name_);
-        uint32_t num_unknown_erased = unknown_pods_.erase(pod.name_);
-        // The pod should have either been in pending, failed or unknown state.
-        CHECK_EQ(num_pending_erased + num_failed_erased + num_unknown_erased,
-                 1);
+        pending_pods_.erase(pod.name_);
+        failed_pods_.erase(pod.name_);
       }
       string* node = FindOrNull(pod_to_node_map_, pod.name_);
       CHECK_NOTNULL(node);
@@ -301,9 +338,7 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
         // We do not delete the mappings between pod and task in case the
         // task may be rescheduled.
       }
-    } else if (pod.state_ == "Unknown") {
-      // TODO(ionel): Handle this case.
-    } else {
+    } else if (pod.state_ != "Unknown") {
       LOG(ERROR) << "Pod " << pod.name_ << " is unexpected state "
                  << pod.state_;
     }
@@ -336,10 +371,17 @@ unordered_map<string, string>* SchedulerBridge::RunScheduler(
       CHECK_NOTNULL(node_name);
       CHECK(InsertIfNotPresent(&pod_to_node_map_, *pod, *node_name));
       CHECK(InsertIfNotPresent(pod_node_bindings, *pod, *node_name));
+    } else if (d.type() == SchedulingDelta::PREEMPT) {
+      // TODO(ionel): Handle PREEMPT scenario.
+      LOG(FATAL) << "Pod preemption not currently supported.!";
+    } else if (d.type() == SchedulingDelta::MIGRATE) {
+      // TODO(ionel): Handle MIGRATE scenario.
+      LOG(FATAL) << "Pod migration not currently supported.";
+    } else if (d.type() == SchedulingDelta::NOOP) {
+      // We do not have to do anything.
     } else {
-      // TODO(ionel): Handle SchedulingDelta::NOOP, PREEMPT, MIGRATE.
-      LOG(WARNING) << "Encountered unsupported scheduling delta of type "
-                   << to_string(d.type());
+      LOG(FATAL) << "Encountered unsupported scheduling delta of type "
+                 << to_string(d.type());
     }
   }
   return pod_node_bindings;
