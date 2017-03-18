@@ -4,6 +4,8 @@ include(CheckCXXCompilerFlag)
 # Debug/Release mode toggle
 if (_DEBUG)
   set(CMAKE_BUILD_TYPE Debug)
+else ()
+  set(CMAKE_BUILD_TYPE Release)
 endif (_DEBUG)
 
 # We require C++11 support
