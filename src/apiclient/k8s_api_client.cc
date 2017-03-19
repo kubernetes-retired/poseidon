@@ -97,6 +97,47 @@ pplx::task<json::value> K8sApiClient::BindPodTask(
       });
 }
 
+pplx::task<json::value> K8sApiClient::DeletePod(
+    const utility::string_t& base_uri,
+    const string& k8s_namespace,
+    const string& pod_name) {
+  uri_builder ub(base_uri);
+  ub.append_path(U(api_prefix() + "namespaces/" + k8s_namespace + "/pods/" +
+                   pod_name));
+  http_client client(ub.to_uri());
+  return client.request(methods::DEL)
+      .then([=](http_response resp) { return resp.extract_json(); })
+      .then([=](json::value resp) {
+        json::value result = json::value::object();
+        CHECK(resp.is_object());
+        auto& resp_object = resp.as_object();
+        if (!resp_object[U("status")].is_null()) {
+          if (resp_object[U("status")].is_string()) {
+            result[U("status")] = resp_object[U("status")];
+          } else if (resp_object[U("status")].is_object()) {
+            // There's no explicit status to denote that a pod was deleted,
+            // but if the reply contains a status object with a phase field
+            // the the pod has been deleted.
+            CHECK(!resp_object[U("status")][U("phase")].is_null());
+            result[U("status")] = json::value("Deleted");
+          } else {
+            LOG(ERROR) << "Delete reply for pod " << pod_name
+                     << " contain unknown type of status field";
+            result[U("status")] = json::value("Failure");
+          }
+        } else {
+          LOG(ERROR) << "Delete reply for pod " << pod_name
+                     << " doesn't contain status field";
+          result[U("status")] = json::value("Failure");
+        }
+        return result;
+      })
+      .then([=](pplx::task<json::value> t) {
+        // If there was an exception, modify the response to contain an error
+        return HandleTaskException(t, U("status"));
+      });
+}
+
 // Given base URI and label selector, fetch list of nodes that match.
 // Returns a task of json::value of node data
 // JSON result Format:
@@ -311,6 +352,25 @@ vector<pair<string, NodeStatistics>> K8sApiClient::NodesWithLabel(
   }
 
   return nodes;
+}
+
+bool K8sApiClient::DeletePod(const string& pod_name) {
+  pplx::task<json::value> t =
+    DeletePod(base_uri_.to_string(), U("default"), pod_name);
+  try {
+    t.wait();
+    json::value jval = t.get();
+    if (jval[U("status")].is_null() ||
+        jval[U("status")].as_string() == "Failure") {
+      return false;
+    } else if (jval[U("status")].as_string() == "Deleted") {
+      return true;
+    }
+    return false;
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception while deleting pod: " << e.what();
+  }
+  return false;
 }
 
 vector<PodStatistics> K8sApiClient::PodsWithLabel(

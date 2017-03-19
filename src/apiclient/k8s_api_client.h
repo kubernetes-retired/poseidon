@@ -43,6 +43,7 @@ class K8sApiClient {
   K8sApiClient();
   vector<pair<string, NodeStatistics>> AllNodes(void);
   vector<PodStatistics> AllPods(void);
+  bool DeletePod(const string& pod_name);
   vector<pair<string, NodeStatistics>> NodesWithLabel(const string& label);
   vector<PodStatistics> PodsWithLabel(const string& label);
   bool BindPodToNode(const string& pod_name, const string& node_name);
@@ -52,6 +53,9 @@ class K8sApiClient {
                                       const string& k8s_namespace,
                                       const string& pod_name,
                                       const string& node_name);
+  pplx::task<json::value> DeletePod(const utility::string_t& base_uri,
+                                    const string& k8s_namespace,
+                                    const string& pod_name);
   pplx::task<json::value> GetNodesTask(const utility::string_t& base_uri,
                                        const utility::string_t& label_selector);
   pplx::task<json::value> GetPodsTask(const utility::string_t& base_uri,
