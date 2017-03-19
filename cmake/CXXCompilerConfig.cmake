@@ -4,7 +4,7 @@ include(CheckCXXCompilerFlag)
 # Debug/Release mode toggle
 if (_DEBUG)
   set(CMAKE_BUILD_TYPE Debug)
-else ()
+else (_DEBUG)
   set(CMAKE_BUILD_TYPE Release)
 endif (_DEBUG)
 
