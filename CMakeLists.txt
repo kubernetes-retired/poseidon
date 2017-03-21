@@ -1,4 +1,6 @@
+################################################################################
 project(Poseidon)
+################################################################################
 
 cmake_minimum_required(VERSION 2.8)
 
@@ -28,6 +30,12 @@ include(ExternalDependencies)
 include_directories(${Poseidon_SOURCE_DIR})
 include_directories(${cpp-rest-sdk_INCLUDE_DIR})
 include_directories(${gtest_INCLUDE_DIR})
+
+# Unit tests
+if (BUILD_TESTS)
+  enable_testing()
+  set(GTEST_ROOT ${gtest_BINARY_DIR})
+endif (BUILD_TESTS)
 
 # Set subdirectories
 subdirs(src)

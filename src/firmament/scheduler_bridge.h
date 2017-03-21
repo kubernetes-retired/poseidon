@@ -24,6 +24,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include <gtest/gtest.h>
+
 #include "base/resource_status.h"
 #include "base/resource_topology_node_desc.pb.h"
 #include "base/units.h"
@@ -84,6 +86,8 @@ class SchedulerBridge {
       const vector<PodStatistics>& pods);
 
  private:
+  // Unit tests
+  FRIEND_TEST(SchedulerBridgeTest, CreateTopLevelResourceTest);
   void CleanPUStateForDeregisteredResource(
       ResourceTopologyNodeDescriptor* rtnd_ptr);
   ResourceStatus* CreateTopLevelResource();
