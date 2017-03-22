@@ -23,6 +23,8 @@
 
 #include <string>
 
+#include <gtest/gtest.h>
+
 #include "cpprest/http_client.h"
 #include "cpprest/json.h"
 
@@ -49,6 +51,8 @@ class K8sApiClient {
   bool BindPodToNode(const string& pod_name, const string& node_name);
 
  private:
+  // Unit tests
+  FRIEND_TEST(K8sApiClientTest, PodsWithLabelTest);
   pplx::task<json::value> BindPodTask(const utility::string_t& base_uri,
                                       const string& k8s_namespace,
                                       const string& pod_name,
