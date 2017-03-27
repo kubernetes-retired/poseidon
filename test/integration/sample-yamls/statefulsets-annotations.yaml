@@ -1,0 +1,42 @@
+---
+apiVersion: v1 
+kind: Service 
+metadata:
+  name: nginx-anno
+  labels:
+    app: nginx-anno
+spec:
+  ports:
+  - port: 80
+    name: web
+  clusterIP: None
+  selector:
+    app: nginx-anno
+--- 
+apiVersion: apps/v1beta1 
+kind: StatefulSet 
+metadata:
+  name: web-anno
+spec:
+  serviceName: "nginx"
+  replicas: 2
+  template:
+    metadata: 
+      annotations:
+        "scheduler.alpha.kubernetes.io/name": poseidon-scheduler
+      labels:
+        app: nginx-anno
+    spec:
+      containers:
+      - name: nginx-anno
+        image: nginx:1.10
+        ports:
+        - containerPort: 80
+          name: web
+        volumeMounts:
+        - name: www-anno
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: www-anno
+        hostPath:
+          path: /data

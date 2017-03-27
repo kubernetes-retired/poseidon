@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: nginx-daemon-anno
+spec:
+  template:
+    metadata:
+      annotations:
+        "scheduler.alpha.kubernetes.io/name": poseidon-scheduler
+      labels:
+        app: nginx-daemon-anno
+    spec:
+      containers:
+        - name: nginx-daemon-anno
+          image: nginx:1.10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi

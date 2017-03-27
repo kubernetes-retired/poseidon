@@ -1,0 +1,25 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-deployment-anno
+spec:
+  replicas: 2
+  template:
+    metadata:
+      annotations:
+        "scheduler.alpha.kubernetes.io/name": poseidon-scheduler
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx-deployment-anno
+        image: nginx
+        resources:
+          requests:
+            memory: "10Mi"
+            cpu: "1000m"
+          limits:
+            memory: "1024Mi"
+            cpu: "2000m"
+        ports:
+        - containerPort: 80

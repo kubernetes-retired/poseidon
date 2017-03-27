@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: nginx-daemon
+spec:
+  template:
+    metadata:
+      labels:
+        app: nginx-daemon
+    spec:
+      containers:
+        - name: nginx-daemon
+          image: nginx:1.10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
