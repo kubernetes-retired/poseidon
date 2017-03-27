@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cpuspin
+spec:
+  completions: 2
+  template:
+    metadata:
+      annotations:
+        "scheduler.alpha.kubernetes.io/name": poseidon-scheduler
+      name: cpuspin
+    spec:
+      containers:
+      - name: cpuspin
+        image: firmament/libhdfs3
+        resources:
+          requests:
+            memory: "10Mi"
+            cpu: "1000m"
+          limits:
+            memory: "1024Mi"
+            cpu: "2000m"
+        command: ["/bin/sh", "-c", "/cpu_spin 7"]
+      restartPolicy: Never
