@@ -1,0 +1,14 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hello
+spec:
+  template:
+    metadata:
+      name: hello 
+    spec:
+      containers:
+      - name: ubuntu
+        image: ubuntu
+        command: ["/bin/echo", "hello world"]
+      restartPolicy: Never
