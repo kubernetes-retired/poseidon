@@ -6,6 +6,8 @@ spec:
   template:
     metadata:
       name: cpuspin
+      labels:
+        scheduler: poseidon
     spec:
       containers:
       - name: cpuspin
