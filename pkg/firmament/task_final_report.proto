@@ -1,0 +1,17 @@
+// The Firmament project
+// Copyright (c) The Firmament Authors.
+
+syntax = "proto3";
+
+package firmament;
+
+message TaskFinalReport {
+  uint64 task_id = 1;
+  uint64 start_time = 2;
+  uint64 finish_time = 3;
+  uint64 instructions = 4;
+  uint64 cycles = 5;
+  uint64 llc_refs = 6;
+  uint64 llc_misses = 7;
+  double runtime = 8;
+}

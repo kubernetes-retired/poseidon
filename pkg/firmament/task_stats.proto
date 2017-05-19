@@ -1,0 +1,36 @@
+// The Firmament project
+// Copyright (c) The Firmament Authors.
+
+syntax = "proto3";
+
+package firmament;
+
+message TaskStats {
+  uint64 task_id = 1;
+  string hostname = 2;
+  uint64 timestamp = 3;
+  // CPU stats in millicores.
+  int64 cpu_limit = 4;
+  int64 cpu_request = 5;
+  int64 cpu_usage = 6;
+  // Memory stats in Kb.
+  int64 mem_limit = 7;
+  int64 mem_request = 8;
+  int64 mem_usage = 9;
+  int64 mem_rss = 10;
+  int64 mem_cache = 11;
+  int64 mem_working_set = 12;
+  int64 mem_page_faults = 13;
+  double mem_page_faults_rate = 14;
+  int64 major_page_faults = 15;
+  double major_page_faults_rate = 16;
+  // Network stats in Kb.
+  int64 net_rx = 17;
+  int64 net_rx_errors = 18;
+  double net_rx_errors_rate = 19;
+  double net_rx_rate = 20;
+  int64 net_tx = 21;
+  int64 net_tx_errors = 22;
+  double net_tx_errors_rate = 23;
+  double net_tx_rate = 24;
+}
