@@ -1,3 +1,6 @@
 [submodule "firmament"]
 	path = ext/firmament
 	url = https://github.com/ms705/firmament.git
+[submodule "vendor"]
+	path = vendor
+	url = https://github.com/camsas/poseidon-vendor
