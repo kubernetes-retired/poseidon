@@ -1,0 +1,136 @@
+// The Firmament project
+// Copyright (c) The Firmament Authors.
+
+syntax = "proto3";
+
+package firmament;
+
+import "job_desc.proto";
+import "task_desc.proto";
+import "resource_topology_node_desc.proto";
+import "scheduling_delta.proto";
+
+service FirmamentScheduler {
+  rpc Schedule (ScheduleRequest) returns (SchedulingDeltas) {}
+
+  rpc TaskCompleted (TaskUID) returns (TaskCompletedResponse) {}
+  rpc TaskFailed (TaskUID) returns (TaskFailedResponse) {}
+  rpc TaskRemoved (TaskUID) returns (TaskRemovedResponse) {}
+  rpc TaskSubmitted (TaskDescription) returns (TaskSubmittedResponse) {}
+
+  rpc NodeAdded (ResourceTopologyNodeDescriptor) returns (NodeAddedResponse) {}
+  rpc NodeFailed (ResourceUID) returns (NodeFailedResponse) {}
+  rpc NodeRemoved (ResourceUID) returns (NodeRemovedResponse) {}
+
+  rpc AddTaskStats (TaskStats) returns (TaskStatsResponse) {}
+  rpc AddNodeStats (ResourceStats) returns (ResourceStatsResponse) {}
+}
+
+message ScheduleRequest {}
+
+message SchedulingDeltas {
+  repeated SchedulingDelta deltas = 1;
+}
+
+message TaskCompletedResponse {
+  TaskReplyType type = 1;
+}
+
+message TaskDescription {
+  TaskDescriptor task_descriptor = 1;
+  JobDescriptor job_descriptor = 2;
+}
+
+message TaskSubmittedResponse {
+  TaskReplyType type = 1;
+}
+
+message TaskRemovedResponse {
+  TaskReplyType type = 1;
+}
+
+message TaskFailedResponse {
+  TaskReplyType type = 1;
+}
+
+message NodeAddedResponse {
+  NodeReplyType type = 1;
+}
+
+message NodeRemovedResponse {
+  NodeReplyType type = 1;
+}
+
+message NodeFailedResponse {
+  NodeReplyType type = 1;
+}
+
+message TaskStatsResponse {
+  TaskReplyType type = 1;
+}
+
+message ResourceStatsResponse {
+  NodeReplyType type = 1;
+}
+
+message TaskUID {
+  uint64 task_uid = 1;
+}
+
+message ResourceUID {
+  string resource_uid = 1;
+}
+
+enum TaskReplyType {
+  TASK_COMPLETED_OK = 0;
+  TASK_SUBMITTED_OK = 1;
+  TASK_REMOVED_OK = 2;
+  TASK_FAILED_OK = 3;
+  TASK_NOT_FOUND = 4;
+  TASK_JOB_NOT_FOUND = 5;
+  TASK_ALREADY_SUBMITTED = 6;
+  TASK_STATE_NOT_CREATED = 7;
+}
+
+enum NodeReplyType {
+  NODE_ADDED_OK = 0;
+  NODE_FAILED_OK = 1;
+  NODE_REMOVED_OK = 2;
+  NODE_NOT_FOUND = 3;
+  NODE_ALREADY_EXISTS = 4;
+}
+
+message TaskStats {
+  TaskUID task_uid = 1;
+  uint64 cpu_limit = 2;
+  uint64 cpu_request = 3;
+  uint64 cpu_usage = 4;
+  uint64 mem_limit = 5;
+  uint64 mem_request = 6;
+  uint64 mem_usage = 7;
+  uint64 mem_working_set = 8;
+  uint64 mem_page_faults = 9;
+  double mem_page_faults_rate = 10;
+  uint64 major_page_faults = 11;
+  double major_page_faults_rate = 12;
+  uint64 net_rx = 13;
+  uint64 net_rx_errors = 14;
+  double net_rx_errors_rate = 15;
+  double net_rx_rate = 16;
+  uint64 net_tx = 17;
+  uint64 net_tx_errors = 18;
+  double net_tx_errors_rate = 19;
+  double net_tx_rate = 20;
+}
+
+message ResourceStats {
+  ResourceUID resource_uid = 1;
+  uint64 cpu_allocatable = 2;
+  uint64 cpu_capacity = 3;
+  uint64 cpu_reservation = 4;
+  uint64 cpu_utilization = 5;
+  uint64 mem_allocatable = 6;
+  uint64 mem_capacity = 7;
+  uint64 mem_reservation = 8;
+  uint64 mem_utilization = 9;
+}
