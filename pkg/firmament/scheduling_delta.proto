@@ -1,0 +1,21 @@
+// The Firmament project
+// Copyright (c) The Firmament Authors.
+//
+// Represents a scheduling change to be applied.
+
+syntax = "proto3";
+
+package firmament;
+
+message SchedulingDelta {
+  enum ChangeType {
+    NOOP = 0;
+    PLACE = 1;
+    PREEMPT = 2;
+    MIGRATE = 3;
+  }
+
+  uint64 task_id = 1;
+  string resource_id = 2;
+  ChangeType type = 3;
+}
