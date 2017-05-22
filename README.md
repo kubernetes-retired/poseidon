@@ -16,15 +16,17 @@ Once the image has downloaded, you can start Poseidon as follows:
 ```
 $ docker run camsas/poseidon:dev /usr/bin/poseidon \
     --logtostderr \
-    --k8s_apiserver_host=<host> \
-    --k8s_apiserver_port=<port> \
-    --cs2_binary=/usr/bin/cs2.exe \
-    --max_tasks_per_pu=<max pods per node>
+    --kubeConfig=<path_kubeconfig_file> \
+    --firmamentAddress=<host>:<port> \
+    --statsServerAddress=<host>:<port> \
+    --kubeVersion=<Major.Minor>
 ```
 Note that Poseidon will try to schedule for Kubernetes even if `kube-scheduler`
-is running -- to avoid conflicts, shut it down first. If your `kube-scheduler`
-is running locally then you can execute `sudo service kube-scheduler stop`,
-otherwise stop its pod.
+is running. If you are using a Kubernetes version older than 1.6 then to avoid
+conflicts, shut down `kube-scheduler` first, and make sure your pods are
+labeled with `scheduler : poseidon`. If you are using Kubernetes 1.6+ then you
+do not have to to shut down `kube-scheduler`, but you must specify
+`schedulerName: poseidon` in your pod specs.
 
 You will also need to ensure that the API server is reachable from the Poseidon
 container's network (e.g., using `--net=host` if you're running a local
@@ -34,37 +36,19 @@ development cluster).
 
 ## System requirements
 
- * CMake 2.8+
+ * Go 1.7+
  * Docker 1.7+
  * Kubernetes v1.1+
- * Boost 1.54+
- * libssl 1.0.0+
 
-The build process will install local version of Poseidon's dependencies, which
-currently include:
-
- * the [Microsoft C++ REST SDK](https://github.com/Microsoft/cpprestsdk) v2.7.0
- * the [Firmament scheduler](https://github.com/camsas/firmament) (HEAD)
-
-and their dependencies.
-
-A known-good build environment is Ubuntu 16.04 with gcc 5.1.3.
-
+A known-good build environment is Ubuntu 14.04.
 
 ## Build process
 
-First, generate the build infrastructure:
+Run :
 
 ```
-$ mkdir build
-$ cd build
-build$ cmake ..
-```
-
-Then, build Poseidon:
-
-```
-build$ make
+$ go build
+$ go install
 ```
 
 Following, make sure you have a Kubernetes cluster running. If you're running Ubuntu on amd64 then you can execute:
@@ -74,16 +58,23 @@ Following, make sure you have a Kubernetes cluster running. If you're running Ub
 ./deploy/run_kubernetes.sh
 ```
 
-To start up, run from the root directory:
+Next, make sure you have a Firmament scheduler service running. You can follow
+these [instructions](https://github.com/camsas/firmament/blob/master/README.md)
+to build and deploy Firmament.
+
+
+Finally, to start up Poseidon, run:
 
 ```
-$ build/poseidon --flagfile=deploy/poseidon.cfg \
-                 --k8s_apiserver_host=<hostname> \
-                 --k8s_apiserver_port=8080
+$ poseidon --logtostderr \
+    --kubeConfig=<path_kubeconfig_file> \
+    --firmamentAddress=<host>:<port> \
+    --statsServerAddress=<host>:<port> \
+    --kubeVersion=<Major.Minor>
 ```
 
-Arguments in `deploy/poseidon.cfg` control flow scheduling features
-(e.g. to choose a scheduling policy). For more info check
+Arguments in `${FIRMAMENT_HOME}/config/firmament_scheduler.cfg` control flow
+scheduling features (e.g. to choose a scheduling policy). For more info check
 [accepted by Firmament](https://github.com/camsas/firmament/blob/master/README.md).
 
 ## Contributing
