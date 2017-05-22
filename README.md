@@ -15,7 +15,7 @@ $ docker pull camsas/poseidon:dev
 ```
 Once the image has downloaded, you can start Poseidon as follows:
 ```
-$ docker run camsas/poseidon:dev /usr/bin/poseidon \
+$ docker run camsas/poseidon:dev poseidon \
     --logtostderr \
     --kubeConfig=<path_kubeconfig_file> \
     --firmamentAddress=<host>:<port> \
