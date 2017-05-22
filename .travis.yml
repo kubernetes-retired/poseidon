@@ -5,6 +5,9 @@ dist: trusty
 go:
   - 1.7.1
 
+install:
+  - # Do nothing. This is needed to prevent default instal action "go get -t -v ./..." from happening here.
+
 script:
   - go build -v
 
