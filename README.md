@@ -60,7 +60,7 @@ Following, make sure you have a Kubernetes cluster running. If you're running Ub
 ```
 
 Next, make sure you have a Firmament scheduler service running. You can follow
-these [instructions](https://github.com/camsas/firmament/blob/master/README.md)
+these [instructions](https://github.com/camsas/firmament/blob/master/README.md#running-the-firmament-scheduler-service)
 to build and deploy Firmament.
 
 
@@ -76,7 +76,7 @@ $ poseidon --logtostderr \
 
 Arguments in `${FIRMAMENT_HOME}/config/firmament_scheduler.cfg` control flow
 scheduling features (e.g. to choose a scheduling policy). For more info check
-[accepted by Firmament](https://github.com/camsas/firmament/blob/master/README.md).
+[accepted by Firmament](https://github.com/camsas/firmament/blob/master/README.md#using-the-flow-scheduler).
 
 ## Contributing
 
