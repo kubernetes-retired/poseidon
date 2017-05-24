@@ -19,6 +19,7 @@
 package k8sclient
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"sync"
@@ -136,6 +137,7 @@ func (this *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 		Identifier: PodIdentifier{
 			Name:      pod.Name,
 			Namespace: pod.Namespace,
+			OwnerRef:  GetOwnerReference(pod),
 		},
 		State:        podPhase,
 		CpuRequest:   cpuReq,
@@ -230,10 +232,10 @@ func (this *PodWatcher) podWorker() {
 					glog.V(2).Info("PodPending ", pod.Identifier)
 					PodsCond.L.Lock()
 					// TODO(ionel): We generate a job per pod. Add a field to the Pod struct that uniquely identifies jobs/daemon sets and use that one instead to group pods into Firmament jobs.
-					jobId := this.generateJobID(pod.Identifier.Name)
+					jobId := this.generateJobID(pod.Identifier.OwnerRef)
 					jd, ok := jobIDToJD[jobId]
 					if !ok {
-						jd = this.createNewJob(pod.Identifier.Name)
+						jd = this.createNewJob(pod.Identifier.OwnerRef)
 						jobIDToJD[jobId] = jd
 						jobNumTasksToRemove[jobId] = 0
 					}
@@ -269,7 +271,7 @@ func (this *PodWatcher) podWorker() {
 					delete(PodToTD, pod.Identifier)
 					delete(TaskIDToPod, td.GetUid())
 					// TODO(ionel): Should we delete the task from JD's spawned field?
-					jobId := this.generateJobID(pod.Identifier.Name)
+					jobId := this.generateJobID(pod.Identifier.OwnerRef)
 					jobNumTasksToRemove[jobId]--
 					if jobNumTasksToRemove[jobId] == 0 {
 						// Clean state because the job doesn't have any tasks left.
@@ -295,7 +297,7 @@ func (this *PodWatcher) podWorker() {
 				case PodUpdated:
 					glog.V(2).Info("PodUpdated ", pod.Identifier)
 					PodsCond.L.Lock()
-					jobId := this.generateJobID(pod.Identifier.Name)
+					jobId := this.generateJobID(pod.Identifier.OwnerRef)
 					jd, okJob := jobIDToJD[jobId]
 					td, okPod := PodToTD[pod.Identifier]
 					PodsCond.L.Unlock()
@@ -375,9 +377,47 @@ func (this *PodWatcher) addTaskToJob(pod *Pod, jd *firmament.JobDescriptor) *fir
 }
 
 func (this *PodWatcher) generateJobID(seed string) string {
+	if seed == "" {
+		glog.Fatal("Error in generateJobID, seed value is nil")
+	}
+
 	return GenerateUUID(seed)
+
 }
 
 func (this *PodWatcher) generateTaskID(jdUid string, taskNum int) uint64 {
 	return HashCombine(jdUid, taskNum)
+}
+
+//GetOwnerReference to get the parent object reference
+func GetOwnerReference(pod *v1.Pod) string {
+
+	//First check ownerReference if exist return
+	ownerRef := pod.GetObjectMeta().GetOwnerReferences()
+	if len(ownerRef) != 0 {
+		for x := range ownerRef {
+			ref := &ownerRef[x]
+			if ref.Controller != nil && *ref.Controller {
+				return string(ref.UID)
+			}
+		}
+	}
+
+	// Second check controller-uid if exist return
+	if controllerID := pod.GetObjectMeta().GetLabels()["controller-uid"]; controllerID != "" {
+		return controllerID
+	}
+
+	// Third check 'kubernetes.io/created-by' if exist return
+	if createdByAnnotation, ok := pod.GetObjectMeta().GetAnnotations()[v1.CreatedByAnnotation]; ok {
+		var serialCreatedBy v1.SerializedReference
+		err := json.Unmarshal([]byte(createdByAnnotation), &serialCreatedBy)
+		if err == nil {
+			return string(serialCreatedBy.Reference.UID)
+		}
+	}
+
+	// Finally return the uid of the ObjectMeta if none is present
+	return string(pod.GetObjectMeta().GetUID())
+
 }
