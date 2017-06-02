@@ -76,9 +76,13 @@ $ poseidon --logtostderr \
     --kubeVersion=<Major.Minor>
 ```
 
-Arguments in `${FIRMAMENT_HOME}/config/firmament_scheduler.cfg` control flow
-scheduling features (e.g. to choose a scheduling policy). For more info check
+The configuration of the Firmament scheduler service is controlled by the
+configuration file in `${FIRMAMENT_HOME}/config/firmament_scheduler.cfg`. You
+can modify this file to control scheduling features (e.g. choose a scheduling
+policy). To apply changes, you need to restart (but not recompile) the
+Firmament scheduler service. For more info, check
 [the arguments accepted by Firmament](https://github.com/camsas/firmament/blob/master/README.md#using-the-flow-scheduler).
+All of these arguments can be set via the configuration file.
 
 ## Contributing
 
