@@ -23,11 +23,13 @@ $ docker run camsas/poseidon:dev poseidon \
     --kubeVersion=<Major.Minor>
 ```
 Note that Poseidon will try to schedule for Kubernetes even if `kube-scheduler`
-is running. If you are using a Kubernetes version older than 1.6 then to avoid
-conflicts, shut down `kube-scheduler` first, and make sure your pods are
-labeled with `scheduler : poseidon`. If you are using Kubernetes 1.6+ then you
-do not have to to shut down `kube-scheduler`, but you must specify
-`schedulerName: poseidon` in your pod specs.
+is running. How you best avoid conflicts depends on the version of Kubernetes
+you are running:
+ 1. If you are using Kubernetes <1.6, shut down `kube-scheduler` first, and make
+    sure your pods are labeled with `scheduler: poseidon`.
+ 2. If you are using Kubernetes 1.6+, you do not have to to shut down
+    `kube-scheduler`, but you must specify `schedulerName: poseidon` in your pod
+    specs.
 
 You will also need to ensure that the API server is reachable from the Poseidon
 container's network (e.g., using `--net=host` if you're running a local
