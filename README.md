@@ -45,7 +45,7 @@ A known-good build environment is Ubuntu 14.04.
 
 ## Build process
 
-Run :
+Run:
 
 ```
 $ go build
@@ -76,7 +76,7 @@ $ poseidon --logtostderr \
 
 Arguments in `${FIRMAMENT_HOME}/config/firmament_scheduler.cfg` control flow
 scheduling features (e.g. to choose a scheduling policy). For more info check
-[accepted by Firmament](https://github.com/camsas/firmament/blob/master/README.md#using-the-flow-scheduler).
+[the arguments accepted by Firmament](https://github.com/camsas/firmament/blob/master/README.md#using-the-flow-scheduler).
 
 ## Contributing
 
