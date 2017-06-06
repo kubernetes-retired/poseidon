@@ -79,6 +79,7 @@ const (
 type PodIdentifier struct {
 	Name      string
 	Namespace string
+	OwnerRef  string
 }
 
 func (this *PodIdentifier) UniqueName() string {
