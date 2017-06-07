@@ -93,6 +93,7 @@ type Pod struct {
 	Labels       map[string]string
 	Annotations  map[string]string
 	NodeSelector map[string]string
+	OwnerRef     string
 }
 
 type NodeWatcher struct {
