@@ -25,9 +25,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/api/errors"
-	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
+	appsv1beta1 "k8s.io/client-go/pkg/apis/apps/v1beta1"
 	batchv1 "k8s.io/client-go/pkg/apis/batch/v1"
 	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	"k8s.io/client-go/rest"
@@ -88,7 +89,7 @@ var _ = Describe("Poseidon", func() {
 				labels["scheduler"] = "poseidon"
 				//Create a K8s Pod with poseidon
 				_, err = clientset.Pods(TEST_NAMESPACE).Create(&v1.Pod{
-					ObjectMeta: v1.ObjectMeta{
+					ObjectMeta: metav1.ObjectMeta{
 						Name:        name,
 						Annotations: annots,
 						Labels:      labels,
@@ -106,18 +107,18 @@ var _ = Describe("Poseidon", func() {
 				By("Waiting for the pod to have running status")
 				By("Waiting 10 seconds")
 				time.Sleep(time.Duration(10 * time.Second))
-				pod, err := clientset.Pods(TEST_NAMESPACE).Get(name, meta_v1.GetOptions{})
+				pod, err := clientset.Pods(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				logger.Info("pod status =", string(pod.Status.Phase))
 				Expect(string(pod.Status.Phase)).To(Equal("Running"))
 
 				By("Pod was in Running state... Time to delete the pod now...")
-				err = clientset.Pods(TEST_NAMESPACE).Delete(name, &v1.DeleteOptions{})
+				err = clientset.Pods(TEST_NAMESPACE).Delete(name, &metav1.DeleteOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				By("Waiting 5 seconds")
 				time.Sleep(time.Duration(5 * time.Second))
 				By("Check for pod deletion")
-				_, err = clientset.Pods(TEST_NAMESPACE).Get(name, meta_v1.GetOptions{})
+				_, err = clientset.Pods(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				if err != nil {
 					Expect(errors.IsNotFound(err)).To(Equal(true))
 				}
@@ -152,22 +153,22 @@ var _ = Describe("Poseidon", func() {
 				annots["scheduler.alpha.kubernetes.io/name"] = "poseidon-scheduler"
 				labels := make(map[string]string)
 				labels["scheduler"] = "poseidon"
-				//Create a K8s Deployment with poseidon scheduler
+				// Create a K8s Deployment with poseidon scheduler
 				var replicas int32
 				replicas = 2
-				_, err = clientset.Deployments(TEST_NAMESPACE).Create(&v1beta1.Deployment{
-					ObjectMeta: v1.ObjectMeta{
+				_, err = clientset.AppsV1beta1().Deployments(TEST_NAMESPACE).Create(&appsv1beta1.Deployment{
+					ObjectMeta: metav1.ObjectMeta{
 						Name:        name,
 						Annotations: annots,
 						Labels:      labels,
 					},
-					Spec: v1beta1.DeploymentSpec{
+					Spec: appsv1beta1.DeploymentSpec{
 						Replicas: &replicas,
-						Selector: &meta_v1.LabelSelector{
+						Selector: &metav1.LabelSelector{
 							MatchLabels: map[string]string{"name": "test-dep"},
 						},
 						Template: v1.PodTemplateSpec{
-							ObjectMeta: v1.ObjectMeta{
+							ObjectMeta: metav1.ObjectMeta{
 								Labels: map[string]string{"name": "test-dep"},
 							},
 							Spec: v1.PodSpec{
@@ -188,7 +189,7 @@ var _ = Describe("Poseidon", func() {
 				By("Waiting for the Deployment to have running status")
 				By("Waiting 10 seconds")
 				time.Sleep(time.Duration(10 * time.Second))
-				deployment, err := clientset.Deployments(TEST_NAMESPACE).Get(name, meta_v1.GetOptions{})
+				deployment, err := clientset.AppsV1beta1().Deployments(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
 				logger.Info("Replicas =", deployment.Status.Replicas)
@@ -200,12 +201,12 @@ var _ = Describe("Poseidon", func() {
 				}
 
 				By("Pod was in Running state... Time to delete the deployment now...")
-				err = clientset.Deployments(TEST_NAMESPACE).Delete(name, &v1.DeleteOptions{})
+				err = clientset.AppsV1beta1().Deployments(TEST_NAMESPACE).Delete(name, &metav1.DeleteOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				By("Waiting 5 seconds")
 				time.Sleep(time.Duration(5 * time.Second))
 				By("Check for deployment deletion")
-				_, err = clientset.Deployments(TEST_NAMESPACE).Get(name, meta_v1.GetOptions{})
+				_, err = clientset.AppsV1beta1().Deployments(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				if err != nil {
 					Expect(errors.IsNotFound(err)).To(Equal(true))
 				}
@@ -244,18 +245,18 @@ var _ = Describe("Poseidon", func() {
 				var replicas int32
 				replicas = 2
 				_, err = clientset.ReplicaSets(TEST_NAMESPACE).Create(&v1beta1.ReplicaSet{
-					ObjectMeta: v1.ObjectMeta{
+					ObjectMeta: metav1.ObjectMeta{
 						Name:        name,
 						Annotations: annots,
 						Labels:      labels,
 					},
 					Spec: v1beta1.ReplicaSetSpec{
 						Replicas: &replicas,
-						Selector: &meta_v1.LabelSelector{
+						Selector: &metav1.LabelSelector{
 							MatchLabels: map[string]string{"name": "test-rs"},
 						},
 						Template: v1.PodTemplateSpec{
-							ObjectMeta: v1.ObjectMeta{
+							ObjectMeta: metav1.ObjectMeta{
 								Labels: map[string]string{"name": "test-rs"},
 							},
 							Spec: v1.PodSpec{
@@ -276,7 +277,7 @@ var _ = Describe("Poseidon", func() {
 				By("Waiting for the ReplicaSet to have running status")
 				By("Waiting 10 seconds")
 				time.Sleep(time.Duration(10 * time.Second))
-				replicaSet, err := clientset.ReplicaSets(TEST_NAMESPACE).Get(name, meta_v1.GetOptions{})
+				replicaSet, err := clientset.ReplicaSets(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
 				logger.Info("Replicas =", replicaSet.Status.Replicas)
@@ -287,12 +288,12 @@ var _ = Describe("Poseidon", func() {
 				}
 
 				By("Pod was in Running state... Time to delete the ReplicaSet now...")
-				err = clientset.ReplicaSets(TEST_NAMESPACE).Delete(name, &v1.DeleteOptions{})
+				err = clientset.ReplicaSets(TEST_NAMESPACE).Delete(name, &metav1.DeleteOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				By("Waiting 5 seconds")
 				time.Sleep(time.Duration(5 * time.Second))
 				By("Check for ReplicaSet deletion")
-				_, err = clientset.ReplicaSets(TEST_NAMESPACE).Get(name, meta_v1.GetOptions{})
+				_, err = clientset.ReplicaSets(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				if err != nil {
 					Expect(errors.IsNotFound(err)).To(Equal(true))
 				}
@@ -331,7 +332,7 @@ var _ = Describe("Poseidon", func() {
 				var completions int32
 				completions = 2
 				_, err = clientset.Batch().Jobs(TEST_NAMESPACE).Create(&batchv1.Job{
-					ObjectMeta: v1.ObjectMeta{
+					ObjectMeta: metav1.ObjectMeta{
 						Name:        name,
 						Annotations: annots,
 						Labels:      labels,
@@ -340,7 +341,7 @@ var _ = Describe("Poseidon", func() {
 						Parallelism: &completions,
 						Completions: &completions,
 						Template: v1.PodTemplateSpec{
-							ObjectMeta: v1.ObjectMeta{
+							ObjectMeta: metav1.ObjectMeta{
 								Annotations: annots,
 								Labels:      labels,
 							},
@@ -363,7 +364,7 @@ var _ = Describe("Poseidon", func() {
 				By("Waiting for the Job to have running status")
 				By("Waiting 10 seconds")
 				time.Sleep(time.Duration(10 * time.Second))
-				job, err := clientset.Batch().Jobs(TEST_NAMESPACE).Get(name, meta_v1.GetOptions{})
+				job, err := clientset.Batch().Jobs(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
 				logger.Info("Jobs Active =", job.Status.Active)
@@ -374,12 +375,12 @@ var _ = Describe("Poseidon", func() {
 				}
 
 				By("Job was in Running state... Time to delete the Job now...")
-				err = clientset.Batch().Jobs(TEST_NAMESPACE).Delete(name, &v1.DeleteOptions{})
+				err = clientset.Batch().Jobs(TEST_NAMESPACE).Delete(name, &metav1.DeleteOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				By("Waiting 5 seconds")
 				time.Sleep(time.Duration(5 * time.Second))
 				By("Check for Job deletion")
-				_, err = clientset.Batch().Jobs(TEST_NAMESPACE).Get(name, meta_v1.GetOptions{})
+				_, err = clientset.Batch().Jobs(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				if err != nil {
 					Expect(errors.IsNotFound(err)).To(Equal(true))
 				}
@@ -415,17 +416,17 @@ var _ = Describe("Poseidon", func() {
 				labels := make(map[string]string)
 				labels["scheduler"] = "poseidon"
 				_, err = clientset.DaemonSets(TEST_NAMESPACE).Create(&v1beta1.DaemonSet{
-					ObjectMeta: v1.ObjectMeta{
+					ObjectMeta: metav1.ObjectMeta{
 						Name:        name,
 						Annotations: annots,
 						Labels:      labels,
 					},
 					Spec: v1beta1.DaemonSetSpec{
-						Selector: &meta_v1.LabelSelector{
+						Selector: &metav1.LabelSelector{
 							MatchLabels: map[string]string{"name": "test-dep"},
 						},
 						Template: v1.PodTemplateSpec{
-							ObjectMeta: v1.ObjectMeta{
+							ObjectMeta: metav1.ObjectMeta{
 								Labels: map[string]string{"name": "test-dep"},
 							},
 							Spec: v1.PodSpec{
@@ -446,7 +447,7 @@ var _ = Describe("Poseidon", func() {
 				By("Waiting for the Daemonset to have running status")
 				By("Waiting 10 seconds")
 				time.Sleep(time.Duration(10 * time.Second))
-				Daemonset, err := clientset.DaemonSets(TEST_NAMESPACE).Get(name, meta_v1.GetOptions{})
+				Daemonset, err := clientset.DaemonSets(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
 				logger.Info("DesiredNumberScheduled =", Daemonset.Status.DesiredNumberScheduled)
@@ -457,12 +458,12 @@ var _ = Describe("Poseidon", func() {
 				}
 
 				By("Pod was in Running state... Time to delete the Daemonset now...")
-				err = clientset.DaemonSets(TEST_NAMESPACE).Delete(name, &v1.DeleteOptions{})
+				err = clientset.DaemonSets(TEST_NAMESPACE).Delete(name, &metav1.DeleteOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				By("Waiting 5 seconds")
 				time.Sleep(time.Duration(5 * time.Second))
 				By("Check for Daemonset deletion")
-				_, err = clientset.DaemonSets(TEST_NAMESPACE).Get(name, meta_v1.GetOptions{})
+				_, err = clientset.DaemonSets(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				if err != nil {
 					Expect(errors.IsNotFound(err)).To(Equal(true))
 				}
@@ -475,7 +476,7 @@ var _ = Describe("Poseidon", func() {
 
 func createNamespace(clientset *kubernetes.Clientset) {
 	ns, err := clientset.Namespaces().Create(&v1.Namespace{
-		ObjectMeta: v1.ObjectMeta{Name: TEST_NAMESPACE},
+		ObjectMeta: metav1.ObjectMeta{Name: TEST_NAMESPACE},
 	})
 	if err != nil {
 		if errors.IsAlreadyExists(err) {
@@ -486,7 +487,7 @@ func createNamespace(clientset *kubernetes.Clientset) {
 	}
 	By("Waiting 5 seconds")
 	time.Sleep(time.Duration(5 * time.Second))
-	ns, err = clientset.Namespaces().Get(TEST_NAMESPACE, meta_v1.GetOptions{})
+	ns, err = clientset.Namespaces().Get(TEST_NAMESPACE, metav1.GetOptions{})
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(ns.Name).To(Equal(TEST_NAMESPACE))
 }
