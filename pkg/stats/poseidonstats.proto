@@ -27,18 +27,19 @@ service PoseidonStats {
 
 message NodeStats {
   string hostname = 1;
+  uint64 timestamp = 2;
   // CPU stats (in millicores).
-  int64 cpu_allocatable = 2;
-  int64 cpu_capacity = 3;
+  int64 cpu_allocatable = 3;
+  int64 cpu_capacity = 4;
   // CPU stats (fraction of total).
-  double cpu_reservation = 4;
-  double cpu_utilization = 5;
+  double cpu_reservation = 5;
+  double cpu_utilization = 6;
   // Memory stats (in KB).
-  int64 mem_allocatable = 6;
-  int64 mem_capacity = 7;
+  int64 mem_allocatable = 7;
+  int64 mem_capacity = 8;
   // Memory stats (fraction of total).
-  double mem_reservation = 8;
-  double mem_utilization = 9;
+  double mem_reservation = 9;
+  double mem_utilization = 10;
 }
 
 enum NodeStatsResponseType {

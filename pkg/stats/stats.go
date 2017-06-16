@@ -67,6 +67,7 @@ func convertNodeStatsToResourceStats(nodeStats *NodeStats) *firmament.ResourceSt
 		CpuUtilization: nodeStats.GetCpuUtilization(),
 	}
 	return &firmament.ResourceStats{
+		Timestamp:      nodeStats.GetTimestamp(),
 		CpusStats:      []*firmament.CpuStats{cpuStats},
 		MemAllocatable: nodeStats.GetMemAllocatable(),
 		MemCapacity:    nodeStats.GetMemCapacity(),
