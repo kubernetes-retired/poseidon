@@ -329,8 +329,7 @@ var _ = Describe("Poseidon", func() {
 				labels := make(map[string]string)
 				labels["scheduler"] = "poseidon"
 				//Create a K8s Job with poseidon scheduler
-				var completions int32
-				completions = 2
+				var parallelism int32 = 2
 				_, err = clientset.Batch().Jobs(TEST_NAMESPACE).Create(&batchv1.Job{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:        name,
@@ -338,8 +337,8 @@ var _ = Describe("Poseidon", func() {
 						Labels:      labels,
 					},
 					Spec: batchv1.JobSpec{
-						Parallelism: &completions,
-						Completions: &completions,
+						Parallelism: &parallelism,
+						Completions: &parallelism,
 						Template: v1.PodTemplateSpec{
 							ObjectMeta: metav1.ObjectMeta{
 								Annotations: annots,
@@ -370,7 +369,7 @@ var _ = Describe("Poseidon", func() {
 				logger.Info("Jobs Active =", job.Status.Active)
 				logger.Info("Jobs Succeeded =", job.Status.Succeeded)
 				By(fmt.Sprintf("Creation of Jobs %q in namespace %q succeeded.  Deleting Job.", job.Name, TEST_NAMESPACE))
-				if job.Status.Active != job.Status.Succeeded {
+				if job.Status.Active != parallelism {
 					Expect("Success").To(Equal("Fail"))
 				}
 
