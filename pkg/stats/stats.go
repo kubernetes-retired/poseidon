@@ -60,11 +60,14 @@ func convertPodStatsToTaskStats(podStats *PodStats) *firmament.TaskStats {
 }
 
 func convertNodeStatsToResourceStats(nodeStats *NodeStats) *firmament.ResourceStats {
-	return &firmament.ResourceStats{
+	cpuStats := &firmament.CpuStats{
 		CpuAllocatable: nodeStats.GetCpuAllocatable(),
 		CpuCapacity:    nodeStats.GetCpuCapacity(),
 		CpuReservation: nodeStats.GetCpuReservation(),
 		CpuUtilization: nodeStats.GetCpuUtilization(),
+	}
+	return &firmament.ResourceStats{
+		CpusStats:      []*firmament.CpuStats{cpuStats},
 		MemAllocatable: nodeStats.GetMemAllocatable(),
 		MemCapacity:    nodeStats.GetMemCapacity(),
 		MemReservation: nodeStats.GetMemReservation(),
@@ -98,9 +101,7 @@ func (s *poseidonStatsServer) ReceiveNodeStats(stream PoseidonStats_ReceiveNodeS
 			}
 			continue
 		}
-		resourceStats.ResourceUid = &firmament.ResourceUID{
-			ResourceUid: rtnd.GetResourceDesc().GetUuid(),
-		}
+		resourceStats.ResourceId = rtnd.GetResourceDesc().GetUuid()
 		firmament.AddNodeStats(s.firmamentClient, resourceStats)
 		sendErr := stream.Send(&NodeStatsResponse{
 			Type:     NodeStatsResponseType_NODE_STATS_OK,
