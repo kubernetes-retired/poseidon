@@ -39,7 +39,7 @@ func (x ResourceDescriptor_ResourceState) String() string {
 	return proto.EnumName(ResourceDescriptor_ResourceState_name, int32(x))
 }
 func (ResourceDescriptor_ResourceState) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor7, []int{0, 0}
+	return fileDescriptor6, []int{0, 0}
 }
 
 type ResourceDescriptor_ResourceType int32
@@ -89,7 +89,7 @@ func (x ResourceDescriptor_ResourceType) String() string {
 	return proto.EnumName(ResourceDescriptor_ResourceType_name, int32(x))
 }
 func (ResourceDescriptor_ResourceType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor7, []int{0, 1}
+	return fileDescriptor6, []int{0, 1}
 }
 
 type ResourceDescriptor struct {
@@ -126,7 +126,7 @@ type ResourceDescriptor struct {
 func (m *ResourceDescriptor) Reset()                    { *m = ResourceDescriptor{} }
 func (m *ResourceDescriptor) String() string            { return proto.CompactTextString(m) }
 func (*ResourceDescriptor) ProtoMessage()               {}
-func (*ResourceDescriptor) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{0} }
+func (*ResourceDescriptor) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{0} }
 
 func (m *ResourceDescriptor) GetUuid() string {
 	if m != nil {
@@ -288,9 +288,9 @@ func init() {
 	proto.RegisterEnum("firmament.ResourceDescriptor_ResourceType", ResourceDescriptor_ResourceType_name, ResourceDescriptor_ResourceType_value)
 }
 
-func init() { proto.RegisterFile("resource_desc.proto", fileDescriptor7) }
+func init() { proto.RegisterFile("resource_desc.proto", fileDescriptor6) }
 
-var fileDescriptor7 = []byte{
+var fileDescriptor6 = []byte{
 	// 787 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0x8c, 0x95, 0xdf, 0x6e, 0xe3, 0x44,
 	0x14, 0xc6, 0x49, 0x93, 0x76, 0xdb, 0x93, 0x7f, 0xd3, 0x49, 0xbb, 0x0c, 0x45, 0xac, 0x4c, 0x11,

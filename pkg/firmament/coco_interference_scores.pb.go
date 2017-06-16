@@ -11,15 +11,14 @@ It is generated from these files:
 	job_desc.proto
 	label.proto
 	label_selector.proto
-	machine_perf_statistics_sample.proto
 	reference_desc.proto
 	resource_desc.proto
+	resource_stats.proto
 	resource_topology_node_desc.proto
 	resource_vector.proto
 	scheduling_delta.proto
 	task_desc.proto
 	task_final_report.proto
-	task_perf_statistics_sample.proto
 	task_stats.proto
 	whare_map_stats.proto
 
@@ -41,20 +40,18 @@ It has these top-level messages:
 	ResourceStatsResponse
 	TaskUID
 	ResourceUID
-	ResourceStats
 	JobDescriptor
 	Label
 	LabelSelector
-	MachinePerfStatisticsSample
-	CpuUsage
 	ReferenceDescriptor
 	ResourceDescriptor
+	ResourceStats
+	CpuStats
 	ResourceTopologyNodeDescriptor
 	ResourceVector
 	SchedulingDelta
 	TaskDescriptor
 	TaskFinalReport
-	TaskPerfStatisticsSample
 	TaskStats
 	WhareMapStats
 */

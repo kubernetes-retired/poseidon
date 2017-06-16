@@ -46,7 +46,7 @@ type TaskStats struct {
 func (m *TaskStats) Reset()                    { *m = TaskStats{} }
 func (m *TaskStats) String() string            { return proto.CompactTextString(m) }
 func (*TaskStats) ProtoMessage()               {}
-func (*TaskStats) Descriptor() ([]byte, []int) { return fileDescriptor14, []int{0} }
+func (*TaskStats) Descriptor() ([]byte, []int) { return fileDescriptor13, []int{0} }
 
 func (m *TaskStats) GetTaskId() uint64 {
 	if m != nil {
@@ -220,9 +220,9 @@ func init() {
 	proto.RegisterType((*TaskStats)(nil), "firmament.TaskStats")
 }
 
-func init() { proto.RegisterFile("task_stats.proto", fileDescriptor14) }
+func init() { proto.RegisterFile("task_stats.proto", fileDescriptor13) }
 
-var fileDescriptor14 = []byte{
+var fileDescriptor13 = []byte{
 	// 433 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0x6c, 0x93, 0x5f, 0x6f, 0xd3, 0x30,
 	0x14, 0xc5, 0x15, 0xb6, 0xa5, 0xcd, 0x2d, 0xa5, 0xab, 0xf7, 0xa7, 0x16, 0x20, 0xa8, 0xf6, 0x80,

@@ -45,7 +45,7 @@ func (x ReferenceDescriptor_ReferenceType) String() string {
 	return proto.EnumName(ReferenceDescriptor_ReferenceType_name, int32(x))
 }
 func (ReferenceDescriptor_ReferenceType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor6, []int{0, 0}
+	return fileDescriptor5, []int{0, 0}
 }
 
 type ReferenceDescriptor_ReferenceScope int32
@@ -69,7 +69,7 @@ func (x ReferenceDescriptor_ReferenceScope) String() string {
 	return proto.EnumName(ReferenceDescriptor_ReferenceScope_name, int32(x))
 }
 func (ReferenceDescriptor_ReferenceScope) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor6, []int{0, 1}
+	return fileDescriptor5, []int{0, 1}
 }
 
 type ReferenceDescriptor struct {
@@ -88,7 +88,7 @@ type ReferenceDescriptor struct {
 func (m *ReferenceDescriptor) Reset()                    { *m = ReferenceDescriptor{} }
 func (m *ReferenceDescriptor) String() string            { return proto.CompactTextString(m) }
 func (*ReferenceDescriptor) ProtoMessage()               {}
-func (*ReferenceDescriptor) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{0} }
+func (*ReferenceDescriptor) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{0} }
 
 func (m *ReferenceDescriptor) GetId() []byte {
 	if m != nil {
@@ -166,9 +166,9 @@ func init() {
 	proto.RegisterEnum("firmament.ReferenceDescriptor_ReferenceScope", ReferenceDescriptor_ReferenceScope_name, ReferenceDescriptor_ReferenceScope_value)
 }
 
-func init() { proto.RegisterFile("reference_desc.proto", fileDescriptor6) }
+func init() { proto.RegisterFile("reference_desc.proto", fileDescriptor5) }
 
-var fileDescriptor6 = []byte{
+var fileDescriptor5 = []byte{
 	// 395 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0x8c, 0x92, 0xcf, 0x6e, 0xd3, 0x40,
 	0x10, 0x87, 0xeb, 0xd4, 0xf9, 0xe3, 0x69, 0x13, 0x96, 0x81, 0xc3, 0x8a, 0x0b, 0x56, 0x24, 0x90,
