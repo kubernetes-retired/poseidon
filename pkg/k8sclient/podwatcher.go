@@ -164,7 +164,8 @@ func (this *PodWatcher) enqueuePodDeletion(key interface{}, obj interface{}) {
 				Name:      pod.Name,
 				Namespace: pod.Namespace,
 			},
-			State: PodDeleted,
+			State:    PodDeleted,
+			OwnerRef: GetOwnerReference(pod),
 		}
 		this.podWorkQueue.Add(key, deletedPod)
 		glog.Info("enqueuePodDeletion: Added pod ", deletedPod.Identifier)
