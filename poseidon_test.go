@@ -40,18 +40,19 @@ import (
 
 const TEST_NAMESPACE = "test"
 
-var kubeVersion string
-var kubeConfig string
+var testKubeVersion string
+var testKubeConfig string
+var clientset *kubernetes.Clientset
 
 func init() {
-	// go test -kube-version="1.6" -kubeconfig="/root/admin.conf"
-	// To override default values pass -kube-version -kubeconfig flags
-	flag.StringVar(&kubeVersion, "kube-version", "1.6", "Specify kubernetes version eg: 1.5 or 1.6")
-	flag.StringVar(&kubeConfig, "kubeconfig", "/root/admin.conf", "Specify kubeconfig path eg: /root/kubeconfig")
+	// go test -args --testKubeVersion="1.6" --testKubeConfig="/root/admin.conf"
+	// To override default values pass --testKubeVersion --testKubeConfig flags
+	flag.StringVar(&testKubeVersion, "testKubeVersion", "1.5.6", "Specify kubernetes version eg: 1.5 or 1.6")
+	flag.StringVar(&testKubeConfig, "testKubeConfig", "/root/admin.conf", "Specify testKubeConfig path eg: /root/kubeconfig")
 }
 
 var _ = Describe("Poseidon", func() {
-	var config *rest.Config
+	flag.Parse()
 	var err error
 	hostname, _ := os.Hostname()
 	logger.Info("Inside Poseidon tests for k8s:", hostname)
@@ -59,28 +60,7 @@ var _ = Describe("Poseidon", func() {
 	Describe("Add Pod using Poseidon scheduler", func() {
 		logger.Info("Inside Check for adding pod using Poseidon scheduler")
 		Context("using firmament for configuring pod", func() {
-			logger.Info("kubeconfig:", kubeConfig)
-			logger.Info("kube-version:", kubeVersion)
-
-			//Uses the current context in kubeconfig (for k8s v1.6 and above)
-			if kubeVersion == "1.6" {
-				config, err = clientcmd.BuildConfigFromFlags("", kubeConfig)
-			} else {
-				config, err = clientcmd.DefaultClientConfig.ClientConfig()
-			}
-
-			if err != nil {
-				panic(err)
-			}
-			clientset, err := kubernetes.NewForConfig(config)
-			if err != nil {
-				panic(err)
-			}
 			name := fmt.Sprintf("test-nginx-pod-%d", rand.Uint32())
-
-			It("should create test namespace", func() {
-				createNamespace(clientset)
-			})
 
 			It("should succeed deploying pod using firmament scheduler", func() {
 				annots := make(map[string]string)
@@ -130,23 +110,7 @@ var _ = Describe("Poseidon", func() {
 	Describe("Add Deployment using Poseidon scheduler", func() {
 		logger.Info("Inside Check for adding Deployment using Poseidon scheduler")
 		Context("using firmament for configuring Deployment", func() {
-			if kubeVersion == "1.6" {
-				config, err = clientcmd.BuildConfigFromFlags("", kubeConfig)
-			} else {
-				config, err = clientcmd.DefaultClientConfig.ClientConfig()
-			}
-			if err != nil {
-				panic(err)
-			}
-			clientset, err := kubernetes.NewForConfig(config)
-			if err != nil {
-				panic(err)
-			}
 			name := fmt.Sprintf("test-nginx-deploy-%d", rand.Uint32())
-
-			It("should create test namespace", func() {
-				createNamespace(clientset)
-			})
 
 			It("should succeed deploying Deployment using firmament scheduler", func() {
 				annots := make(map[string]string)
@@ -218,23 +182,7 @@ var _ = Describe("Poseidon", func() {
 	Describe("Add ReplicaSet using Poseidon scheduler", func() {
 		logger.Info("Inside Check for adding ReplicaSet using Poseidon scheduler")
 		Context("using firmament for configuring ReplicaSet", func() {
-			if kubeVersion == "1.6" {
-				config, err = clientcmd.BuildConfigFromFlags("", kubeConfig)
-			} else {
-				config, err = clientcmd.DefaultClientConfig.ClientConfig()
-			}
-			if err != nil {
-				panic(err)
-			}
-			clientset, err := kubernetes.NewForConfig(config)
-			if err != nil {
-				panic(err)
-			}
 			name := fmt.Sprintf("test-nginx-rs-%d", rand.Uint32())
-
-			It("should create test namespace", func() {
-				createNamespace(clientset)
-			})
 
 			It("should succeed deploying ReplicaSet using firmament scheduler", func() {
 				annots := make(map[string]string)
@@ -305,23 +253,7 @@ var _ = Describe("Poseidon", func() {
 	Describe("Add Job using Poseidon scheduler", func() {
 		logger.Info("Inside Check for adding Job using Poseidon scheduler")
 		Context("using firmament for configuring Job", func() {
-			if kubeVersion == "1.6" {
-				config, err = clientcmd.BuildConfigFromFlags("", kubeConfig)
-			} else {
-				config, err = clientcmd.DefaultClientConfig.ClientConfig()
-			}
-			if err != nil {
-				panic(err)
-			}
-			clientset, err := kubernetes.NewForConfig(config)
-			if err != nil {
-				panic(err)
-			}
 			name := fmt.Sprintf("test-nginx-job-%d", rand.Uint32())
-
-			It("should create test namespace", func() {
-				createNamespace(clientset)
-			})
 
 			It("should succeed deploying Job using firmament scheduler", func() {
 				annots := make(map[string]string)
@@ -391,23 +323,7 @@ var _ = Describe("Poseidon", func() {
 	Describe("Add Daemonset using Poseidon scheduler", func() {
 		logger.Info("Inside Check for adding Daemonset using Poseidon scheduler")
 		Context("using firmament for configuring Daemonset", func() {
-			if kubeVersion == "1.6" {
-				config, err = clientcmd.BuildConfigFromFlags("", kubeConfig)
-			} else {
-				config, err = clientcmd.DefaultClientConfig.ClientConfig()
-			}
-			if err != nil {
-				panic(err)
-			}
-			clientset, err := kubernetes.NewForConfig(config)
-			if err != nil {
-				panic(err)
-			}
 			name := fmt.Sprintf("test-nginx-deploy-%d", rand.Uint32())
-
-			It("should create test namespace", func() {
-				createNamespace(clientset)
-			})
 
 			It("should succeed deploying Daemonset using firmament scheduler", func() {
 				annots := make(map[string]string)
@@ -471,6 +387,35 @@ var _ = Describe("Poseidon", func() {
 		})
 	})
 
+})
+
+var _ = BeforeSuite(func() {
+	var config *rest.Config
+	var err error
+	logger.Infof("Kube version %s", testKubeVersion)
+	if testKubeVersion == "1.6" {
+		config, err = clientcmd.BuildConfigFromFlags("", testKubeConfig)
+	} else {
+		config, err = clientcmd.DefaultClientConfig.ClientConfig()
+	}
+	if err != nil {
+		panic(err)
+	}
+	clientset, err = kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err)
+	}
+	createNamespace(clientset)
+})
+
+var _ = AfterSuite(func() {
+	// Delete namespace
+	err := clientset.Namespaces().Delete(TEST_NAMESPACE, &metav1.DeleteOptions{})
+	// Delete all pods
+	err = clientset.Pods(TEST_NAMESPACE).DeleteCollection(&metav1.DeleteOptions{}, metav1.ListOptions{})
+	if err != nil {
+		panic(err)
+	}
 })
 
 func createNamespace(clientset *kubernetes.Clientset) {
