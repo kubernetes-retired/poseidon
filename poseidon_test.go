@@ -21,7 +21,7 @@ package main_test
 import (
 	"flag"
 	"fmt"
-	logger "github.com/golang/glog"
+	"github.com/golang/glog"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -55,10 +55,10 @@ var _ = Describe("Poseidon", func() {
 	flag.Parse()
 	var err error
 	hostname, _ := os.Hostname()
-	logger.Info("Inside Poseidon tests for k8s:", hostname)
+	glog.Info("Inside Poseidon tests for k8s:", hostname)
 
 	Describe("Add Pod using Poseidon scheduler", func() {
-		logger.Info("Inside Check for adding pod using Poseidon scheduler")
+		glog.Info("Inside Check for adding pod using Poseidon scheduler")
 		Context("using firmament for configuring pod", func() {
 			name := fmt.Sprintf("test-nginx-pod-%d", rand.Uint32())
 
@@ -89,7 +89,7 @@ var _ = Describe("Poseidon", func() {
 				time.Sleep(time.Duration(10 * time.Second))
 				pod, err := clientset.Pods(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
-				logger.Info("pod status =", string(pod.Status.Phase))
+				glog.Info("pod status =", string(pod.Status.Phase))
 				Expect(string(pod.Status.Phase)).To(Equal("Running"))
 
 				By("Pod was in Running state... Time to delete the pod now...")
@@ -108,7 +108,7 @@ var _ = Describe("Poseidon", func() {
 	})
 
 	Describe("Add Deployment using Poseidon scheduler", func() {
-		logger.Info("Inside Check for adding Deployment using Poseidon scheduler")
+		glog.Info("Inside Check for adding Deployment using Poseidon scheduler")
 		Context("using firmament for configuring Deployment", func() {
 			name := fmt.Sprintf("test-nginx-deploy-%d", rand.Uint32())
 
@@ -156,8 +156,8 @@ var _ = Describe("Poseidon", func() {
 				deployment, err := clientset.AppsV1beta1().Deployments(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
-				logger.Info("Replicas =", deployment.Status.Replicas)
-				logger.Info("Available Replicas =", deployment.Status.AvailableReplicas)
+				glog.Info("Replicas =", deployment.Status.Replicas)
+				glog.Info("Available Replicas =", deployment.Status.AvailableReplicas)
 
 				By(fmt.Sprintf("Creation of deployment %q in namespace %q succeeded.  Deleting deployment.", deployment.Name, TEST_NAMESPACE))
 				if deployment.Status.Replicas != deployment.Status.AvailableReplicas {
@@ -180,7 +180,7 @@ var _ = Describe("Poseidon", func() {
 	})
 
 	Describe("Add ReplicaSet using Poseidon scheduler", func() {
-		logger.Info("Inside Check for adding ReplicaSet using Poseidon scheduler")
+		glog.Info("Inside Check for adding ReplicaSet using Poseidon scheduler")
 		Context("using firmament for configuring ReplicaSet", func() {
 			name := fmt.Sprintf("test-nginx-rs-%d", rand.Uint32())
 
@@ -228,8 +228,8 @@ var _ = Describe("Poseidon", func() {
 				replicaSet, err := clientset.ReplicaSets(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
-				logger.Info("Replicas =", replicaSet.Status.Replicas)
-				logger.Info("Available Replicas =", replicaSet.Status.AvailableReplicas)
+				glog.Info("Replicas =", replicaSet.Status.Replicas)
+				glog.Info("Available Replicas =", replicaSet.Status.AvailableReplicas)
 				By(fmt.Sprintf("Creation of ReplicaSet %q in namespace %q succeeded.  Deleting ReplicaSet.", replicaSet.Name, TEST_NAMESPACE))
 				if replicaSet.Status.Replicas != replicaSet.Status.AvailableReplicas {
 					Expect("Success").To(Equal("Fail"))
@@ -251,7 +251,7 @@ var _ = Describe("Poseidon", func() {
 	})
 
 	Describe("Add Job using Poseidon scheduler", func() {
-		logger.Info("Inside Check for adding Job using Poseidon scheduler")
+		glog.Info("Inside Check for adding Job using Poseidon scheduler")
 		Context("using firmament for configuring Job", func() {
 			name := fmt.Sprintf("test-nginx-job-%d", rand.Uint32())
 
@@ -298,8 +298,8 @@ var _ = Describe("Poseidon", func() {
 				job, err := clientset.Batch().Jobs(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
-				logger.Info("Jobs Active =", job.Status.Active)
-				logger.Info("Jobs Succeeded =", job.Status.Succeeded)
+				glog.Info("Jobs Active =", job.Status.Active)
+				glog.Info("Jobs Succeeded =", job.Status.Succeeded)
 				By(fmt.Sprintf("Creation of Jobs %q in namespace %q succeeded.  Deleting Job.", job.Name, TEST_NAMESPACE))
 				if job.Status.Active != parallelism {
 					Expect("Success").To(Equal("Fail"))
@@ -321,7 +321,7 @@ var _ = Describe("Poseidon", func() {
 	})
 
 	Describe("Add Daemonset using Poseidon scheduler", func() {
-		logger.Info("Inside Check for adding Daemonset using Poseidon scheduler")
+		glog.Info("Inside Check for adding Daemonset using Poseidon scheduler")
 		Context("using firmament for configuring Daemonset", func() {
 			name := fmt.Sprintf("test-nginx-deploy-%d", rand.Uint32())
 
@@ -365,8 +365,8 @@ var _ = Describe("Poseidon", func() {
 				Daemonset, err := clientset.DaemonSets(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
-				logger.Info("DesiredNumberScheduled =", Daemonset.Status.DesiredNumberScheduled)
-				logger.Info("CurrentNumberScheduled =", Daemonset.Status.CurrentNumberScheduled)
+				glog.Info("DesiredNumberScheduled =", Daemonset.Status.DesiredNumberScheduled)
+				glog.Info("CurrentNumberScheduled =", Daemonset.Status.CurrentNumberScheduled)
 				By(fmt.Sprintf("Creation of Daemonset %q in namespace %q succeeded.  Deleting Daemonset.", Daemonset.Name, TEST_NAMESPACE))
 				if Daemonset.Status.DesiredNumberScheduled != Daemonset.Status.CurrentNumberScheduled {
 					Expect("Success").To(Equal("Fail"))
@@ -392,7 +392,7 @@ var _ = Describe("Poseidon", func() {
 var _ = BeforeSuite(func() {
 	var config *rest.Config
 	var err error
-	logger.Infof("Kube version %s", testKubeVersion)
+	glog.Infof("Kube version %s", testKubeVersion)
 	if testKubeVersion == "1.6" {
 		config, err = clientcmd.BuildConfigFromFlags("", testKubeConfig)
 	} else {
