@@ -44,8 +44,8 @@ var clientset *kubernetes.Clientset
 func init() {
 	// go test -args --testKubeVersion="1.6" --testKubeConfig="/root/admin.conf"
 	// To override default values pass --testKubeVersion --testKubeConfig flags
-	flag.StringVar(&testKubeVersion, "testKubeVersion", "1.5.6", "Specify kubernetes version eg: 1.5 or 1.6")
-	flag.StringVar(&testKubeConfig, "testKubeConfig", "/root/admin.conf", "Specify testKubeConfig path eg: /root/kubeconfig")
+	flag.StringVar(&testKubeVersion, "testKubeVersion", "1.6", "Specify kubernetes version eg: 1.5 or 1.6")
+	flag.StringVar(&testKubeConfig, "testKubeConfig", "/home/ubuntu/.kube/config", "Specify testKubeConfig path eg: /root/kubeconfig")
 }
 
 var _ = Describe("Poseidon", func() {
@@ -60,18 +60,16 @@ var _ = Describe("Poseidon", func() {
 			name := fmt.Sprintf("test-nginx-pod-%d", rand.Uint32())
 
 			It("should succeed deploying pod using firmament scheduler", func() {
-				annots := make(map[string]string)
-				annots["scheduler.alpha.kubernetes.io/name"] = "poseidon-scheduler"
 				labels := make(map[string]string)
-				labels["scheduler"] = "poseidon"
+				labels["schedulerName"] = "poseidon"
 				//Create a K8s Pod with poseidon
 				_, err = clientset.CoreV1().Pods(TEST_NAMESPACE).Create(&v1.Pod{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:        name,
-						Annotations: annots,
-						Labels:      labels,
+						Name:   name,
+						Labels: labels,
 					},
 					Spec: v1.PodSpec{
+						SchedulerName: "poseidon",
 						Containers: []v1.Container{{
 							Name:            fmt.Sprintf("container-%s", name),
 							Image:           "nginx:latest",
@@ -109,8 +107,6 @@ var _ = Describe("Poseidon", func() {
 			name := fmt.Sprintf("test-nginx-deploy-%d", rand.Uint32())
 
 			It("should succeed deploying Deployment using firmament scheduler", func() {
-				annots := make(map[string]string)
-				annots["scheduler.alpha.kubernetes.io/name"] = "poseidon-scheduler"
 				// Create a K8s Deployment with poseidon scheduler
 				var replicas int32
 				replicas = 2
@@ -120,14 +116,17 @@ var _ = Describe("Poseidon", func() {
 						Name:   name,
 					},
 					Spec: v1beta1.DeploymentSpec{
+						Selector: &metav1.LabelSelector{
+							MatchLabels: map[string]string{"app": "nginx", "name": "test-dep"},
+						},
 						Replicas: &replicas,
 						Template: v1.PodTemplateSpec{
 							ObjectMeta: metav1.ObjectMeta{
-								Annotations: annots,
-								Labels:      map[string]string{"name": "test-dep", "app": "nginx", "scheduler": "poseidon"},
-								Name:        name,
+								Labels: map[string]string{"name": "test-dep", "app": "nginx", "schedulerName": "poseidon"},
+								Name:   name,
 							},
 							Spec: v1.PodSpec{
+								SchedulerName: "poseidon",
 								Containers: []v1.Container{
 									{
 										Name:            fmt.Sprintf("container-%s", name),
@@ -171,8 +170,6 @@ var _ = Describe("Poseidon", func() {
 			name := fmt.Sprintf("test-nginx-rs-%d", rand.Uint32())
 
 			It("should succeed deploying ReplicaSet using firmament scheduler", func() {
-				annots := make(map[string]string)
-				annots["scheduler.alpha.kubernetes.io/name"] = "poseidon-scheduler"
 				//Create a K8s ReplicaSet with poseidon scheduler
 				var replicas int32
 				replicas = 2
@@ -187,11 +184,11 @@ var _ = Describe("Poseidon", func() {
 						},
 						Template: v1.PodTemplateSpec{
 							ObjectMeta: metav1.ObjectMeta{
-								Annotations: annots,
-								Labels:      map[string]string{"name": "test-rs", "scheduler": "poseidon"},
-								Name:        name,
+								Labels: map[string]string{"name": "test-rs", "schedulerName": "poseidon"},
+								Name:   name,
 							},
 							Spec: v1.PodSpec{
+								SchedulerName: "poseidon",
 								Containers: []v1.Container{
 									{
 										Name:            fmt.Sprintf("container-%s", name),
@@ -234,27 +231,24 @@ var _ = Describe("Poseidon", func() {
 			name := fmt.Sprintf("test-nginx-job-%d", rand.Uint32())
 
 			It("should succeed deploying Job using firmament scheduler", func() {
-				annots := make(map[string]string)
-				annots["scheduler.alpha.kubernetes.io/name"] = "poseidon-scheduler"
 				labels := make(map[string]string)
-				labels["scheduler"] = "poseidon"
+				labels["schedulerName"] = "poseidon"
 				//Create a K8s Job with poseidon scheduler
 				var parallelism int32 = 2
 				_, err = clientset.Batch().Jobs(TEST_NAMESPACE).Create(&batchv1.Job{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:        name,
-						Annotations: annots,
-						Labels:      labels,
+						Name:   name,
+						Labels: labels,
 					},
 					Spec: batchv1.JobSpec{
 						Parallelism: &parallelism,
 						Completions: &parallelism,
 						Template: v1.PodTemplateSpec{
 							ObjectMeta: metav1.ObjectMeta{
-								Annotations: annots,
-								Labels:      labels,
+								Labels: labels,
 							},
 							Spec: v1.PodSpec{
+								SchedulerName: "poseidon",
 								Containers: []v1.Container{
 									{
 										Name:            fmt.Sprintf("container-%s", name),
