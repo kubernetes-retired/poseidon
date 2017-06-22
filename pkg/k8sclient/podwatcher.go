@@ -19,7 +19,6 @@
 package k8sclient
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"sync"
@@ -54,7 +53,7 @@ func NewPodWatcher(kubeVerMajor, kubeVerMinor int, schedulerName string, client 
 	podSelector := labels.Everything()
 	if kubeVerMajor >= 1 && kubeVerMinor >= 6 {
 		// schedulerName is only available in Kubernetes >= 1.6.
-		schedulerSelector = fields.ParseSelectorOrDie("spec.schedulerName==" + schedulerName)
+		schedulerSelector = fields.ParseSelectorOrDie("spec.nodeName==")
 	} else {
 		var err error
 		podSelector, err = labels.Parse("scheduler in (" + schedulerName + ")")
@@ -144,7 +143,6 @@ func (this *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 		Labels:       pod.Labels,
 		Annotations:  pod.Annotations,
 		NodeSelector: pod.Spec.NodeSelector,
-		OwnerRef:     GetOwnerReference(pod),
 	}
 }
 
@@ -231,10 +229,11 @@ func (this *PodWatcher) podWorker() {
 				case PodPending:
 					glog.V(2).Info("PodPending ", pod.Identifier)
 					PodsCond.L.Lock()
-					jobId := this.generateJobID(pod.OwnerRef)
+					// TODO(ionel): We generate a job per pod. Add a field to the Pod struct that uniquely identifies jobs/daemon sets and use that one instead to group pods into Firmament jobs.
+					jobId := this.generateJobID(pod.Identifier.Name)
 					jd, ok := jobIDToJD[jobId]
 					if !ok {
-						jd = this.createNewJob(pod.OwnerRef)
+						jd = this.createNewJob(pod.Identifier.Name)
 						jobIDToJD[jobId] = jd
 						jobNumTasksToRemove[jobId] = 0
 					}
@@ -270,7 +269,7 @@ func (this *PodWatcher) podWorker() {
 					delete(PodToTD, pod.Identifier)
 					delete(TaskIDToPod, td.GetUid())
 					// TODO(ionel): Should we delete the task from JD's spawned field?
-					jobId := this.generateJobID(pod.OwnerRef)
+					jobId := this.generateJobID(pod.Identifier.Name)
 					jobNumTasksToRemove[jobId]--
 					if jobNumTasksToRemove[jobId] == 0 {
 						// Clean state because the job doesn't have any tasks left.
@@ -296,7 +295,7 @@ func (this *PodWatcher) podWorker() {
 				case PodUpdated:
 					glog.V(2).Info("PodUpdated ", pod.Identifier)
 					PodsCond.L.Lock()
-					jobId := this.generateJobID(pod.OwnerRef)
+					jobId := this.generateJobID(pod.Identifier.Name)
 					jd, okJob := jobIDToJD[jobId]
 					td, okPod := PodToTD[pod.Identifier]
 					PodsCond.L.Unlock()
@@ -355,8 +354,12 @@ func (this *PodWatcher) addTaskToJob(pod *Pod, jd *firmament.JobDescriptor) *fir
 			CpuCores: float32(pod.CpuRequest),
 			RamCap:   uint64(pod.MemRequestKb),
 		},
-		// TODO(ionel): Populate LabelSelector.
 	}
+	// NodeSelector are simple map[string]string
+	// parse and pass them to task LabelSelectors
+	// TODO:(shiv) Need to have seperate nodeselector and labelselector structure in taskdescriptor
+	task.LabelSelectors = this.getFirmamentLabelSelectorFromNodeSelectorMap(pod.NodeSelector)
+
 	// Add labels.
 	for label, value := range pod.Labels {
 		task.Labels = append(task.Labels,
@@ -365,6 +368,9 @@ func (this *PodWatcher) addTaskToJob(pod *Pod, jd *firmament.JobDescriptor) *fir
 				Value: value,
 			})
 	}
+	// populate nodeselector in firmament.LabelSelector
+	// nodeselector will have map[string]string
+	//
 	if jd.RootTask == nil {
 		task.Uid = this.generateTaskID(jd.Name, 0)
 		jd.RootTask = task
@@ -376,10 +382,6 @@ func (this *PodWatcher) addTaskToJob(pod *Pod, jd *firmament.JobDescriptor) *fir
 }
 
 func (this *PodWatcher) generateJobID(seed string) string {
-	if seed == "" {
-		glog.Fatal("Seed value is nil")
-	}
-
 	return GenerateUUID(seed)
 }
 
@@ -387,33 +389,62 @@ func (this *PodWatcher) generateTaskID(jdUid string, taskNum int) uint64 {
 	return HashCombine(jdUid, taskNum)
 }
 
-// GetOwnerReference to get the parent object reference
-func GetOwnerReference(pod *v1.Pod) string {
-	// Return if owner reference exists.
-	ownerRefs := pod.GetObjectMeta().GetOwnerReferences()
-	if len(ownerRefs) != 0 {
-		for x := range ownerRefs {
-			ref := &ownerRefs[x]
-			if ref.Controller != nil && *ref.Controller {
-				return string(ref.UID)
-			}
+func (this *PodWatcher) getFirmamentLabelSelectorFromNodeSelectorMap(nodeSelector map[string]string) []*firmament.LabelSelector {
+
+	var firmamentLabelSelector []*firmament.LabelSelector
+	for key, value := range nodeSelector {
+		//newfirmamentLabelSelector:=
+		firmamentLabelSelector = append(firmamentLabelSelector, &firmament.LabelSelector{
+
+			Type:   firmament.LabelSelector_IN_SET,
+			Values: []string{value},
+			Key:    key,
+		})
+	}
+	return firmamentLabelSelector
+}
+
+func (this *PodWatcher) getSelectorOperatorType(op v1.NodeSelectorOperator) firmament.LabelSelector_SelectorType {
+
+	selectorType := firmament.LabelSelector_IN_SET
+	switch op {
+	case v1.NodeSelectorOpIn:
+		selectorType = firmament.LabelSelector_IN_SET
+	case v1.NodeSelectorOpNotIn:
+		selectorType = firmament.LabelSelector_NOT_IN_SET
+	case v1.NodeSelectorOpExists:
+		selectorType = firmament.LabelSelector_EXISTS_KEY
+	case v1.NodeSelectorOpDoesNotExist:
+		selectorType = firmament.LabelSelector_NOT_EXISTS_KEY
+		//TODO:(shiv) this case to be added in firmament
+	case v1.NodeSelectorOpGt:
+		selectorType = firmament.LabelSelector_IN_SET
+		//TODO:(shiv) this case to be added in firmament
+	case v1.NodeSelectorOpLt:
+		selectorType = firmament.LabelSelector_IN_SET
+	}
+
+	return selectorType
+}
+
+func (this *PodWatcher) getSelectorFromRequirements(nodeSelectorRequirement v1.NodeSelectorRequirement) *firmament.LabelSelector {
+	return &firmament.LabelSelector{
+		Type:   this.getSelectorOperatorType(nodeSelectorRequirement.Operator),
+		Key:    nodeSelectorRequirement.Key,
+		Values: nodeSelectorRequirement.Values,
+	}
+}
+
+// Currently lets and all the Nodeselector terms
+func (this *PodWatcher) getLabelSelectorsFromNodeSelector(nodeSelector v1.NodeSelector) []*firmament.LabelSelector {
+
+	var firmamentLabelSelectors []*firmament.LabelSelector
+
+	for _, nodeSelectorTerm := range nodeSelector.NodeSelectorTerms {
+		for _, nodeSelectorRequirement := range nodeSelectorTerm.MatchExpressions {
+			//here we keep populating the firmament.LabelSelector terms
+			firmamentLabelSelectors = append(firmamentLabelSelectors, this.getSelectorFromRequirements(nodeSelectorRequirement))
 		}
 	}
-
-	// Return the controller-uid label if it exists.
-	if controllerID := pod.GetObjectMeta().GetLabels()["controller-uid"]; controllerID != "" {
-		return controllerID
-	}
-
-	// Return 'kubernetes.io/created-by' if it exists.
-	if createdByAnnotation, ok := pod.GetObjectMeta().GetAnnotations()[v1.CreatedByAnnotation]; ok {
-		var serialCreatedBy v1.SerializedReference
-		err := json.Unmarshal([]byte(createdByAnnotation), &serialCreatedBy)
-		if err == nil {
-			return string(serialCreatedBy.Reference.UID)
-		}
-	}
-
-	// Return the uid of the ObjectMeta if none from the above is present.
-	return string(pod.GetObjectMeta().GetUID())
+	return firmamentLabelSelectors
 }
