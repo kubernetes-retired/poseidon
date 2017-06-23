@@ -12,6 +12,7 @@ spec:
         "scheduler.alpha.kubernetes.io/name": poseidon
       labels:
         app: nginx
+        scheduler: poseidon
       name: nginx
     spec:
       containers:

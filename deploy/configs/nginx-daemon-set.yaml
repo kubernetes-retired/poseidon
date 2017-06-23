@@ -11,6 +11,7 @@ spec:
         "scheduler.alpha.kubernetes.io/name": poseidon
       labels:
         name: nginx-daemon-set
+        scheduler: poseidon
     spec:
       containers:
       containers:
