@@ -101,7 +101,6 @@ var _ = Describe("Poseidon", func() {
 				if err != nil {
 					Expect(errors.IsNotFound(err)).To(Equal(true))
 				}
-				Expect("Success").To(Equal("Success"))
 			})
 		})
 	})
@@ -176,16 +175,12 @@ var _ = Describe("Poseidon", func() {
 			It("should succeed deploying ReplicaSet using firmament scheduler", func() {
 				annots := make(map[string]string)
 				annots["scheduler.alpha.kubernetes.io/name"] = "poseidon-scheduler"
-				labels := make(map[string]string)
-				labels["scheduler"] = "poseidon"
 				//Create a K8s ReplicaSet with poseidon scheduler
 				var replicas int32
 				replicas = 2
 				_, err = clientset.ReplicaSets(TEST_NAMESPACE).Create(&v1beta1.ReplicaSet{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:        name,
-						Annotations: annots,
-						Labels:      labels,
+						Name: name,
 					},
 					Spec: v1beta1.ReplicaSetSpec{
 						Replicas: &replicas,
@@ -194,7 +189,9 @@ var _ = Describe("Poseidon", func() {
 						},
 						Template: v1.PodTemplateSpec{
 							ObjectMeta: metav1.ObjectMeta{
-								Labels: map[string]string{"name": "test-rs"},
+								Annotations: annots,
+								Labels:      map[string]string{"name": "test-rs", "scheduler": "poseidon"},
+								Name:        name,
 							},
 							Spec: v1.PodSpec{
 								Containers: []v1.Container{
@@ -217,13 +214,8 @@ var _ = Describe("Poseidon", func() {
 				replicaSet, err := clientset.ReplicaSets(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
-				glog.Info("Replicas =", replicaSet.Status.Replicas)
-				glog.Info("Available Replicas =", replicaSet.Status.AvailableReplicas)
 				By(fmt.Sprintf("Creation of ReplicaSet %q in namespace %q succeeded.  Deleting ReplicaSet.", replicaSet.Name, TEST_NAMESPACE))
-				if replicaSet.Status.Replicas != replicaSet.Status.AvailableReplicas {
-					Expect("Success").To(Equal("Fail"))
-				}
-
+				Expect(replicaSet.Status.Replicas).To(Equal(replicaSet.Status.AvailableReplicas))
 				By("Pod was in Running state... Time to delete the ReplicaSet now...")
 				err = clientset.ReplicaSets(TEST_NAMESPACE).Delete(name, &metav1.DeleteOptions{})
 				Expect(err).NotTo(HaveOccurred())
@@ -234,7 +226,6 @@ var _ = Describe("Poseidon", func() {
 				if err != nil {
 					Expect(errors.IsNotFound(err)).To(Equal(true))
 				}
-				Expect("Success").To(Equal("Success"))
 			})
 		})
 	})
@@ -287,12 +278,8 @@ var _ = Describe("Poseidon", func() {
 				job, err := clientset.Batch().Jobs(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
-				glog.Info("Jobs Active =", job.Status.Active)
-				glog.Info("Jobs Succeeded =", job.Status.Succeeded)
 				By(fmt.Sprintf("Creation of Jobs %q in namespace %q succeeded.  Deleting Job.", job.Name, TEST_NAMESPACE))
-				if job.Status.Active != parallelism {
-					Expect("Success").To(Equal("Fail"))
-				}
+				Expect(job.Status.Active).To(Equal(parallelism))
 
 				By("Job was in Running state... Time to delete the Job now...")
 				err = clientset.Batch().Jobs(TEST_NAMESPACE).Delete(name, &metav1.DeleteOptions{})
