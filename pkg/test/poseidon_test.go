@@ -28,7 +28,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api/v1"
-	appsv1beta1 "k8s.io/client-go/pkg/apis/apps/v1beta1"
 	batchv1 "k8s.io/client-go/pkg/apis/batch/v1"
 	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	"k8s.io/client-go/rest"
@@ -115,25 +114,21 @@ var _ = Describe("Poseidon", func() {
 			It("should succeed deploying Deployment using firmament scheduler", func() {
 				annots := make(map[string]string)
 				annots["scheduler.alpha.kubernetes.io/name"] = "poseidon-scheduler"
-				labels := make(map[string]string)
-				labels["scheduler"] = "poseidon"
 				// Create a K8s Deployment with poseidon scheduler
 				var replicas int32
 				replicas = 2
-				_, err = clientset.AppsV1beta1().Deployments(TEST_NAMESPACE).Create(&appsv1beta1.Deployment{
+				_, err = clientset.ExtensionsV1beta1().Deployments(TEST_NAMESPACE).Create(&v1beta1.Deployment{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:        name,
-						Annotations: annots,
-						Labels:      labels,
+						Labels: map[string]string{"app": "nginx"},
+						Name:   name,
 					},
-					Spec: appsv1beta1.DeploymentSpec{
+					Spec: v1beta1.DeploymentSpec{
 						Replicas: &replicas,
-						Selector: &metav1.LabelSelector{
-							MatchLabels: map[string]string{"name": "test-dep"},
-						},
 						Template: v1.PodTemplateSpec{
 							ObjectMeta: metav1.ObjectMeta{
-								Labels: map[string]string{"name": "test-dep"},
+								Annotations: annots,
+								Labels:      map[string]string{"name": "test-dep", "app": "nginx", "scheduler": "poseidon"},
+								Name:        name,
 							},
 							Spec: v1.PodSpec{
 								Containers: []v1.Container{
@@ -153,28 +148,22 @@ var _ = Describe("Poseidon", func() {
 				By("Waiting for the Deployment to have running status")
 				By("Waiting 10 seconds")
 				time.Sleep(time.Duration(10 * time.Second))
-				deployment, err := clientset.AppsV1beta1().Deployments(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
+				deployment, err := clientset.ExtensionsV1beta1().Deployments(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
-				glog.Info("Replicas =", deployment.Status.Replicas)
-				glog.Info("Available Replicas =", deployment.Status.AvailableReplicas)
-
 				By(fmt.Sprintf("Creation of deployment %q in namespace %q succeeded.  Deleting deployment.", deployment.Name, TEST_NAMESPACE))
-				if deployment.Status.Replicas != deployment.Status.AvailableReplicas {
-					Expect("Success").To(Equal("Fail"))
-				}
+				Expect(deployment.Status.Replicas).To(Equal(deployment.Status.AvailableReplicas))
 
 				By("Pod was in Running state... Time to delete the deployment now...")
-				err = clientset.AppsV1beta1().Deployments(TEST_NAMESPACE).Delete(name, &metav1.DeleteOptions{})
+				err = clientset.ExtensionsV1beta1().Deployments(TEST_NAMESPACE).Delete(name, &metav1.DeleteOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				By("Waiting 5 seconds")
 				time.Sleep(time.Duration(5 * time.Second))
 				By("Check for deployment deletion")
-				_, err = clientset.AppsV1beta1().Deployments(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
+				_, err = clientset.ExtensionsV1beta1().Deployments(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				if err != nil {
 					Expect(errors.IsNotFound(err)).To(Equal(true))
 				}
-				Expect("Success").To(Equal("Success"))
 			})
 		})
 	})
