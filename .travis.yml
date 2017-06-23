@@ -6,7 +6,7 @@ go:
   - 1.7.1
 
 before_install:
-  - go get github.com/mattn/goveralls
+  - go get github.com/ICGog/goveralls
 
 install:
   - # Do nothing. This is needed to prevent default instal action "go get -t -v ./..." from happening here.
