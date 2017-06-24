@@ -296,72 +296,72 @@ var _ = Describe("Poseidon", func() {
 		})
 	})
 
-	Describe("Add Daemonset using Poseidon scheduler", func() {
-		glog.Info("Inside Check for adding Daemonset using Poseidon scheduler")
-		Context("using firmament for configuring Daemonset", func() {
-			name := fmt.Sprintf("test-nginx-deploy-%d", rand.Uint32())
+	// Describe("Add Daemonset using Poseidon scheduler", func() {
+	// 	glog.Info("Inside Check for adding Daemonset using Poseidon scheduler")
+	// 	Context("using firmament for configuring Daemonset", func() {
+	// 		name := fmt.Sprintf("test-nginx-deploy-%d", rand.Uint32())
 
-			It("should succeed deploying Daemonset using firmament scheduler", func() {
-				annots := make(map[string]string)
-				annots["scheduler.alpha.kubernetes.io/name"] = "poseidon-scheduler"
-				labels := make(map[string]string)
-				labels["scheduler"] = "poseidon"
-				_, err = clientset.DaemonSets(TEST_NAMESPACE).Create(&v1beta1.DaemonSet{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:        name,
-						Annotations: annots,
-						Labels:      labels,
-					},
-					Spec: v1beta1.DaemonSetSpec{
-						Selector: &metav1.LabelSelector{
-							MatchLabels: map[string]string{"name": "test-dep"},
-						},
-						Template: v1.PodTemplateSpec{
-							ObjectMeta: metav1.ObjectMeta{
-								Labels: map[string]string{"name": "test-dep"},
-							},
-							Spec: v1.PodSpec{
-								Containers: []v1.Container{
-									{
-										Name:            fmt.Sprintf("container-%s", name),
-										Image:           "nginx:latest",
-										ImagePullPolicy: "IfNotPresent",
-									},
-								},
-							},
-						},
-					},
-				})
+	// 		It("should succeed deploying Daemonset using firmament scheduler", func() {
+	// 			annots := make(map[string]string)
+	// 			annots["scheduler.alpha.kubernetes.io/name"] = "poseidon-scheduler"
+	// 			labels := make(map[string]string)
+	// 			labels["scheduler"] = "poseidon"
+	// 			_, err = clientset.DaemonSets(TEST_NAMESPACE).Create(&v1beta1.DaemonSet{
+	// 				ObjectMeta: metav1.ObjectMeta{
+	// 					Name:        name,
+	// 					Annotations: annots,
+	// 					Labels:      labels,
+	// 				},
+	// 				Spec: v1beta1.DaemonSetSpec{
+	// 					Selector: &metav1.LabelSelector{
+	// 						MatchLabels: map[string]string{"name": "test-dep"},
+	// 					},
+	// 					Template: v1.PodTemplateSpec{
+	// 						ObjectMeta: metav1.ObjectMeta{
+	// 							Labels: map[string]string{"name": "test-dep"},
+	// 						},
+	// 						Spec: v1.PodSpec{
+	// 							Containers: []v1.Container{
+	// 								{
+	// 									Name:            fmt.Sprintf("container-%s", name),
+	// 									Image:           "nginx:latest",
+	// 									ImagePullPolicy: "IfNotPresent",
+	// 								},
+	// 							},
+	// 						},
+	// 					},
+	// 				},
+	// 			})
 
-				Expect(err).NotTo(HaveOccurred())
+	// 			Expect(err).NotTo(HaveOccurred())
 
-				By("Waiting for the Daemonset to have running status")
-				By("Waiting 10 seconds")
-				time.Sleep(time.Duration(10 * time.Second))
-				Daemonset, err := clientset.DaemonSets(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
-				Expect(err).NotTo(HaveOccurred())
+	// 			By("Waiting for the Daemonset to have running status")
+	// 			By("Waiting 10 seconds")
+	// 			time.Sleep(time.Duration(10 * time.Second))
+	// 			Daemonset, err := clientset.DaemonSets(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
+	// 			Expect(err).NotTo(HaveOccurred())
 
-				glog.Info("DesiredNumberScheduled =", Daemonset.Status.DesiredNumberScheduled)
-				glog.Info("CurrentNumberScheduled =", Daemonset.Status.CurrentNumberScheduled)
-				By(fmt.Sprintf("Creation of Daemonset %q in namespace %q succeeded.  Deleting Daemonset.", Daemonset.Name, TEST_NAMESPACE))
-				if Daemonset.Status.DesiredNumberScheduled != Daemonset.Status.CurrentNumberScheduled {
-					Expect("Success").To(Equal("Fail"))
-				}
+	// 			glog.Info("DesiredNumberScheduled =", Daemonset.Status.DesiredNumberScheduled)
+	// 			glog.Info("CurrentNumberScheduled =", Daemonset.Status.CurrentNumberScheduled)
+	// 			By(fmt.Sprintf("Creation of Daemonset %q in namespace %q succeeded.  Deleting Daemonset.", Daemonset.Name, TEST_NAMESPACE))
+	// 			if Daemonset.Status.DesiredNumberScheduled != Daemonset.Status.CurrentNumberScheduled {
+	// 				Expect("Success").To(Equal("Fail"))
+	// 			}
 
-				By("Pod was in Running state... Time to delete the Daemonset now...")
-				err = clientset.DaemonSets(TEST_NAMESPACE).Delete(name, &metav1.DeleteOptions{})
-				Expect(err).NotTo(HaveOccurred())
-				By("Waiting 5 seconds")
-				time.Sleep(time.Duration(5 * time.Second))
-				By("Check for Daemonset deletion")
-				_, err = clientset.DaemonSets(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
-				if err != nil {
-					Expect(errors.IsNotFound(err)).To(Equal(true))
-				}
-				Expect("Success").To(Equal("Success"))
-			})
-		})
-	})
+	// 			By("Pod was in Running state... Time to delete the Daemonset now...")
+	// 			err = clientset.DaemonSets(TEST_NAMESPACE).Delete(name, &metav1.DeleteOptions{})
+	// 			Expect(err).NotTo(HaveOccurred())
+	// 			By("Waiting 5 seconds")
+	// 			time.Sleep(time.Duration(5 * time.Second))
+	// 			By("Check for Daemonset deletion")
+	// 			_, err = clientset.DaemonSets(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
+	// 			if err != nil {
+	// 				Expect(errors.IsNotFound(err)).To(Equal(true))
+	// 			}
+	// 			Expect("Success").To(Equal("Success"))
+	// 		})
+	// 	})
+	// })
 
 })
 
