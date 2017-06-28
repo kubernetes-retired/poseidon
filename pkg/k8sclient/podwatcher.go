@@ -22,6 +22,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -38,6 +40,29 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/tools/cache"
 )
+
+type NodeSelectors map[string]string
+
+func SortNodeSelectors(nodeSelector NodeSelectors) NodeSelectors {
+	newSortedNodeSelectors := make(NodeSelectors)
+	var keyArray []string
+
+	for key := range nodeSelector {
+		// skip key with networkRequirement
+		//TODO(shiv): The network requirement should be passed as flag
+		if key == "networkRequirement" {
+			continue
+		}
+		keyArray = append(keyArray, key)
+
+	}
+	sort.Strings(keyArray)
+	for _, key := range keyArray {
+		newSortedNodeSelectors[key] = nodeSelector[key]
+		//No need to sort values since its not an array in nodeselector, it a simple string
+	}
+	return newSortedNodeSelectors
+}
 
 func NewPodWatcher(kubeVerMajor, kubeVerMinor int, schedulerName string, client kubernetes.Interface, fc firmament.FirmamentSchedulerClient) *PodWatcher {
 	glog.Info("Starting PodWatcher...")
@@ -356,8 +381,19 @@ func (this *PodWatcher) addTaskToJob(pod *Pod, jd *firmament.JobDescriptor) *fir
 			CpuCores: float32(pod.CpuRequest),
 			RamCap:   uint64(pod.MemRequestKb),
 		},
-		// TODO(ionel): Populate LabelSelector.
 	}
+	// NodeSelector are simple map[string]string
+	// parse and pass them to task LabelSelectors
+	// TODO:(shiv) Need to have seperate nodeselector and labelselector structure in taskdescriptor
+	// we need to update the task resource vector if the node sleector is networkReqirment
+
+	if networkReqirment := getNetworkRequirment(pod.NodeSelector); networkReqirment != 0 {
+
+		task.ResourceRequest.NetRxBw = networkReqirment
+	}
+
+	task.LabelSelectors = this.getFirmamentLabelSelectorFromNodeSelectorMap(SortNodeSelectors(pod.NodeSelector))
+
 	// Add labels.
 	for label, value := range pod.Labels {
 		task.Labels = append(task.Labels,
@@ -417,4 +453,31 @@ func GetOwnerReference(pod *v1.Pod) string {
 
 	// Return the uid of the ObjectMeta if none from the above is present.
 	return string(pod.GetObjectMeta().GetUID())
+}
+
+func (this *PodWatcher) getFirmamentLabelSelectorFromNodeSelectorMap(nodeSelector NodeSelectors) []*firmament.LabelSelector {
+	var firmamentLabelSelector []*firmament.LabelSelector
+	for key, value := range nodeSelector {
+		//newfirmamentLabelSelector:=
+		firmamentLabelSelector = append(firmamentLabelSelector, &firmament.LabelSelector{
+			Type:   firmament.LabelSelector_IN_SET,
+			Values: []string{value},
+			Key:    key,
+		})
+	}
+	return firmamentLabelSelector
+}
+
+// Check if the nodeSelector has network-requirement set
+func getNetworkRequirment(nodeSelector NodeSelectors) uint64 {
+	//ResourceRequest.NetRxBw
+	var res uint64
+	for key, value := range nodeSelector {
+		if key == "networkRequirement" {
+			if res, err := strconv.ParseUint(value, 10, 64); err == nil {
+				return res
+			}
+		}
+	}
+	return res
 }
