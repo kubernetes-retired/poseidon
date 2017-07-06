@@ -1,0 +1,26 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: poseidon
+  name: poseidon-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: poseidon
+      name: poseidon
+    spec:
+      containers:
+        - name: poseidon
+          image: camsas/poseidon:dev
+          command:
+          - poseidon
+          - --logtostderr
+          - --kubeConfig=<path_kubeconfig_file>
+          - --firmamentAddress=<host>:<port>
+          - --statsServerAddress=<host>:<port>
+          - --kubeVersion=1.5
+          ports:
+             - containerPort: 80
