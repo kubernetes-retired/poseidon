@@ -1,0 +1,46 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: poseidon-stats
+spec:
+  selector:
+    poseidonservice: stats
+  ports:
+    - protocol: TCP
+      port: 9091
+      targetPort: 9091
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    component: scheduler
+    tier: control-plane
+    poseidonservice: stats
+  name: poseidon
+  namespace: kube-system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels: 
+        component: scheduler
+        tier: control-plane
+        version: first
+        poseidonservice: stats
+    spec:
+      containers:
+      - command: [ /go/bin/poseidon ]
+        image: localhost:5000/poseidon-test
+        name: poseidon
+      initContainers:
+      - name: init-firmamentservice
+        image: busybox
+        command: ['sh', '-c', 'until nslookup firmament-service.kube-system; do echo waiting for firmamentservice; sleep 1; done;']
+        securityContext:
+          privileged: false
+        volumeMounts: []
+      hostNetwork: true
+      hostPID: false
+      volumes: []
+
