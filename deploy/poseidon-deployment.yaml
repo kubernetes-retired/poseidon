@@ -19,8 +19,8 @@ spec:
           - poseidon
           - --logtostderr
           - --kubeConfig=<path_kubeconfig_file>
-          - --firmamentAddress=<host>:<port>
-          - --statsServerAddress=<host>:<port>
+          - --firmamentAddress=<host>:9090
+          - --statsServerAddress=<host>:9091
           - --kubeVersion=1.5
           ports:
-             - containerPort: 80
+             - containerPort: 9091
