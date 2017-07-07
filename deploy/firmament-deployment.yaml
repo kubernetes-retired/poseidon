@@ -22,7 +22,7 @@ spec:
   replicas: 1
   template:
     metadata:
-      labels: 
+      labels:
         scheduler: firmament
     spec:
       containers:

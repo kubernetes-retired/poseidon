@@ -1,11 +1,11 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: poseidon-stats
+  name: poseidon
   namespace: kube-system
 spec:
   selector:
-    poseidonservice: stats
+    poseidonservice: poseidon
   ports:
     - protocol: TCP
       port: 9091
@@ -17,21 +17,21 @@ metadata:
   labels:
     component: scheduler
     tier: control-plane
-    poseidonservice: stats
+    poseidonservice: poseidon
   name: poseidon
   namespace: kube-system
 spec:
   replicas: 1
   template:
     metadata:
-      labels: 
+      labels:
         component: scheduler
         tier: control-plane
         version: first
-        poseidonservice: stats
+        poseidonservice: poseidon
     spec:
       containers:
-      - command: [ /go/bin/poseidon ,--logtostderr ,--kubeConfig="", --firmamentAddress="", --firmamentAddress="", --kubeVersion=="1.6" ]
+      - command: [/poseidon, --logtostderr, --kubeConfig=, --kubeVersion=1.6]
         image: camsas/poseidon:dev
         name: poseidon
       initContainers:
@@ -44,4 +44,3 @@ spec:
       hostNetwork: true
       hostPID: false
       volumes: []
-
