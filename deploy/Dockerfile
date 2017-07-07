@@ -1,6 +1,8 @@
-FROM golang:1.7
+FROM scratch
 MAINTAINER malte@csail.mit.edu, ionel.gog@cl.cam.ac.uk
 
-RUN go get github.com/camsas/poseidon
+ADD poseidon poseidon
 
 EXPOSE 9091
+
+ENTRYPOINT ["/poseidon", "--log_dir=/"]
