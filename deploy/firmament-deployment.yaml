@@ -1,20 +1,36 @@
-apiVersion: extensions/v1beta1
+kind: Service
+apiVersion: v1
+metadata:
+  name: firmament-service
+  namespace: kube-system
+spec:
+  selector:
+    scheduler: firmament
+  ports:
+    - protocol: TCP
+      port: 9090
+      targetPort: 9090
+---
+apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
+  name: firmament-scheduler
+  namespace: kube-system
   labels:
-    app: firmament
-  name: firmament-deployment
+    scheduler: firmament
 spec:
   replicas: 1
   template:
     metadata:
-      labels:
-        app: firmament
-      name: firmament
+      labels: 
+        scheduler: firmament
     spec:
       containers:
-        - name: firmament
-          image: camsas/firmament:dev
-          command: ["/firmament/src/firmament_scheduler", "--flagfile=/firmament/default.conf"]
-          ports:
-             - containerPort: 9090
+      - command: [/firmament/src/firmament_scheduler, --flagfile=/firmament/default.conf, --firmament_scheduler_service_address=0.0.0.0]
+        image: camsas/firmament:dev
+        name: firmament-scheduler
+        ports:
+         - containerPort: 9090
+      hostNetwork: true
+      hostPID: false
+      volumes: []

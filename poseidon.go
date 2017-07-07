@@ -41,10 +41,10 @@ var (
 
 func init() {
 	flag.StringVar(&schedulerName, "schedulerName", "poseidon", "The scheduler name with which pods are labeled")
-	flag.StringVar(&firmamentAddress, "firmamentAddress", "127.0.0.1:9090", "Firmament scheduler service address and port")
+	flag.StringVar(&firmamentAddress, "firmamentAddress", "firmament-service.kube-system:9090", "Firmament scheduler service address and port")
 	flag.StringVar(&kubeConfig, "kubeConfig", "kubeconfig.cfg", "Path to the kubeconfig file")
-	flag.StringVar(&kubeVersion, "kubeVersion", "1.5.6", "Kubernetes version")
-	flag.StringVar(&statsServerAddress, "statsServerAddress", "127.0.0.1:9091", "Address on which the stats server listens")
+	flag.StringVar(&kubeVersion, "kubeVersion", "1.6", "Kubernetes version")
+	flag.StringVar(&statsServerAddress, "statsServerAddress", "0.0.0.0:9091", "Address on which the stats server listens")
 	flag.IntVar(&schedulingInterval, "schedulingInterval", 10, "Time between scheduler runs (in seconds)")
 	flag.Parse()
 }
