@@ -41,6 +41,6 @@ spec:
         securityContext:
           privileged: false
         volumeMounts: []
-      hostNetwork: true
+      hostNetwork: false
       hostPID: false
       volumes: []
