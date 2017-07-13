@@ -379,10 +379,6 @@ func (this *PodWatcher) addTaskToJob(pod *Pod, jd *firmament.JobDescriptor) *fir
 		},
 	}
 
-	setTaskNetworkRequirement(task, pod.NodeSelector)
-
-	task.LabelSelectors = this.getFirmamentLabelSelectorFromNodeSelectorMap(SortNodeSelectors(pod.NodeSelector))
-
 	// Add labels.
 	for label, value := range pod.Labels {
 		task.Labels = append(task.Labels,
@@ -391,6 +387,11 @@ func (this *PodWatcher) addTaskToJob(pod *Pod, jd *firmament.JobDescriptor) *fir
 				Value: value,
 			})
 	}
+
+	setTaskNetworkRequirement(task, pod.NodeSelector)
+	task.LabelSelectors = this.getFirmamentLabelSelectorFromNodeSelectorMap(SortNodeSelectors(pod.NodeSelector))
+	setTaskType(task)
+
 	if jd.RootTask == nil {
 		task.Uid = this.generateTaskID(jd.Name, 0)
 		jd.RootTask = task
@@ -463,6 +464,25 @@ func setTaskNetworkRequirement(td *firmament.TaskDescriptor, nodeSelectors NodeS
 			td.ResourceRequest.NetRxBw = res
 		} else {
 			glog.Errorf("Failed to parse networkRequirement %v", err)
+		}
+	}
+}
+
+func setTaskType(td *firmament.TaskDescriptor) {
+	for _, label := range td.Labels {
+		if label.Key == "taskType" {
+			switch label.Value {
+			case "Sheep":
+				td.TaskType = firmament.TaskDescriptor_SHEEP
+			case "Rabbit":
+				td.TaskType = firmament.TaskDescriptor_RABBIT
+			case "Devil":
+				td.TaskType = firmament.TaskDescriptor_DEVIL
+			case "Turtle":
+				td.TaskType = firmament.TaskDescriptor_TURTLE
+			default:
+				glog.Errorf("Unexpected task type %s for task %s", label.Value, td.Name)
+			}
 		}
 	}
 }
