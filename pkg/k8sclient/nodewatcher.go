@@ -21,7 +21,6 @@ package k8sclient
 import (
 	"fmt"
 	"reflect"
-	"strconv"
 	"sync"
 	"time"
 
@@ -315,24 +314,27 @@ func (this *NodeWatcher) createResourceTopologyForNode(node *Node) *firmament.Re
 				Value: value,
 			})
 	}
-	// TODO(ionel): In the future, we want to get real node topology rather
-	// than manually connecting PU RDs to the machine RD.
-	for num_pu := int64(0); num_pu < (node.CpuCapacity / 1000); num_pu++ {
-		friendlyName := node.Hostname + "_pu" + strconv.FormatInt(num_pu, 10)
-		puUuid := this.generateResourceID(friendlyName)
-		puRtnd := &firmament.ResourceTopologyNodeDescriptor{
-			ResourceDesc: &firmament.ResourceDescriptor{
-				Uuid:         puUuid,
-				Type:         firmament.ResourceDescriptor_RESOURCE_PU,
-				State:        firmament.ResourceDescriptor_RESOURCE_IDLE,
-				FriendlyName: friendlyName,
-				Labels:       rtnd.ResourceDesc.Labels,
+	// TODO(ionel): In the future, we want to get real node topology.
+	// We currently only create a PU per machine because Heapster doesn't
+	// provide per PU/core statistics.
+	friendlyName := node.Hostname + "_PU #0"
+	puUuid := this.generateResourceID(friendlyName)
+	puRtnd := &firmament.ResourceTopologyNodeDescriptor{
+		ResourceDesc: &firmament.ResourceDescriptor{
+			Uuid:         puUuid,
+			Type:         firmament.ResourceDescriptor_RESOURCE_PU,
+			State:        firmament.ResourceDescriptor_RESOURCE_IDLE,
+			FriendlyName: friendlyName,
+			Labels:       rtnd.ResourceDesc.Labels,
+			ResourceCapacity: &firmament.ResourceVector{
+				RamCap:   uint64(node.MemCapacityKb),
+				CpuCores: float32(node.CpuCapacity),
 			},
-			ParentId: resUuid,
-		}
-		rtnd.Children = append(rtnd.Children, puRtnd)
-		ResIDToNode[puUuid] = node.Hostname
+		},
+		ParentId: resUuid,
 	}
+	rtnd.Children = append(rtnd.Children, puRtnd)
+	ResIDToNode[puUuid] = node.Hostname
 
 	return rtnd
 }
