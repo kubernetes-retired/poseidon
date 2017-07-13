@@ -46,20 +46,16 @@ type NodeSelectors map[string]string
 func SortNodeSelectors(nodeSelector NodeSelectors) NodeSelectors {
 	newSortedNodeSelectors := make(NodeSelectors)
 	var keyArray []string
-
 	for key := range nodeSelector {
-		// skip key with networkRequirement
-		//TODO(shiv): The network requirement should be passed as flag
+		// Skip key with networkRequirement
 		if key == "networkRequirement" {
 			continue
 		}
 		keyArray = append(keyArray, key)
-
 	}
 	sort.Strings(keyArray)
 	for _, key := range keyArray {
 		newSortedNodeSelectors[key] = nodeSelector[key]
-		//No need to sort values since its not an array in nodeselector, it a simple string
 	}
 	return newSortedNodeSelectors
 }
@@ -382,15 +378,8 @@ func (this *PodWatcher) addTaskToJob(pod *Pod, jd *firmament.JobDescriptor) *fir
 			RamCap:   uint64(pod.MemRequestKb),
 		},
 	}
-	// NodeSelector are simple map[string]string
-	// parse and pass them to task LabelSelectors
-	// TODO:(shiv) Need to have seperate nodeselector and labelselector structure in taskdescriptor
-	// we need to update the task resource vector if the node sleector is networkReqirment
 
-	if networkReqirment := getNetworkRequirment(pod.NodeSelector); networkReqirment != 0 {
-
-		task.ResourceRequest.NetRxBw = networkReqirment
-	}
+	setTaskNetworkRequirement(task, pod.NodeSelector)
 
 	task.LabelSelectors = this.getFirmamentLabelSelectorFromNodeSelectorMap(SortNodeSelectors(pod.NodeSelector))
 
@@ -458,7 +447,6 @@ func GetOwnerReference(pod *v1.Pod) string {
 func (this *PodWatcher) getFirmamentLabelSelectorFromNodeSelectorMap(nodeSelector NodeSelectors) []*firmament.LabelSelector {
 	var firmamentLabelSelector []*firmament.LabelSelector
 	for key, value := range nodeSelector {
-		//newfirmamentLabelSelector:=
 		firmamentLabelSelector = append(firmamentLabelSelector, &firmament.LabelSelector{
 			Type:   firmament.LabelSelector_IN_SET,
 			Values: []string{value},
@@ -468,16 +456,13 @@ func (this *PodWatcher) getFirmamentLabelSelectorFromNodeSelectorMap(nodeSelecto
 	return firmamentLabelSelector
 }
 
-// Check if the nodeSelector has network-requirement set
-func getNetworkRequirment(nodeSelector NodeSelectors) uint64 {
-	//ResourceRequest.NetRxBw
-	var res uint64
-	for key, value := range nodeSelector {
-		if key == "networkRequirement" {
-			if res, err := strconv.ParseUint(value, 10, 64); err == nil {
-				return res
-			}
+func setTaskNetworkRequirement(td *firmament.TaskDescriptor, nodeSelectors NodeSelectors) {
+	if val, ok := nodeSelectors["networkRequirement"]; ok {
+		res, err := strconv.ParseUint(val, 10, 64)
+		if err == nil {
+			td.ResourceRequest.NetRxBw = res
+		} else {
+			glog.Errorf("Failed to parse networkRequirement %v", err)
 		}
 	}
-	return res
 }
