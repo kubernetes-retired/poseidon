@@ -73,6 +73,10 @@ func BuildFirmamentResourceDescriptor(
 					Uuid:         coreOneUuid,
 					FriendlyName: coreOnefriendlyName,
 					State:        firmament.ResourceDescriptor_RESOURCE_IDLE,
+					ResourceCapacity: &firmament.ResourceVector{
+						CpuCores: cpuCores,
+						RamCap:   ramCap,
+					},
 				},
 				ParentId: uuid,
 			},
@@ -321,8 +325,8 @@ func TestNodeWatcher_createResourceTopologyForNode(t *testing.T) {
 				"node0",
 				1000,
 				9765625,
-				"22e3e4c7-4c49-485e-8d41-7e83e2073a57",
-				"node0_pu0"),
+				"a03e6733-dc70-4da5-91ea-bded4bbee951",
+				"node0_PU #0"),
 		},
 		{
 			node: &Node{
@@ -341,8 +345,8 @@ func TestNodeWatcher_createResourceTopologyForNode(t *testing.T) {
 				"node1",
 				1000,
 				2048,
-				"c9fe9fd0-2a5b-4b47-a064-498da81c7aa1",
-				"node1_pu0"),
+				"6b45f181-d411-4bf1-9755-89a35115cdd7",
+				"node1_PU #0"),
 		},
 	}
 	testObj := initializeNodeObj(t)
