@@ -387,8 +387,8 @@ func (this *PodWatcher) addTaskToJob(pod *Pod, jd *firmament.JobDescriptor) *fir
 				Value: value,
 			})
 	}
-
-	setTaskNetworkRequirement(task, pod.NodeSelector)
+	// Get the network requirement from pods label, and set it in ResourceRequest of the TaskDescriptor
+	setTaskNetworkRequirement(task, pod.Labels)
 	task.LabelSelectors = this.getFirmamentLabelSelectorFromNodeSelectorMap(SortNodeSelectors(pod.NodeSelector))
 	setTaskType(task)
 
