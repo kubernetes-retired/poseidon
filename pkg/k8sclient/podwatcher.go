@@ -30,7 +30,6 @@ import (
 	"github.com/camsas/poseidon/pkg/firmament"
 	"github.com/golang/glog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -71,14 +70,25 @@ func NewPodWatcher(kubeVerMajor, kubeVerMinor int, schedulerName string, client 
 		clientset: client,
 		fc:        fc,
 	}
-	schedulerSelector := fields.Everything()
-	podSelector := labels.Everything()
+	schedulerSelector := labels.Everything()
+	var err error
 	if kubeVerMajor >= 1 && kubeVerMinor >= 6 {
-		// schedulerName is only available in Kubernetes >= 1.6.
-		schedulerSelector = fields.ParseSelectorOrDie("spec.schedulerName==" + schedulerName)
+		// TODO:(shiv)
+		// Please refer issue : https://github.com/kubernetes/kubernetes/issues/49190
+		// schedulerName support which is available in Kubernetes >= 1.6 is broken.
+		// The current workaround to this issue is to assign a mandatory label as mentioned below to all the object
+		// ( like pods/deployments/job etc) that are to be scheduled by poseidon.
+		// label:
+		//  schedulerName: poseidon
+
+		schedulerSelector, err = labels.Parse("schedulerName==" + schedulerName)
+		if err != nil {
+			glog.Fatal("Failed to parse scheduler label selector")
+		}
+
 	} else {
 		var err error
-		podSelector, err = labels.Parse("scheduler in (" + schedulerName + ")")
+		schedulerSelector, err = labels.Parse("scheduler in (" + schedulerName + ")")
 		if err != nil {
 			glog.Fatal("Failed to parse scheduler label selector")
 		}
@@ -86,13 +96,11 @@ func NewPodWatcher(kubeVerMajor, kubeVerMinor int, schedulerName string, client 
 	_, controller := cache.NewInformer(
 		&cache.ListWatch{
 			ListFunc: func(alo metav1.ListOptions) (runtime.Object, error) {
-				alo.FieldSelector = schedulerSelector.String()
-				alo.LabelSelector = podSelector.String()
+				alo.LabelSelector = schedulerSelector.String()
 				return client.CoreV1().Pods("").List(alo)
 			},
 			WatchFunc: func(alo metav1.ListOptions) (watch.Interface, error) {
-				alo.FieldSelector = schedulerSelector.String()
-				alo.LabelSelector = podSelector.String()
+				alo.LabelSelector = schedulerSelector.String()
 				return client.CoreV1().Pods("").Watch(alo)
 			},
 		},
@@ -443,6 +451,7 @@ func GetOwnerReference(pod *v1.Pod) string {
 
 	// Return the uid of the ObjectMeta if none from the above is present.
 	return string(pod.GetObjectMeta().GetUID())
+
 }
 
 func (this *PodWatcher) getFirmamentLabelSelectorFromNodeSelectorMap(nodeSelector NodeSelectors) []*firmament.LabelSelector {
