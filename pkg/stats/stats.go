@@ -21,6 +21,7 @@ package stats
 import (
 	"io"
 	"net"
+	"sync"
 
 	"github.com/camsas/poseidon/pkg/firmament"
 	"github.com/camsas/poseidon/pkg/k8sclient"
@@ -28,8 +29,17 @@ import (
 	"google.golang.org/grpc"
 )
 
+const bytesToKb = 1024
+
+type nodeNetworkBandWidth struct {
+	NetRxBw float64 //in Kbs
+	NetTxBw float64 //in Kbs
+}
+
 type poseidonStatsServer struct {
-	firmamentClient firmament.FirmamentSchedulerClient
+	firmamentClient         firmament.FirmamentSchedulerClient
+	nodeNetworkBandWidthMap map[string]*nodeNetworkBandWidth
+	sync.Mutex              //this mutex will be only
 }
 
 func convertPodStatsToTaskStats(podStats *PodStats) *firmament.TaskStats {
@@ -103,6 +113,7 @@ func (s *poseidonStatsServer) ReceiveNodeStats(stream PoseidonStats_ReceiveNodeS
 			continue
 		}
 		resourceStats.ResourceId = rtnd.GetResourceDesc().GetUuid()
+		s.setNetworkBandwidthToResourceStats(nodeStats.GetHostname(), resourceStats)
 		firmament.AddNodeStats(s.firmamentClient, resourceStats)
 		sendErr := stream.Send(&NodeStatsResponse{
 			Type:     NodeStatsResponseType_NODE_STATS_OK,
@@ -127,6 +138,7 @@ func (s *poseidonStatsServer) ReceivePodStats(stream PoseidonStats_ReceivePodSta
 			return err
 		}
 		taskStats := convertPodStatsToTaskStats(podStats)
+		s.addNetworkBandwidth(podStats)
 		podIdentifier := k8sclient.PodIdentifier{
 			Name:      podStats.Name,
 			Namespace: podStats.Namespace,
@@ -160,6 +172,40 @@ func (s *poseidonStatsServer) ReceivePodStats(stream PoseidonStats_ReceivePodSta
 	}
 }
 
+func (s *poseidonStatsServer) setNetworkBandwidthToResourceStats(nodeHostNanme string, resourceStats *firmament.ResourceStats) {
+	s.Lock()
+	defer s.Unlock()
+	nodeBandwidth, ok := s.nodeNetworkBandWidthMap[nodeHostNanme]
+	if ok {
+		if nodeBandwidth.NetRxBw != 0 {
+			resourceStats.NetRxBw = int64(nodeBandwidth.NetRxBw) / bytesToKb
+		}
+		if nodeBandwidth.NetTxBw != 0 {
+			resourceStats.NetTxBw = int64(nodeBandwidth.NetTxBw) / bytesToKb
+		}
+	} else {
+		glog.Info("No network bandwidth found for node", nodeHostNanme)
+	}
+}
+
+func (s *poseidonStatsServer) addNetworkBandwidth(podStats *PodStats) {
+	s.Lock()
+	tempBandwidth, ok := s.nodeNetworkBandWidthMap[podStats.GetHostname()]
+	if !ok {
+		s.nodeNetworkBandWidthMap[podStats.GetHostname()] = &nodeNetworkBandWidth{podStats.GetNetRxRate(), podStats.GetNetTxRate()}
+	} else {
+		tempBandwidth.NetRxBw += podStats.GetNetRxRate()
+		tempBandwidth.NetTxBw += podStats.GetNetTxRate()
+	}
+	s.Unlock()
+}
+
+func NewposeidonStatsServer(fc firmament.FirmamentSchedulerClient) *poseidonStatsServer {
+	tnodeNetworkBandWidthMap := make(map[string]*nodeNetworkBandWidth)
+	return &poseidonStatsServer{firmamentClient: fc, nodeNetworkBandWidthMap: tnodeNetworkBandWidthMap}
+
+}
+
 func StartgRPCStatsServer(statsServerAddress, firmamentAddress string) {
 	glog.Info("Starting stats server...")
 	listen, err := net.Listen("tcp", statsServerAddress)
@@ -173,6 +219,6 @@ func StartgRPCStatsServer(statsServerAddress, firmamentAddress string) {
 
 	}
 	defer conn.Close()
-	RegisterPoseidonStatsServer(grpcServer, &poseidonStatsServer{firmamentClient: fc})
+	RegisterPoseidonStatsServer(grpcServer, NewposeidonStatsServer(fc))
 	grpcServer.Serve(listen)
 }
