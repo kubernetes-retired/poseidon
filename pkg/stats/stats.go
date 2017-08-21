@@ -60,15 +60,19 @@ func convertPodStatsToTaskStats(podStats *PodStats) *firmament.TaskStats {
 }
 
 func convertNodeStatsToResourceStats(nodeStats *NodeStats) *firmament.ResourceStats {
-	cpuStats := &firmament.CpuStats{
-		CpuAllocatable: nodeStats.GetCpuAllocatable(),
-		CpuCapacity:    nodeStats.GetCpuCapacity(),
-		CpuReservation: nodeStats.GetCpuReservation(),
-		CpuUtilization: nodeStats.GetCpuUtilization(),
+	percoreUtilization := nodeStats.GetCpuCoreUtilization()
+	var cpuStats []*firmament.CpuStats
+	for index, _ := range percoreUtilization {
+		cpuStats = append(cpuStats, &firmament.CpuStats{
+			CpuAllocatable: nodeStats.GetCpuAllocatable(),
+			CpuCapacity:    nodeStats.GetCpuCapacity(),
+			CpuReservation: nodeStats.GetCpuReservation(),
+			CpuUtilization: float64(percoreUtilization[index]),
+		})
 	}
 	return &firmament.ResourceStats{
 		Timestamp:      nodeStats.GetTimestamp(),
-		CpusStats:      []*firmament.CpuStats{cpuStats},
+		CpusStats:      cpuStats,
 		MemAllocatable: nodeStats.GetMemAllocatable(),
 		MemCapacity:    nodeStats.GetMemCapacity(),
 		MemReservation: nodeStats.GetMemReservation(),
