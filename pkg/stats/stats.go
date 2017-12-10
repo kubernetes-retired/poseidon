@@ -32,6 +32,60 @@ type poseidonStatsServer struct {
 	firmamentClient firmament.FirmamentSchedulerClient
 }
 
+StatsClient *poseidonStatsServer
+
+func convertNodeResourceToResourceStats(nodeResource *k8sclient.Node) *firmament.ResourceStats {
+	percoreUtilization := nodeStats.GetCpuCoreUtilization()
+	var cpuStats []*firmament.CpuStats
+
+	cpuStats = append(cpuStats, &firmament.CpuStats{
+		CpuAllocatable: nodeResource.CpuAllocatable,
+	})
+
+	return &firmament.ResourceStats{
+		Timestamp:      nodeStats.GetTimestamp(),
+		CpusStats:      cpuStats,
+		MemAllocatable: nodeResource.MemAllocatableKb,
+	}
+}
+
+func CalculateRunningCount(pod *k8sclient.Pod, nodeName string, op int) {
+
+	nodeResource, ok := NodeResource[nodeName]
+	if !ok {
+		glog.Info(nodeName, " Node resource map is empty")
+		return
+	}
+	switch op {
+	case 0:
+		//add resource
+
+		//PlusOp we neeto reduce the pods CpuAllocatable and MemAllocatableKb from the nodes resource
+		nodeResource.CpuAllocatable = nodeResource.CpuAllocatable - pod.CpuRequest
+		nodeResource.MemAllocatableKb = nodeResource.MemAllocatableKb - pod.MemRequestKb
+
+		resourceStats := convertNodeResourceToResourceStats(nodeResource)
+
+		//add the nodeResource again
+		NodeResource[nodeName] = nodeResource
+
+		firmament.AddNodeStats(StatsClient.firmamentClient, resourceStats)
+
+	case 1:
+		//delete resource
+		nodeResource.CpuAllocatable = nodeResource.CpuAllocatable + pod.CpuRequest
+		nodeResource.MemAllocatableKb = nodeResource.MemAllocatableKb + pod.MemRequestKb
+
+		resourceStats := convertNodeResourceToResourceStats(nodeResource)
+
+		//add the nodeResource again
+		NodeResource[nodeName] = nodeResource
+
+		firmament.AddNodeStats(StatsClient.firmamentClient, resourceStats)
+
+	}
+}
+
 func convertPodStatsToTaskStats(podStats *PodStats) *firmament.TaskStats {
 	return &firmament.TaskStats{
 		Hostname:            podStats.GetHostname(),
@@ -62,7 +116,7 @@ func convertPodStatsToTaskStats(podStats *PodStats) *firmament.TaskStats {
 func convertNodeStatsToResourceStats(nodeStats *NodeStats) *firmament.ResourceStats {
 	percoreUtilization := nodeStats.GetCpuCoreUtilization()
 	var cpuStats []*firmament.CpuStats
-	for index, _ := range percoreUtilization {
+	for index := range percoreUtilization {
 		cpuStats = append(cpuStats, &firmament.CpuStats{
 			CpuAllocatable: nodeStats.GetCpuAllocatable(),
 			CpuCapacity:    nodeStats.GetCpuCapacity(),
@@ -177,6 +231,7 @@ func StartgRPCStatsServer(statsServerAddress, firmamentAddress string) {
 
 	}
 	defer conn.Close()
+	StatsClient=&poseidonStatsServer{firmamentClient: fc}
 	RegisterPoseidonStatsServer(grpcServer, &poseidonStatsServer{firmamentClient: fc})
 	grpcServer.Serve(listen)
 }
