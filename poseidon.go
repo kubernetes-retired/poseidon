@@ -69,6 +69,17 @@ func schedule(fc firmament.FirmamentSchedulerClient) {
 					glog.Fatalf("Placed task %d on resource %s without node pairing", delta.GetTaskId(), delta.GetResourceId())
 				}
 				k8sclient.BindPodToNode(podIdentifier.Name, podIdentifier.Namespace, nodeName)
+				//update the Bindmap here
+				k8sclient.PodsCond.L.Lock()
+				BindInfo[podIdentifier] = nodeName
+				//here we need to reduce the running count
+				pod, ok := PodResource[podIdentifier]
+				if ok {
+					stats.CalculateRunningCount(pod, nodeName, PlusOp)
+				} else {
+					glog.Info(podIdentifier, "Pod Not found in Schedule ")
+				}
+				k8sclient.PodsCond.L.Unlock()
 			case firmament.SchedulingDelta_PREEMPT, firmament.SchedulingDelta_MIGRATE:
 				k8sclient.PodsCond.L.Lock()
 				podIdentifier, ok := k8sclient.TaskIDToPod[delta.GetTaskId()]
@@ -85,6 +96,7 @@ func schedule(fc firmament.FirmamentSchedulerClient) {
 			default:
 				glog.Fatalf("Unexpected SchedulingDelta type %v", delta.GetType())
 			}
+
 		}
 		// TODO(ionel): Temporary sleep statement because we currently call the scheduler even if there's no work do to.
 		time.Sleep(time.Duration(schedulingInterval) * time.Second)

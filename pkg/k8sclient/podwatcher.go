@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/camsas/poseidon/pkg/firmament"
+	"github.com/camsas/poseidon/pkg/stats"
 	"github.com/golang/glog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -253,6 +254,7 @@ func (this *PodWatcher) podWorker() {
 				case PodPending:
 					glog.V(2).Info("PodPending ", pod.Identifier)
 					PodsCond.L.Lock()
+					PodResource[pod.Identifier] = pod
 					jobId := this.generateJobID(pod.OwnerRef)
 					jd, ok := jobIDToJD[jobId]
 					if !ok {
@@ -282,6 +284,21 @@ func (this *PodWatcher) podWorker() {
 				case PodDeleted:
 					glog.V(2).Info("PodDeleted ", pod.Identifier)
 					PodsCond.L.Lock()
+
+					key, ok := PodResource[pod.Identifier]
+					if !ok {
+						glog.Info(pod.Identifier, " Pod Not found in PodResource map")
+					} else {
+						// TODO:(shiv) before we delete we need to add the resource count here
+						// Already inside lock
+						// Get the node name from BindMap
+						nodeName, ok := BindInfo[pod.Identifier]
+						if !ok {
+							glog.Info("Bindmap empty for pod ", pod.Identifier)
+						}
+						stats.CalculateRunningCount(key, nodeName, MinusOp) //for now no return value
+						delete(PodResource, key)
+					}
 					td, ok := PodToTD[pod.Identifier]
 					PodsCond.L.Unlock()
 					if !ok {

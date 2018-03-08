@@ -230,6 +230,9 @@ func (this *NodeWatcher) nodeWorker() {
 				switch node.Phase {
 				case NodeAdded:
 					NodesCond.L.Lock()
+					//lock and update the node
+					NodeResource[node.Hostname] = node
+
 					rtnd := this.createResourceTopologyForNode(node)
 					_, ok := NodeToRTND[node.Hostname]
 					if ok {
@@ -241,6 +244,12 @@ func (this *NodeWatcher) nodeWorker() {
 					firmament.NodeAdded(this.fc, rtnd)
 				case NodeDeleted:
 					NodesCond.L.Lock()
+					key, ok := NodeResource[node.Hostname]
+					if !ok {
+						glog.Info(node.Hostname, " Node not found for deletion in NodeResource map")
+					} else {
+						delete(NodeResource, key)
+					}
 					rtnd, ok := NodeToRTND[node.Hostname]
 					NodesCond.L.Unlock()
 					if !ok {

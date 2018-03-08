@@ -40,6 +40,8 @@ message NodeStats {
   // Memory stats (fraction of total).
   double mem_reservation = 9;
   double mem_utilization = 10;
+  // per core utilization
+  repeated int64 cpu_core_utilization = 11;
 }
 
 enum NodeStatsResponseType {
