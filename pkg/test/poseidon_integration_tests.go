@@ -27,9 +27,9 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/api/v1"
-	batchv1 "k8s.io/client-go/pkg/apis/batch/v1"
-	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
+	"k8s.io/api/core/v1"
+	batchv1 "k8s.io/api/batch/v1"
+	v1beta1 "k8s.io/api/apps/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"math/rand"
@@ -67,7 +67,7 @@ var _ = Describe("Poseidon", func() {
 				labels := make(map[string]string)
 				labels["scheduler"] = "poseidon"
 				//Create a K8s Pod with poseidon
-				_, err = clientset.Pods(TEST_NAMESPACE).Create(&v1.Pod{
+				_, err = clientset.CoreV1().Pods(TEST_NAMESPACE).Create(&v1.Pod{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:        name,
 						Annotations: annots,
@@ -86,18 +86,18 @@ var _ = Describe("Poseidon", func() {
 				By("Waiting for the pod to have running status")
 				By("Waiting 10 seconds")
 				time.Sleep(time.Duration(10 * time.Second))
-				pod, err := clientset.Pods(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
+				pod, err := clientset.CoreV1().Pods(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				glog.Info("pod status =", string(pod.Status.Phase))
 				Expect(string(pod.Status.Phase)).To(Equal("Running"))
 
 				By("Pod was in Running state... Time to delete the pod now...")
-				err = clientset.Pods(TEST_NAMESPACE).Delete(name, &metav1.DeleteOptions{})
+				err = clientset.CoreV1().Pods(TEST_NAMESPACE).Delete(name, &metav1.DeleteOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				By("Waiting 5 seconds")
 				time.Sleep(time.Duration(5 * time.Second))
 				By("Check for pod deletion")
-				_, err = clientset.Pods(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
+				_, err = clientset.CoreV1().Pods(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				if err != nil {
 					Expect(errors.IsNotFound(err)).To(Equal(true))
 				}
@@ -116,7 +116,7 @@ var _ = Describe("Poseidon", func() {
 				// Create a K8s Deployment with poseidon scheduler
 				var replicas int32
 				replicas = 2
-				_, err = clientset.ExtensionsV1beta1().Deployments(TEST_NAMESPACE).Create(&v1beta1.Deployment{
+				_, err = clientset.Apps().Deployments(TEST_NAMESPACE).Create(&v1beta1.Deployment{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{"app": "nginx"},
 						Name:   name,
@@ -178,7 +178,7 @@ var _ = Describe("Poseidon", func() {
 				//Create a K8s ReplicaSet with poseidon scheduler
 				var replicas int32
 				replicas = 2
-				_, err = clientset.ReplicaSets(TEST_NAMESPACE).Create(&v1beta1.ReplicaSet{
+				_, err = clientset.Apps().ReplicaSets(TEST_NAMESPACE).Create(&v1beta1.ReplicaSet{
 					ObjectMeta: metav1.ObjectMeta{
 						Name: name,
 					},
@@ -211,18 +211,18 @@ var _ = Describe("Poseidon", func() {
 				By("Waiting for the ReplicaSet to have running status")
 				By("Waiting 10 seconds")
 				time.Sleep(time.Duration(10 * time.Second))
-				replicaSet, err := clientset.ReplicaSets(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
+				replicaSet, err := clientset.Apps().ReplicaSets(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
 				By(fmt.Sprintf("Creation of ReplicaSet %q in namespace %q succeeded.  Deleting ReplicaSet.", replicaSet.Name, TEST_NAMESPACE))
 				Expect(replicaSet.Status.Replicas).To(Equal(replicaSet.Status.AvailableReplicas))
 				By("Pod was in Running state... Time to delete the ReplicaSet now...")
-				err = clientset.ReplicaSets(TEST_NAMESPACE).Delete(name, &metav1.DeleteOptions{})
+				err = clientset.Apps().ReplicaSets(TEST_NAMESPACE).Delete(name, &metav1.DeleteOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				By("Waiting 5 seconds")
 				time.Sleep(time.Duration(5 * time.Second))
 				By("Check for ReplicaSet deletion")
-				_, err = clientset.ReplicaSets(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
+				_, err = clientset.Apps().ReplicaSets(TEST_NAMESPACE).Get(name, metav1.GetOptions{})
 				if err != nil {
 					Expect(errors.IsNotFound(err)).To(Equal(true))
 				}
@@ -386,16 +386,16 @@ var _ = BeforeSuite(func() {
 
 var _ = AfterSuite(func() {
 	// Delete namespace
-	err := clientset.Namespaces().Delete(TEST_NAMESPACE, &metav1.DeleteOptions{})
+	err := clientset.CoreV1().Namespaces().Delete(TEST_NAMESPACE, &metav1.DeleteOptions{})
 	// Delete all pods
-	err = clientset.Pods(TEST_NAMESPACE).DeleteCollection(&metav1.DeleteOptions{}, metav1.ListOptions{})
+	err = clientset.CoreV1().Pods(TEST_NAMESPACE).DeleteCollection(&metav1.DeleteOptions{}, metav1.ListOptions{})
 	if err != nil {
 		panic(err)
 	}
 })
 
 func createNamespace(clientset *kubernetes.Clientset) {
-	ns, err := clientset.Namespaces().Create(&v1.Namespace{
+	ns, err := clientset.CoreV1().Namespaces().Create(&v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{Name: TEST_NAMESPACE},
 	})
 	if err != nil {
@@ -407,7 +407,7 @@ func createNamespace(clientset *kubernetes.Clientset) {
 	}
 	By("Waiting 5 seconds")
 	time.Sleep(time.Duration(5 * time.Second))
-	ns, err = clientset.Namespaces().Get(TEST_NAMESPACE, metav1.GetOptions{})
+	ns, err = clientset.CoreV1().Namespaces().Get(TEST_NAMESPACE, metav1.GetOptions{})
 	Expect(err).ShouldNot(HaveOccurred())
 	Expect(ns.Name).To(Equal(TEST_NAMESPACE))
 }
