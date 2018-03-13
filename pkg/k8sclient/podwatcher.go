@@ -27,7 +27,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/camsas/poseidon/pkg/firmament"
+	"k8s.io/scheduling_poseidon/pkg/firmament"
+
 	"github.com/golang/glog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -37,11 +38,16 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/pkg/api/v1"
+	"k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
 type NodeSelectors map[string]string
+
+//Redefine below Annotation key as that is depricated from original Kuberentes
+const (
+	CreatedByAnnotation = "kubernetes.io/created-by"
+)
 
 func SortNodeSelectors(nodeSelector NodeSelectors) NodeSelectors {
 	newSortedNodeSelectors := make(NodeSelectors)
@@ -432,8 +438,9 @@ func GetOwnerReference(pod *v1.Pod) string {
 		return controllerID
 	}
 
+
 	// Return 'kubernetes.io/created-by' if it exists.
-	if createdByAnnotation, ok := pod.GetObjectMeta().GetAnnotations()[v1.CreatedByAnnotation]; ok {
+	if createdByAnnotation, ok := pod.GetObjectMeta().GetAnnotations()[CreatedByAnnotation]; ok {
 		var serialCreatedBy v1.SerializedReference
 		err := json.Unmarshal([]byte(createdByAnnotation), &serialCreatedBy)
 		if err == nil {

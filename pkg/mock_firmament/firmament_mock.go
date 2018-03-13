@@ -4,7 +4,7 @@
 package mock_firmament
 
 import (
-	firmament "github.com/camsas/poseidon/pkg/firmament"
+	firmament "k8s.io/scheduling_poseidon/pkg/firmament"
 	gomock "github.com/golang/mock/gomock"
 	context "golang.org/x/net/context"
 	grpc "google.golang.org/grpc"

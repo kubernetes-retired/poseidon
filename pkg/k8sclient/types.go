@@ -21,7 +21,8 @@ package k8sclient
 import (
 	"sync"
 
-	"github.com/camsas/poseidon/pkg/firmament"
+	"k8s.io/scheduling_poseidon/pkg/firmament"
+
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 )
