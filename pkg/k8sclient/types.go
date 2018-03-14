@@ -27,8 +27,8 @@ import (
 
 const bytesToKb = 1024
 
-// PodsCond is used to guard access to the pod, task and job related maps.
-var PodsCond *sync.Cond
+// PodMux is used to guard access to the pod, task and job related maps.
+var PodMux *sync.RWMutex
 
 // PodToTD maps Kubernetes pod identifier(namespace + name) to firmament task descriptor.
 var PodToTD map[PodIdentifier]*firmament.TaskDescriptor
@@ -38,8 +38,8 @@ var TaskIDToPod map[uint64]PodIdentifier
 var jobIDToJD map[string]*firmament.JobDescriptor
 var jobNumTasksToRemove map[string]int
 
-// NodesCond is used to guard access to the node and resource related maps.
-var NodesCond *sync.Cond
+// NodeMux is used to guard access to the node and resource related maps.
+var NodeMux *sync.RWMutex
 
 // NodeToRTND maps node name to firmament resource topology node descriptor.
 var NodeToRTND map[string]*firmament.ResourceTopologyNodeDescriptor
