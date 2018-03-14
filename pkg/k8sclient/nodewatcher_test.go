@@ -23,13 +23,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/camsas/poseidon/pkg/firmament"
-	"github.com/camsas/poseidon/pkg/mock_firmament"
+	"k8s.io/scheduling_poseidon/pkg/firmament"
+	"k8s.io/scheduling_poseidon/pkg/mock_firmament"
+
+
 	"github.com/golang/mock/gomock"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
-	"k8s.io/client-go/pkg/api/v1"
+	"k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
