@@ -94,10 +94,10 @@ func schedule(fc firmament.FirmamentSchedulerClient) {
 func main() {
 	glog.Info("Starting Poseidon...")
 	fc, conn, err := firmament.New(firmamentAddress)
-	defer conn.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer conn.Close()
 	go schedule(fc)
 	go stats.StartgRPCStatsServer(statsServerAddress, firmamentAddress)
 	kubeVer := strings.Split(kubeVersion, ".")
