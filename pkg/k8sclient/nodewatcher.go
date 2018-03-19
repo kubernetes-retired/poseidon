@@ -22,7 +22,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang/glog"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -32,6 +31,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/poseidon/pkg/firmament"
+
+	"github.com/golang/glog"
 )
 
 func NewNodeWatcher(client kubernetes.Interface, fc firmament.FirmamentSchedulerClient) *NodeWatcher {
