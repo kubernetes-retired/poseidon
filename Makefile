@@ -478,7 +478,7 @@ generated_files:
 	@echo "$$GENERATED_FILES_HELP_INFO"
 else
 generated_files:
-	$(MAKE) -f Makefile.generated_files $@ CALLED_FROM_MAIN_MAKEFILE=1
+	@echo "Skipping generated files...."
 endif
 
 define HELP_INFO

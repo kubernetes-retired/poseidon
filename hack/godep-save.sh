@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash 
 
 # Copyright 2016 The Kubernetes Authors.
 #

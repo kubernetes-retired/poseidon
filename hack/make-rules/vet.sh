@@ -33,7 +33,7 @@ fi
 
 # This is required before we run govet for the results to be correct.
 # See https://github.com/golang/go/issues/16086 for details.
-go install ./cmd/...
+go install ./...
 
 # Use eval to preserve embedded quoted strings.
 eval "goflags=(${GOFLAGS:-})"

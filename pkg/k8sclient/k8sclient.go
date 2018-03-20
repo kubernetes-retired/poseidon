@@ -31,11 +31,11 @@ var clientSet kubernetes.Interface
 
 func BindPodToNode(podName string, namespace string, nodeName string) {
 	err := clientSet.CoreV1().Pods(namespace).Bind(&v1.Binding{
-		meta_v1.TypeMeta{},
-		meta_v1.ObjectMeta{
+		TypeMeta: meta_v1.TypeMeta{},
+		ObjectMeta: meta_v1.ObjectMeta{
 			Name: podName,
 		},
-		v1.ObjectReference{
+		Target: v1.ObjectReference{
 			Namespace: namespace,
 			Name:      nodeName,
 		}})

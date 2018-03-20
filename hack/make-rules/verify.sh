@@ -38,9 +38,6 @@ EXCLUDED_PATTERNS=(
 QUICK_PATTERNS+=(
   "verify-boilerplate.sh"
   "verify-gofmt.sh"
-  "verify-imports.sh"
-  "verify-pkg-names.sh"
-  "verify-readonly-packages.sh"
 )
 
 EXCLUDED_CHECKS=$(ls ${EXCLUDED_PATTERNS[@]/#/${KUBE_ROOT}\/hack\/} 2>/dev/null || true)
@@ -135,7 +132,6 @@ fi
 
 ret=0
 run-checks "${KUBE_ROOT}/hack/verify-*.sh" bash
-run-checks "${KUBE_ROOT}/hack/verify-*.py" python
 
 if [[ ${ret} -eq 1 ]]; then
     print-failed-tests
