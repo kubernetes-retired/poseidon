@@ -26,8 +26,8 @@ spec:
         scheduler: firmament
     spec:
       containers:
-      - command: [/firmament/build/src/firmament_scheduler, --flagfile=/firmament/default.conf, --firmament_scheduler_service_address=0.0.0.0, --flow_scheduling_binary=/firmament/build/third_party/flowlessly/src/flowlessly-build/flow_scheduler]
-        image: camsas/firmament:dev
+      - command: [/firmament/build/src/firmament_scheduler, --flagfile=/firmament/config/firmament_scheduler_cpu_mem.cfg]
+        image: huaweifirmament/firmament:latest
         name: firmament-scheduler
         ports:
          - containerPort: 9090

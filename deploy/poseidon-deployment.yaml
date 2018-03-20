@@ -1,3 +1,9 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: poseidon
+  namespace: kube-system
+---
 kind: Service
 apiVersion: v1
 metadata:
@@ -15,7 +21,7 @@ apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
   labels:
-    component: scheduler
+    component: poseidon
     tier: control-plane
     poseidonservice: poseidon
   name: poseidon
@@ -25,14 +31,15 @@ spec:
   template:
     metadata:
       labels:
-        component: scheduler
+        component: poseidon
         tier: control-plane
         version: first
         poseidonservice: poseidon
     spec:
+      serviceAccountName: poseidon
       containers:
       - command: [/poseidon, --logtostderr, --kubeConfig=, --kubeVersion=1.6]
-        image: camsas/poseidon:dev
+        image: gcr.io/poseidon-173606/poseidon:latest
         name: poseidon
       initContainers:
       - name: init-firmamentservice
