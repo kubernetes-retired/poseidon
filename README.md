@@ -4,7 +4,10 @@ Kubernetes.
 [![Build Status](https://travis-ci.org/camsas/poseidon.svg)](https://travis-ci.org/camsas/poseidon)
 [![Coverage Status](https://coveralls.io/repos/github/camsas/poseidon/badge.svg?branch=master)](https://coveralls.io/github/camsas/poseidon?branch=master)
 
-***Note: this repo contains an initial prototype, it may break at any time! :)***
+***Note:
+This repo is currently not in a buildable state.
+We are in the process of setting things up.
+Please bear with us and please don't raise any issue or PR's till this note is removed.***
 
 # Getting started
 
