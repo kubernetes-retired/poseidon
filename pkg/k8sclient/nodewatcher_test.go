@@ -1,20 +1,18 @@
-// Poseidon
-// Copyright (c) The Poseidon Authors.
-// All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR
-// CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT
-// LIMITATION ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR
-// A PARTICULAR PURPOSE, MERCHANTABLITY OR NON-INFRINGEMENT.
-//
-// See the Apache Version 2.0 License for specific language governing
-// permissions and limitations under the License.
+/*
+Copyright 2018 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 
 package k8sclient
 
@@ -23,15 +21,14 @@ import (
 	"testing"
 	"time"
 
-	"k8s.io/scheduling_poseidon/pkg/firmament"
-	"k8s.io/scheduling_poseidon/pkg/mock_firmament"
-
+	"k8s.io/poseidon/pkg/firmament"
+	"k8s.io/poseidon/pkg/mock_firmament"
 
 	"github.com/golang/mock/gomock"
+	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
-	"k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -118,7 +115,7 @@ func TestNewNodeWatcher(t *testing.T) {
 	testObj := initializeNodeObj(t)
 	defer testObj.mockCtrl.Finish()
 	nodeWatch := NewNodeWatcher(testObj.kubeClient, testObj.firmamentClient)
-	t.Logf("Node watcher=", nodeWatch)
+	t.Logf("Node watcher=%v", nodeWatch)
 }
 
 func TestNodeWatcher_getReadyAndOutOfDiskConditions(t *testing.T) {
