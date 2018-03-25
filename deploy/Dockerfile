@@ -15,7 +15,7 @@
 FROM scratch
 MAINTAINER malte@csail.mit.edu, ionel.gog@cl.cam.ac.uk
 
-ADD poseidon poseidon
+ADD poseidon /
 
 EXPOSE 9091
 

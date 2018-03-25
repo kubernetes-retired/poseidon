@@ -1,99 +1,56 @@
-Poseidon is Firmament's (http://www.firmament.io) integration with
-Kubernetes.
+# Introduction
+The Poseidon/Firmament scheduler incubation project is to bring integration of Firmament Scheduler [OSDI paper](https://www.usenix.org/conference/osdi16/technical-sessions/presentation/gog) in Kubernetes.
+At a very high level, Poseidon/Firmament scheduler augments the 
+current Kubernetes scheduling capabilities by incorporating a new 
+novel flow network graph based scheduling capabilities alongside the default Kubernetes Scheduler. 
+Firmament models workloads on a cluster as flow networks and runs min-cost flow optimizations over these networks to make scheduling decisions.
 
-[![Build Status](https://travis-ci.org/camsas/poseidon.svg)](https://travis-ci.org/camsas/poseidon)
-[![Coverage Status](https://coveralls.io/repos/github/camsas/poseidon/badge.svg?branch=master)](https://coveralls.io/github/camsas/poseidon?branch=master)
+Due to the inherent rescheduling capabilities, the new scheduler enables a globally optimal scheduling for a given policy that keeps on refining the dynamic placements of the workload.
 
-***Note: this repo contains an initial prototype, it may break at any time! :)***
+As we all know that as part of the Kubernetes multiple schedulers support, each new pod is typically scheduled by the default scheduler, but Kubernetes can be instructed to use another scheduler by specifying the name of another custom scheduler (Poseidon in our case) at the time of pod deployment. In this case, the default scheduler will ignore that Pod and allow Poseidon scheduler to schedule the Pod on a relevant node. We plugin Poseidon as an add-on scheduler to K8s, by using the 'schedulerName' as Poseidon in the pod template this will by-pass the default-scheduler. We plugin Poseidon as an add-on scheduler to K8s, by using the 'schedulerName' as Poseidon in the pod template this will by-pass the default-scheduler.
 
-# Getting started
+# Key Advantages
 
-The easiest way to get Poseidon up and running is to use our Docker image:
+* Flow graph scheduling provides the following 
+  * Support for high-volume workloads placement.
+  * Complex rule constraints. 
+  * Globally optimal scheduling for a given policy.
+  * Extremely high scalability. 
+  
+  **NOTE:** Additionally, it is also very important to highlight that Firmament scales much better than default scheduler as the number of nodes increase in a cluster.
 
-```
-$ docker pull camsas/poseidon:dev
-```
-Once the image has downloaded, you can start Poseidon as follows:
-```
-$ docker run camsas/poseidon:dev poseidon \
-    --logtostderr \
-    --kubeConfig=<path_kubeconfig_file> \
-    --firmamentAddress=<host>:<port> \
-    --statsServerAddress=<host>:<port> \
-    --kubeVersion=<Major.Minor>
-```
-Note that Poseidon will try to schedule for Kubernetes even if `kube-scheduler`
-is running. How you best avoid conflicts depends on the version of Kubernetes
-you are running:
- 1. If you are using Kubernetes <1.6, shut down `kube-scheduler` first, and make
-    sure your pods are labeled with `scheduler: poseidon`.
- 2. If you are using Kubernetes 1.6+, you do not have to to shut down
-    `kube-scheduler`, but you must specify `schedulerName: poseidon` in your pod
-    specs.
+# Design 
 
-You will also need to ensure that the API server is reachable from the Poseidon
-container's network (e.g., using `--net=host` if you're running a local
-development cluster).
-
-# Building from source
-
-## System requirements
-
- * Go 1.7+
- * Docker 1.7+
- * Kubernetes v1.1+
-
-A known-good build environment is Ubuntu 14.04.
-
-## Build process
-
-Run:
-
-```
-$ go build
-$ go install
-```
-
-Following, make sure you have a Kubernetes cluster running. If you're running Ubuntu on amd64 then you can execute:
-
-```
-./deploy/build_kubernetes.sh
-./deploy/run_kubernetes.sh
-```
-
-Next, make sure you have a Firmament scheduler service running. You can follow
-these [instructions](https://github.com/camsas/firmament/blob/master/README.md#running-the-firmament-scheduler-service)
-to build and deploy Firmament.
+   <p align="center">
+  <img src="docs/poseidon.png"> 
+<p align="center"> <b>Poseidon Integration architecture</b> </p>
+</p>
 
 
-Finally, to start up Poseidon, run:
 
-```
-$ poseidon --logtostderr \
-    --kubeConfig=<path_kubeconfig_file> \
-    --firmamentAddress=<host>:<port> \
-    --statsServerAddress=<host>:<port> \
-    --kubeVersion=<Major.Minor>
-```
+For more details about the design of this project see the [design document](https://docs.google.com/document/d/1VNoaw1GoRK-yop_Oqzn7wZhxMxvN3pdNjuaICjXLarA/edit?usp=sharing) doc.
 
-The configuration of the Firmament scheduler service is controlled by the
-configuration file in `${FIRMAMENT_HOME}/config/firmament_scheduler.cfg`. You
-can modify this file to control scheduling features (e.g. choose a scheduling
-policy). To apply changes, you need to restart (but not recompile) the
-Firmament scheduler service. For more info, check
-[the arguments accepted by Firmament](https://github.com/camsas/firmament/blob/master/README.md#using-the-flow-scheduler).
-All of these arguments can be set via the configuration file.
 
-## Contributing
 
-We always welcome contributions to Poseidon. We use GerritHub for our code
-reviews, and you can find the Poseidon review board there:
+# Installation
+  In-cluster installation of Poseidon, please start [here](https://github.com/kubernetes-sigs/poseidon/blob/master/docs/install/README.md).
+  
+  
+  
+# Development
+  For developers please refer [here](https://github.com/kubernetes-sigs/poseidon/blob/master/docs/devel/README.md)
 
-https://review.gerrithub.io/#/q/project:camsas/poseidon+is:open
 
-In order to do code reviews, you will need an account on GerritHub (you can link
-your GitHub account).
-
-The easiest way to submit changes for review is to check out Poseidon from
-GerritHub, or to add GerritHub as a remote. Alternatively, you can submit a pull
-request on GitHub and we will import it for review on GerritHub.
+# Roadmap
+  * Upstream Heapster sink for poseidon. (Completion Date: 30th March 2018)
+  * E2E                                  (Completion Date: 30th April 2018)
+  * Node level Affinity and Anti-Affinity implementation. (Completion Date: 30th April 2018)
+  * Pod level Affinity and Anti-Affinity implementation. 
+    * Multi scheduling based affinity and anti-affinty. (Completion Date: 15th April 2018)
+    * XOR optimization for pod-to-pod anti-affinity. (Completion Date: 15th May 2018)
+    * Implement a generalized min-cost flow algorithm for pod-to-pod affinity. (Completion Date: 15th June 2018)
+  * Documentation improvements.           
+  * Resource Utilization benchmark
+  * Pre-emption support
+  
+  
