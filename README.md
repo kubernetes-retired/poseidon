@@ -23,7 +23,7 @@ As we all know that as part of the Kubernetes multiple schedulers support, each 
 
    <p align="center">
   <img src="docs/poseidon.png"> 
-<p align="center"> <b>Poseidon Integration architecture</b> </p>
+<p align="center"> <b>Poseidon/Firmament Integration architecture</b> </p>
 </p>
 
 
@@ -42,14 +42,16 @@ For more details about the design of this project see the [design document](http
 
 
 # Roadmap
-  * Upstream Heapster sink for poseidon. (Completion Date: 30th March 2018)
+  * Upstream Heapster sink for Poseidon (Completion Date: 30th March 2018)
   * E2E                                  (Completion Date: 30th April 2018)
-  * Node level Affinity and Anti-Affinity implementation. (Completion Date: 30th April 2018)
-  * Pod level Affinity and Anti-Affinity implementation. 
-    * Multi scheduling based affinity and anti-affinty. (Completion Date: 15th April 2018)
-    * XOR optimization for pod-to-pod anti-affinity. (Completion Date: 15th May 2018)
-    * Implement a generalized min-cost flow algorithm for pod-to-pod affinity. (Completion Date: 15th June 2018)
-  * Documentation improvements.           
+  * Node level Affinity and Anti-Affinity implementation (Completion Date: 30th April 2018)
+  * Pod level Affinity and Anti-Affinity implementation 
+    * Multi-round scheduling based affinity and anti-affinity (Completion Date: 15th April 2018)
+    * XOR optimization for pod-to-pod anti-affinity (Completion Date: 15th May 2018)
+    * Implement a generalized min-cost flow algorithm for pod-to-pod affinity (Completion Date: 15th June 2018)
+  * Documentation improvements
+  * Continuous running scheduling loop versus scheduling intervals mechanism (Completion Date: 30th April 2018)
+  * Provide High Availability/Failover for in-memory Firmament/Poseidon processes
   * Resource Utilization benchmark
   * Pre-emption support
   
