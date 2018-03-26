@@ -21,6 +21,7 @@ package mock_firmament
 
 import (
 	gomock "github.com/golang/mock/gomock"
+	firmament "github.com/kubernetes-sigs/poseidon/pkg/firmament"
 	context "golang.org/x/net/context"
 	grpc "google.golang.org/grpc"
 	firmament "k8s.io/poseidon/pkg/firmament"

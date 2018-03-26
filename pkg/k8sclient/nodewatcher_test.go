@@ -21,15 +21,15 @@ import (
 	"testing"
 	"time"
 
-	"k8s.io/poseidon/pkg/firmament"
-	"k8s.io/poseidon/pkg/mock_firmament"
-
-	"github.com/golang/mock/gomock"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/poseidon/pkg/firmament"
+	"k8s.io/poseidon/pkg/mock_firmament"
+
+	"github.com/golang/mock/gomock"
 )
 
 type TestNodeWatchObj struct {

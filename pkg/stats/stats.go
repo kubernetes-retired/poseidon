@@ -21,6 +21,8 @@ import (
 	"net"
 
 	"github.com/golang/glog"
+	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
+	"github.com/kubernetes-sigs/poseidon/pkg/k8sclient"
 	"google.golang.org/grpc"
 	"k8s.io/poseidon/pkg/firmament"
 	"k8s.io/poseidon/pkg/k8sclient"
