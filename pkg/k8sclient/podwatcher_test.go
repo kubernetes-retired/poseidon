@@ -26,7 +26,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/poseidon/pkg/mock_firmament"
 
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/cache"
@@ -34,7 +33,7 @@ import (
 )
 
 type TestPodWatchObj struct {
-	firmamentClient *mock_firmament.MockFirmamentSchedulerClient
+	firmamentClient *firmament.MockFirmamentSchedulerClient
 	kubeClient      *fake.Clientset
 	kubeVerMajor    int
 	kubeVerMinor    int
@@ -46,7 +45,7 @@ type TestPodWatchObj struct {
 func initializePodObj(t *testing.T) *TestPodWatchObj {
 	testObj := &TestPodWatchObj{}
 	testObj.mockCtrl = gomock.NewController(t)
-	testObj.firmamentClient = mock_firmament.NewMockFirmamentSchedulerClient(testObj.mockCtrl)
+	testObj.firmamentClient = firmament.NewMockFirmamentSchedulerClient(testObj.mockCtrl)
 	testObj.kubeClient = &fake.Clientset{}
 	testObj.kubeVerMajor = 1
 	testObj.kubeVerMinor = 6

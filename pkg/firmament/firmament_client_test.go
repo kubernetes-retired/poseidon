@@ -14,21 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package firmament_test
+package firmament
 
 import (
 	"github.com/golang/mock/gomock"
-	"k8s.io/poseidon/pkg/firmament"
-	"k8s.io/poseidon/pkg/mock_firmament"
 
 	"testing"
 )
 
 func Test_New(t *testing.T) {
-	firClient, conn, err := firmament.New("127.0.0.1:6090")
+	firClient, conn, err := New("127.0.0.1:6090")
 	defer conn.Close()
 	if firClient == nil || conn == nil || err != nil {
-
 		t.Error("Failed to start the client")
 	}
 }
@@ -36,111 +33,107 @@ func Test_New(t *testing.T) {
 func Test_AddNodeStats(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
-
-	firmamentClient := mock_firmament.NewMockFirmamentSchedulerClient(mockCtrl)
+	firmamentClient := NewMockFirmamentSchedulerClient(mockCtrl)
 	firmamentClient.EXPECT().AddNodeStats(gomock.Any(), gomock.Any()).Return(
-		&firmament.ResourceStatsResponse{Type: firmament.NodeReplyType_NODE_ADDED_OK}, nil)
-
-	firmament.AddNodeStats(firmamentClient, nil)
+		&ResourceStatsResponse{Type: NodeReplyType_NODE_ADDED_OK}, nil)
+	AddNodeStats(firmamentClient, nil)
 }
 
 func Test_AddTaskStats(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
-	firmamentClient := mock_firmament.NewMockFirmamentSchedulerClient(mockCtrl)
+	firmamentClient := NewMockFirmamentSchedulerClient(mockCtrl)
 	firmamentClient.EXPECT().AddTaskStats(gomock.Any(), gomock.Any()).Return(
-		&firmament.TaskStatsResponse{Type: firmament.TaskReplyType_TASK_SUBMITTED_OK}, nil)
-
-	firmament.AddTaskStats(firmamentClient, nil)
+		&TaskStatsResponse{Type: TaskReplyType_TASK_SUBMITTED_OK}, nil)
+	AddTaskStats(firmamentClient, nil)
 }
 
 func Test_NodeUpdated(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
-	firmamentClient := mock_firmament.NewMockFirmamentSchedulerClient(mockCtrl)
+	firmamentClient := NewMockFirmamentSchedulerClient(mockCtrl)
 	firmamentClient.EXPECT().NodeUpdated(gomock.Any(), gomock.Any()).Return(
-		&firmament.NodeUpdatedResponse{Type: firmament.NodeReplyType_NODE_UPDATED_OK}, nil)
-
-	firmament.NodeUpdated(firmamentClient, nil)
+		&NodeUpdatedResponse{Type: NodeReplyType_NODE_UPDATED_OK}, nil)
+	NodeUpdated(firmamentClient, nil)
 }
 
 func Test_NodeRemoved(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
-	firmamentClient := mock_firmament.NewMockFirmamentSchedulerClient(mockCtrl)
+	firmamentClient := NewMockFirmamentSchedulerClient(mockCtrl)
 	firmamentClient.EXPECT().NodeRemoved(gomock.Any(), gomock.Any()).Return(
-		&firmament.NodeRemovedResponse{Type: firmament.NodeReplyType_NODE_REMOVED_OK}, nil)
+		&NodeRemovedResponse{Type: NodeReplyType_NODE_REMOVED_OK}, nil)
 
-	firmament.NodeRemoved(firmamentClient, nil)
+	NodeRemoved(firmamentClient, nil)
 }
 
 func Test_NodeFailed(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
-	firmamentClient := mock_firmament.NewMockFirmamentSchedulerClient(mockCtrl)
+	firmamentClient := NewMockFirmamentSchedulerClient(mockCtrl)
 	firmamentClient.EXPECT().NodeFailed(gomock.Any(), gomock.Any()).Return(
-		&firmament.NodeFailedResponse{Type: firmament.NodeReplyType_NODE_FAILED_OK}, nil)
-	firmament.NodeFailed(firmamentClient, nil)
+		&NodeFailedResponse{Type: NodeReplyType_NODE_FAILED_OK}, nil)
+	NodeFailed(firmamentClient, nil)
 }
 
 func Test_NodeAdded(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
-	firmamentClient := mock_firmament.NewMockFirmamentSchedulerClient(mockCtrl)
+	firmamentClient := NewMockFirmamentSchedulerClient(mockCtrl)
 	firmamentClient.EXPECT().NodeAdded(gomock.Any(), gomock.Any()).Return(
-		&firmament.NodeAddedResponse{Type: firmament.NodeReplyType_NODE_ADDED_OK}, nil)
-	firmament.NodeAdded(firmamentClient, nil)
+		&NodeAddedResponse{Type: NodeReplyType_NODE_ADDED_OK}, nil)
+	NodeAdded(firmamentClient, nil)
 }
 
 func Test_TaskUpdated(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
-	firmamentClient := mock_firmament.NewMockFirmamentSchedulerClient(mockCtrl)
+	firmamentClient := NewMockFirmamentSchedulerClient(mockCtrl)
 	firmamentClient.EXPECT().TaskUpdated(gomock.Any(), gomock.Any()).Return(
-		&firmament.TaskUpdatedResponse{Type: firmament.TaskReplyType_TASK_UPDATED_OK}, nil)
-	firmament.TaskUpdated(firmamentClient, nil)
+		&TaskUpdatedResponse{Type: TaskReplyType_TASK_UPDATED_OK}, nil)
+	TaskUpdated(firmamentClient, nil)
 }
 
 func Test_TaskSubmitted(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
-	firmamentClient := mock_firmament.NewMockFirmamentSchedulerClient(mockCtrl)
+	firmamentClient := NewMockFirmamentSchedulerClient(mockCtrl)
 	firmamentClient.EXPECT().TaskSubmitted(gomock.Any(), gomock.Any()).Return(
-		&firmament.TaskSubmittedResponse{Type: firmament.TaskReplyType_TASK_SUBMITTED_OK}, nil)
-	firmament.TaskSubmitted(firmamentClient, nil)
+		&TaskSubmittedResponse{Type: TaskReplyType_TASK_SUBMITTED_OK}, nil)
+	TaskSubmitted(firmamentClient, nil)
 }
 
 func Test_TaskRemoved(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
-	firmamentClient := mock_firmament.NewMockFirmamentSchedulerClient(mockCtrl)
+	firmamentClient := NewMockFirmamentSchedulerClient(mockCtrl)
 	firmamentClient.EXPECT().TaskRemoved(gomock.Any(), gomock.Any()).Return(
-		&firmament.TaskRemovedResponse{Type: firmament.TaskReplyType_TASK_REMOVED_OK}, nil)
-	firmament.TaskRemoved(firmamentClient, nil)
+		&TaskRemovedResponse{Type: TaskReplyType_TASK_REMOVED_OK}, nil)
+	TaskRemoved(firmamentClient, nil)
 }
 
 func Test_TaskFailed(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
-	firmamentClient := mock_firmament.NewMockFirmamentSchedulerClient(mockCtrl)
+	firmamentClient := NewMockFirmamentSchedulerClient(mockCtrl)
 	firmamentClient.EXPECT().TaskFailed(gomock.Any(), gomock.Any()).Return(
-		&firmament.TaskFailedResponse{Type: firmament.TaskReplyType_TASK_FAILED_OK}, nil)
-	firmament.TaskFailed(firmamentClient, nil)
+		&TaskFailedResponse{Type: TaskReplyType_TASK_FAILED_OK}, nil)
+	TaskFailed(firmamentClient, nil)
 }
 
 func Test_TaskCompleted(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
-	firmamentClient := mock_firmament.NewMockFirmamentSchedulerClient(mockCtrl)
+	firmamentClient := NewMockFirmamentSchedulerClient(mockCtrl)
 	firmamentClient.EXPECT().TaskCompleted(gomock.Any(), gomock.Any()).Return(
-		&firmament.TaskCompletedResponse{Type: firmament.TaskReplyType_TASK_COMPLETED_OK}, nil)
-	firmament.TaskCompleted(firmamentClient, nil)
+		&TaskCompletedResponse{Type: TaskReplyType_TASK_COMPLETED_OK}, nil)
+	TaskCompleted(firmamentClient, nil)
 }
 
 func Test_Schedule(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
-	firmamentClient := mock_firmament.NewMockFirmamentSchedulerClient(mockCtrl)
+	firmamentClient := NewMockFirmamentSchedulerClient(mockCtrl)
 	firmamentClient.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(
-		&firmament.SchedulingDeltas{}, nil)
-	firmament.Schedule(firmamentClient)
+		&SchedulingDeltas{}, nil)
+	Schedule(firmamentClient)
 }
