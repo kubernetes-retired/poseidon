@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"k8s.io/poseidon/pkg/firmament"
-	"k8s.io/poseidon/pkg/mock_firmament"
 
 	"github.com/golang/mock/gomock"
 	"k8s.io/api/core/v1"
@@ -33,7 +32,7 @@ import (
 )
 
 type TestNodeWatchObj struct {
-	firmamentClient *mock_firmament.MockFirmamentSchedulerClient
+	firmamentClient *firmament.MockFirmamentSchedulerClient
 	kubeClient      *fake.Clientset
 	mockCtrl        *gomock.Controller
 }
@@ -42,7 +41,7 @@ type TestNodeWatchObj struct {
 func initializeNodeObj(t *testing.T) *TestNodeWatchObj {
 	mockCtrl := gomock.NewController(t)
 	testObj := &TestNodeWatchObj{}
-	testObj.firmamentClient = mock_firmament.NewMockFirmamentSchedulerClient(mockCtrl)
+	testObj.firmamentClient = firmament.NewMockFirmamentSchedulerClient(mockCtrl)
 	testObj.kubeClient = &fake.Clientset{}
 	testObj.mockCtrl = mockCtrl
 	return testObj
