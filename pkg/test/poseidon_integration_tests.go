@@ -37,20 +37,14 @@ import (
 
 const TEST_NAMESPACE = "test"
 
-var testKubeVersion string
-var testKubeConfig string
+var testKubeConfig = flag.String("testKubeConfig", "/home/ubuntu/.kube/config", "Specify testKubeConfig path eg: /root/kubeconfig")
 var clientset *kubernetes.Clientset
 
-func init() {
-	// go test -args --testKubeVersion="1.6" --testKubeConfig="/root/admin.conf"
-	// To override default values pass --testKubeVersion --testKubeConfig flags
-	flag.StringVar(&testKubeVersion, "testKubeVersion", "1.6", "Specify kubernetes version eg: 1.5 or 1.6")
-	flag.StringVar(&testKubeConfig, "testKubeConfig", "/home/ubuntu/.kube/config", "Specify testKubeConfig path eg: /root/kubeconfig")
-}
+// go test -args --testKubeConfig="/root/admin.conf"
 
 var _ = Describe("Poseidon", func() {
-	flag.Parse()
 	var err error
+	flag.Parse()
 	hostname, _ := os.Hostname()
 	glog.Info("Inside Poseidon tests for k8s:", hostname)
 
@@ -360,12 +354,7 @@ var _ = Describe("Poseidon", func() {
 var _ = BeforeSuite(func() {
 	var config *rest.Config
 	var err error
-	glog.Infof("Kube version %s", testKubeVersion)
-	if testKubeVersion == "1.6" {
-		config, err = clientcmd.BuildConfigFromFlags("", testKubeConfig)
-	} else {
-		config, err = clientcmd.DefaultClientConfig.ClientConfig()
-	}
+	config, err = clientcmd.BuildConfigFromFlags("", *testKubeConfig)
 	if err != nil {
 		panic(err)
 	}
