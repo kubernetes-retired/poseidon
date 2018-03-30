@@ -137,4 +137,16 @@ kubectl create -f https://raw.githubusercontent.com/kubernetes-sigs/poseidon/mas
 
 Few test scripts are available [here](https://github.com/kubernetes-sigs/poseidon/tree/master/deploy/configs).
 
+# Local Cluster E2E test
+To run E2E test on a local cluster.
+
+```
+cd poseidon/pkg/test
+go test -args --testKubeConfig=<path to the kubeconfig file>
+```
+The local cluster should have the Poseidon and Firmament already deployed and running.
+Only very basic check is supported currenlty.
+We will be adding more test cases to this E2E.
+
+
 
