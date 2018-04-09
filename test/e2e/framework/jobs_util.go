@@ -17,6 +17,7 @@ limitations under the License.
 package framework
 
 import (
+	"fmt"
 	"time"
 
 	batch "k8s.io/api/batch/v1"
@@ -63,4 +64,19 @@ func (f *Framework) WaitForAllJobPodsRunning(jobName string, parallelism int32) 
 		}
 		return count == parallelism, nil
 	})
+}
+
+// WaitForReplicaSetTargetSpecReplicas waits for .spec.replicas of a RS to equal targetReplicaNum
+func (f *Framework) WaitForJobDelete(jobName string) error {
+	err := wait.Poll(Poll, JobTimeout, func() (bool, error) {
+		err := f.ClientSet.BatchV1().Jobs(f.Namespace.Name).Delete(jobName, &metav1.DeleteOptions{})
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	})
+	if err == wait.ErrWaitTimeout {
+		err = fmt.Errorf("job %q not deleted", jobName)
+	}
+	return err
 }

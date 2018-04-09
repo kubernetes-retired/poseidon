@@ -27,7 +27,6 @@ import (
 
 // WaitForReadyReplicaSet waits until the replicaset has all of its replicas ready.
 func (f *Framework) WaitForReadyReplicaSet(name string) error {
-	fmt.Println(name, "name space ", f.Namespace.Name)
 	err := wait.Poll(Poll, pollShortTimeout, func() (bool, error) {
 		rs, err := f.ClientSet.ExtensionsV1beta1().ReplicaSets(f.Namespace.Name).Get(name, metav1.GetOptions{})
 		if err != nil {
@@ -53,6 +52,21 @@ func (f *Framework) WaitForReplicaSetTargetSpecReplicas(replicaSet *extensions.R
 	})
 	if err == wait.ErrWaitTimeout {
 		err = fmt.Errorf("replicaset %q never had desired number of .spec.replicas", replicaSet.Name)
+	}
+	return err
+}
+
+// WaitForReplicaSetTargetSpecReplicas waits for .spec.replicas of a RS to equal targetReplicaNum
+func (f *Framework) WaitForReplicaSetDelete(replicaSet *extensions.ReplicaSet) error {
+	err := wait.Poll(Poll, pollShortTimeout, func() (bool, error) {
+		err := f.ClientSet.ExtensionsV1beta1().ReplicaSets(replicaSet.Namespace).Delete(replicaSet.Name, &metav1.DeleteOptions{})
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	})
+	if err == wait.ErrWaitTimeout {
+		err = fmt.Errorf("replicaset %q not deleted", replicaSet.Name)
 	}
 	return err
 }

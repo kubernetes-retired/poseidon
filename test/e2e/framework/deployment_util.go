@@ -78,3 +78,18 @@ func deploymentComplete(deployment *extensions.Deployment, newStatus *extensions
 		newStatus.AvailableReplicas == *(deployment.Spec.Replicas) &&
 		newStatus.ObservedGeneration >= deployment.Generation
 }
+
+// WaitForReplicaSetTargetSpecReplicas waits for .spec.replicas of a RS to equal targetReplicaNum
+func (f *Framework) WaitForDeploymentDelete(d *extensions.Deployment) error {
+	err := wait.Poll(Poll, JobTimeout, func() (bool, error) {
+		err := f.ClientSet.ExtensionsV1beta1().Deployments(d.Namespace).Delete(d.Name, &metav1.DeleteOptions{})
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	})
+	if err == wait.ErrWaitTimeout {
+		err = fmt.Errorf("Deployment %q not deleted", d.Name)
+	}
+	return err
+}
