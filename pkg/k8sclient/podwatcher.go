@@ -40,13 +40,16 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
+// NodeSelectors stores Kubernetes node selectors.
 type NodeSelectors map[string]string
 
-//Redefine below Annotation key as that is depricated from original Kuberentes
+// Redefine below Annotation key as that is deprecated from original Kubernetes.
 const (
+	// CreatedByAnnotation represents the original Kubernetes `kubernetes.io/created-by` annotation.
 	CreatedByAnnotation = "kubernetes.io/created-by"
 )
 
+// SortNodeSelectors sort node selectors by its key name.
 func SortNodeSelectors(nodeSelector NodeSelectors) NodeSelectors {
 	newSortedNodeSelectors := make(NodeSelectors)
 	var keyArray []string
@@ -64,6 +67,7 @@ func SortNodeSelectors(nodeSelector NodeSelectors) NodeSelectors {
 	return newSortedNodeSelectors
 }
 
+// NewPodWatcher initialize a PodWatcher.
 func NewPodWatcher(kubeVerMajor, kubeVerMinor int, schedulerName string, client kubernetes.Interface, fc firmament.FirmamentSchedulerClient) *PodWatcher {
 	glog.Info("Starting PodWatcher...")
 	PodsCond = sync.NewCond(&sync.Mutex{})
@@ -131,7 +135,7 @@ func NewPodWatcher(kubeVerMajor, kubeVerMinor int, schedulerName string, client 
 	return podWatcher
 }
 
-func (this *PodWatcher) getCpuMemRequest(pod *v1.Pod) (int64, int64) {
+func (pw *PodWatcher) getCPUMemRequest(pod *v1.Pod) (int64, int64) {
 	cpuReq := int64(0)
 	memReq := int64(0)
 	for _, container := range pod.Spec.Containers {
@@ -145,8 +149,8 @@ func (this *PodWatcher) getCpuMemRequest(pod *v1.Pod) (int64, int64) {
 	return cpuReq, memReq
 }
 
-func (this *PodWatcher) parsePod(pod *v1.Pod) *Pod {
-	cpuReq, memReq := this.getCpuMemRequest(pod)
+func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
+	cpuReq, memReq := pw.getCPUMemRequest(pod)
 	podPhase := PodPhase("Unknown")
 	switch pod.Status.Phase {
 	case "Pending":
@@ -164,7 +168,7 @@ func (this *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 			Namespace: pod.Namespace,
 		},
 		State:        podPhase,
-		CpuRequest:   cpuReq,
+		CPURequest:   cpuReq,
 		MemRequestKb: memReq / bytesToKb,
 		Labels:       pod.Labels,
 		Annotations:  pod.Annotations,
@@ -173,14 +177,14 @@ func (this *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 	}
 }
 
-func (this *PodWatcher) enqueuePodAddition(key interface{}, obj interface{}) {
+func (pw *PodWatcher) enqueuePodAddition(key interface{}, obj interface{}) {
 	pod := obj.(*v1.Pod)
-	addedPod := this.parsePod(pod)
-	this.podWorkQueue.Add(key, addedPod)
+	addedPod := pw.parsePod(pod)
+	pw.podWorkQueue.Add(key, addedPod)
 	glog.Info("enqueuePodAddition: Added pod ", addedPod.Identifier)
 }
 
-func (this *PodWatcher) enqueuePodDeletion(key interface{}, obj interface{}) {
+func (pw *PodWatcher) enqueuePodDeletion(key interface{}, obj interface{}) {
 	pod := obj.(*v1.Pod)
 	if pod.DeletionTimestamp != nil {
 		// Only delete pods if they have a DeletionTimestamp.
@@ -192,62 +196,63 @@ func (this *PodWatcher) enqueuePodDeletion(key interface{}, obj interface{}) {
 			State:    PodDeleted,
 			OwnerRef: GetOwnerReference(pod),
 		}
-		this.podWorkQueue.Add(key, deletedPod)
+		pw.podWorkQueue.Add(key, deletedPod)
 		glog.Info("enqueuePodDeletion: Added pod ", deletedPod.Identifier)
 	}
 }
 
-func (this *PodWatcher) enqueuePodUpdate(key, oldObj, newObj interface{}) {
+func (pw *PodWatcher) enqueuePodUpdate(key, oldObj, newObj interface{}) {
 	oldPod := oldObj.(*v1.Pod)
 	newPod := newObj.(*v1.Pod)
 	if oldPod.Status.Phase != newPod.Status.Phase {
-		// TODO(ionel): This code assumes that if other fields changed as well then Firmament will automatically update them upon state transition. This is currently not true.
-		updatedPod := this.parsePod(newPod)
-		this.podWorkQueue.Add(key, updatedPod)
+		// TODO(ionel): pw code assumes that if other fields changed as well then Firmament will automatically update them upon state transition. pw is currently not true.
+		updatedPod := pw.parsePod(newPod)
+		pw.podWorkQueue.Add(key, updatedPod)
 		glog.Infof("enqueuePodUpdate: Updated pod state change %v %s", updatedPod.Identifier, updatedPod.State)
 		return
 	}
-	oldCpuReq, oldMemReq := this.getCpuMemRequest(oldPod)
-	newCpuReq, newMemReq := this.getCpuMemRequest(newPod)
-	if oldCpuReq != newCpuReq || oldMemReq != newMemReq ||
+	oldCPUReq, oldMemReq := pw.getCPUMemRequest(oldPod)
+	newCPUReq, newMemReq := pw.getCPUMemRequest(newPod)
+	if oldCPUReq != newCPUReq || oldMemReq != newMemReq ||
 		!reflect.DeepEqual(oldPod.Labels, newPod.Labels) ||
 		!reflect.DeepEqual(oldPod.Annotations, newPod.Annotations) ||
 		!reflect.DeepEqual(oldPod.Spec.NodeSelector, newPod.Spec.NodeSelector) {
-		updatedPod := this.parsePod(newPod)
-		this.podWorkQueue.Add(key, updatedPod)
+		updatedPod := pw.parsePod(newPod)
+		pw.podWorkQueue.Add(key, updatedPod)
 		glog.Info("enqueuePodUpdate: Updated pod ", updatedPod.Identifier)
 		return
 	}
 }
 
-func (this *PodWatcher) Run(stopCh <-chan struct{}, nWorkers int) {
+// Run starts a pod watcher.
+func (pw *PodWatcher) Run(stopCh <-chan struct{}, nWorkers int) {
 	defer utilruntime.HandleCrash()
 
 	// The workers can stop when we are done.
-	defer this.podWorkQueue.ShutDown()
+	defer pw.podWorkQueue.ShutDown()
 	defer glog.Info("Shutting down PodWatcher")
 	glog.Info("Getting pod updates...")
 
-	go this.controller.Run(stopCh)
+	go pw.controller.Run(stopCh)
 
-	if !cache.WaitForCacheSync(stopCh, this.controller.HasSynced) {
+	if !cache.WaitForCacheSync(stopCh, pw.controller.HasSynced) {
 		utilruntime.HandleError(fmt.Errorf("Timed out waiting for caches to sync"))
 		return
 	}
 
 	glog.Info("Starting pod watching workers")
 	for i := 0; i < nWorkers; i++ {
-		go wait.Until(this.podWorker, time.Second, stopCh)
+		go wait.Until(pw.podWorker, time.Second, stopCh)
 	}
 
 	<-stopCh
 	glog.Info("Stopping pod watcher")
 }
 
-func (this *PodWatcher) podWorker() {
+func (pw *PodWatcher) podWorker() {
 	for {
 		func() {
-			key, items, quit := this.podWorkQueue.Get()
+			key, items, quit := pw.podWorkQueue.Get()
 			if quit {
 				return
 			}
@@ -257,15 +262,15 @@ func (this *PodWatcher) podWorker() {
 				case PodPending:
 					glog.V(2).Info("PodPending ", pod.Identifier)
 					PodsCond.L.Lock()
-					jobId := this.generateJobID(pod.OwnerRef)
-					jd, ok := jobIDToJD[jobId]
+					jobID := pw.generatejobID(pod.OwnerRef)
+					jd, ok := jobIDToJD[jobID]
 					if !ok {
-						jd = this.createNewJob(pod.OwnerRef)
-						jobIDToJD[jobId] = jd
-						jobNumTasksToRemove[jobId] = 0
+						jd = pw.createNewJob(pod.OwnerRef)
+						jobIDToJD[jobID] = jd
+						jobNumTasksToRemove[jobID] = 0
 					}
-					td := this.addTaskToJob(pod, jd)
-					jobNumTasksToRemove[jobId]++
+					td := pw.addTaskToJob(pod, jd)
+					jobNumTasksToRemove[jobID]++
 					PodToTD[pod.Identifier] = td
 					TaskIDToPod[td.GetUid()] = pod.Identifier
 					taskDescription := &firmament.TaskDescription{
@@ -273,7 +278,7 @@ func (this *PodWatcher) podWorker() {
 						JobDescriptor:  jd,
 					}
 					PodsCond.L.Unlock()
-					firmament.TaskSubmitted(this.fc, taskDescription)
+					firmament.TaskSubmitted(pw.fc, taskDescription)
 				case PodSucceeded:
 					glog.V(2).Info("PodSucceeded ", pod.Identifier)
 					PodsCond.L.Lock()
@@ -282,7 +287,7 @@ func (this *PodWatcher) podWorker() {
 					if !ok {
 						glog.Fatalf("Pod %v does not exist", pod.Identifier)
 					}
-					firmament.TaskCompleted(this.fc, &firmament.TaskUID{TaskUid: td.Uid})
+					firmament.TaskCompleted(pw.fc, &firmament.TaskUID{TaskUid: td.Uid})
 				case PodDeleted:
 					glog.V(2).Info("PodDeleted ", pod.Identifier)
 					PodsCond.L.Lock()
@@ -291,17 +296,17 @@ func (this *PodWatcher) podWorker() {
 					if !ok {
 						glog.Fatalf("Pod %s does not exist", pod.Identifier)
 					}
-					firmament.TaskRemoved(this.fc, &firmament.TaskUID{TaskUid: td.Uid})
+					firmament.TaskRemoved(pw.fc, &firmament.TaskUID{TaskUid: td.Uid})
 					PodsCond.L.Lock()
 					delete(PodToTD, pod.Identifier)
 					delete(TaskIDToPod, td.GetUid())
 					// TODO(ionel): Should we delete the task from JD's spawned field?
-					jobId := this.generateJobID(pod.OwnerRef)
-					jobNumTasksToRemove[jobId]--
-					if jobNumTasksToRemove[jobId] == 0 {
+					jobID := pw.generatejobID(pod.OwnerRef)
+					jobNumTasksToRemove[jobID]--
+					if jobNumTasksToRemove[jobID] == 0 {
 						// Clean state because the job doesn't have any tasks left.
-						delete(jobNumTasksToRemove, jobId)
-						delete(jobIDToJD, jobId)
+						delete(jobNumTasksToRemove, jobID)
+						delete(jobIDToJD, jobID)
 					}
 					PodsCond.L.Unlock()
 				case PodFailed:
@@ -312,7 +317,7 @@ func (this *PodWatcher) podWorker() {
 					if !ok {
 						glog.Fatalf("Pod %s does not exist", pod.Identifier)
 					}
-					firmament.TaskFailed(this.fc, &firmament.TaskUID{TaskUid: td.Uid})
+					firmament.TaskFailed(pw.fc, &firmament.TaskUID{TaskUid: td.Uid})
 				case PodRunning:
 					glog.V(2).Info("PodRunning ", pod.Identifier)
 					// We don't have to do anything.
@@ -322,8 +327,8 @@ func (this *PodWatcher) podWorker() {
 				case PodUpdated:
 					glog.V(2).Info("PodUpdated ", pod.Identifier)
 					PodsCond.L.Lock()
-					jobId := this.generateJobID(pod.OwnerRef)
-					jd, okJob := jobIDToJD[jobId]
+					jobID := pw.generatejobID(pod.OwnerRef)
+					jd, okJob := jobIDToJD[jobID]
 					td, okPod := PodToTD[pod.Identifier]
 					PodsCond.L.Unlock()
 					if !okJob {
@@ -332,33 +337,33 @@ func (this *PodWatcher) podWorker() {
 					if !okPod {
 						glog.Fatalf("Pod %v does not exist", pod.Identifier)
 					}
-					this.updateTask(pod, td)
+					pw.updateTask(pod, td)
 					taskDescription := &firmament.TaskDescription{
 						TaskDescriptor: td,
 						JobDescriptor:  jd,
 					}
-					firmament.TaskUpdated(this.fc, taskDescription)
+					firmament.TaskUpdated(pw.fc, taskDescription)
 				default:
 					glog.Fatalf("Pod %v in unexpected state %v", pod.Identifier, pod.State)
 				}
 			}
-			defer this.podWorkQueue.Done(key)
+			defer pw.podWorkQueue.Done(key)
 		}()
 	}
 }
 
-func (this *PodWatcher) createNewJob(jobName string) *firmament.JobDescriptor {
+func (pw *PodWatcher) createNewJob(jobName string) *firmament.JobDescriptor {
 	jobDesc := &firmament.JobDescriptor{
-		Uuid:  this.generateJobID(jobName),
+		Uuid:  pw.generatejobID(jobName),
 		Name:  jobName,
 		State: firmament.JobDescriptor_CREATED,
 	}
 	return jobDesc
 }
 
-func (this *PodWatcher) updateTask(pod *Pod, td *firmament.TaskDescriptor) {
+func (pw *PodWatcher) updateTask(pod *Pod, td *firmament.TaskDescriptor) {
 	// TODO(ionel): Update LabelSelector!
-	td.ResourceRequest.CpuCores = float32(pod.CpuRequest)
+	td.ResourceRequest.CpuCores = float32(pod.CPURequest)
 	td.ResourceRequest.RamCap = uint64(pod.MemRequestKb)
 	// Update labels.
 	td.Labels = nil
@@ -371,14 +376,14 @@ func (this *PodWatcher) updateTask(pod *Pod, td *firmament.TaskDescriptor) {
 	}
 }
 
-func (this *PodWatcher) addTaskToJob(pod *Pod, jd *firmament.JobDescriptor) *firmament.TaskDescriptor {
+func (pw *PodWatcher) addTaskToJob(pod *Pod, jd *firmament.JobDescriptor) *firmament.TaskDescriptor {
 	task := &firmament.TaskDescriptor{
 		Name:  pod.Identifier.UniqueName(),
 		State: firmament.TaskDescriptor_CREATED,
 		JobId: jd.Uuid,
 		ResourceRequest: &firmament.ResourceVector{
 			// TODO(ionel): Update types so no cast is required.
-			CpuCores: float32(pod.CpuRequest),
+			CpuCores: float32(pod.CPURequest),
 			RamCap:   uint64(pod.MemRequestKb),
 		},
 	}
@@ -393,20 +398,20 @@ func (this *PodWatcher) addTaskToJob(pod *Pod, jd *firmament.JobDescriptor) *fir
 	}
 	// Get the network requirement from pods label, and set it in ResourceRequest of the TaskDescriptor
 	setTaskNetworkRequirement(task, pod.Labels)
-	task.LabelSelectors = this.getFirmamentLabelSelectorFromNodeSelectorMap(SortNodeSelectors(pod.NodeSelector))
+	task.LabelSelectors = pw.getFirmamentLabelSelectorFromNodeSelectorMap(SortNodeSelectors(pod.NodeSelector))
 	setTaskType(task)
 
 	if jd.RootTask == nil {
-		task.Uid = this.generateTaskID(jd.Name, 0)
+		task.Uid = pw.generateTaskID(jd.Name, 0)
 		jd.RootTask = task
 	} else {
-		task.Uid = this.generateTaskID(jd.Name, len(jd.RootTask.Spawned)+1)
+		task.Uid = pw.generateTaskID(jd.Name, len(jd.RootTask.Spawned)+1)
 		jd.RootTask.Spawned = append(jd.RootTask.Spawned, task)
 	}
 	return task
 }
 
-func (this *PodWatcher) generateJobID(seed string) string {
+func (pw *PodWatcher) generatejobID(seed string) string {
 	if seed == "" {
 		glog.Fatal("Seed value is nil")
 	}
@@ -414,8 +419,8 @@ func (this *PodWatcher) generateJobID(seed string) string {
 	return GenerateUUID(seed)
 }
 
-func (this *PodWatcher) generateTaskID(jdUid string, taskNum int) uint64 {
-	return HashCombine(jdUid, taskNum)
+func (pw *PodWatcher) generateTaskID(jdUID string, taskNum int) uint64 {
+	return HashCombine(jdUID, taskNum)
 }
 
 // GetOwnerReference to get the parent object reference
@@ -449,7 +454,7 @@ func GetOwnerReference(pod *v1.Pod) string {
 	return string(pod.GetObjectMeta().GetUID())
 }
 
-func (this *PodWatcher) getFirmamentLabelSelectorFromNodeSelectorMap(nodeSelector NodeSelectors) []*firmament.LabelSelector {
+func (pw *PodWatcher) getFirmamentLabelSelectorFromNodeSelectorMap(nodeSelector NodeSelectors) []*firmament.LabelSelector {
 	var firmamentLabelSelector []*firmament.LabelSelector
 	for key, value := range nodeSelector {
 		firmamentLabelSelector = append(firmamentLabelSelector, &firmament.LabelSelector{

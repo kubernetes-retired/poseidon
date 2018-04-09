@@ -20,16 +20,23 @@ import (
 	"sync"
 )
 
+// Queue is an interface which abstracts a queue.
 type Queue interface {
+	// Add enqueues a key and its associated item.
 	Add(key interface{}, item interface{})
+	// Get removes an item from the queue and insets the item to the currently processing key set.
 	Get() (key interface{}, items []interface{}, shutdown bool)
+	// Done removes the item under processing.
 	Done(key interface{})
+	// ShutDown shuts down the queue.
 	ShutDown()
+	// ShuttingDown tests if the queue is shutting down.
 	ShuttingDown() bool
 }
 
 type tk interface{}
 
+// NewKeyedQueue initializes a queue.
 func NewKeyedQueue() *Type {
 	return &Type{
 		items:        map[tk][]interface{}{},
@@ -40,6 +47,7 @@ func NewKeyedQueue() *Type {
 	}
 }
 
+// Type implements the Queue interface.
 type Type struct {
 	// Queue of keys to be processed.
 	queue []tk
@@ -47,8 +55,9 @@ type Type struct {
 	items map[tk][]interface{}
 	// Items to be queued once the keys are processed.
 	toQueue map[tk][]interface{}
-	// Set of keys curretly under processing.
-	processing   set
+	// Set of keys currently under processing.
+	processing set
+	// shuttingDown is the flag representing if the queue is shutting down.
 	shuttingDown bool
 	cond         *sync.Cond
 }
@@ -69,6 +78,7 @@ func (s set) delete(item tk) {
 	delete(s, item)
 }
 
+// Add enqueues a key and its associated item.
 func (q *Type) Add(key interface{}, item interface{}) {
 	q.cond.L.Lock()
 	defer q.cond.L.Unlock()
@@ -79,19 +89,19 @@ func (q *Type) Add(key interface{}, item interface{}) {
 		// Key is under processing. Can not add it to the queue.
 		q.toQueue[key] = append(q.toQueue[key], item)
 		return
+	}
+	if items, ok := q.items[key]; ok {
+		// Key already exists in the queue. Don't have to signal.
+		q.items[key] = append(items, item)
 	} else {
-		if items, ok := q.items[key]; ok {
-			// Key already exists in the queue. Don't have to signal.
-			q.items[key] = append(items, item)
-		} else {
-			// New key in the queue. Send signal.
-			q.items[key] = append(q.items[key], item)
-			q.queue = append(q.queue, key)
-			q.cond.Signal()
-		}
+		// New key in the queue. Send signal.
+		q.items[key] = append(q.items[key], item)
+		q.queue = append(q.queue, key)
+		q.cond.Signal()
 	}
 }
 
+// Get removes an item from the queue and inserts the item to the currently processing key set.
 func (q *Type) Get() (key interface{}, items []interface{}, shutdown bool) {
 	q.cond.L.Lock()
 	defer q.cond.L.Unlock()
@@ -110,6 +120,7 @@ func (q *Type) Get() (key interface{}, items []interface{}, shutdown bool) {
 	return key, items, false
 }
 
+// Done removes the item under processing and put the queued item into the to-be-processed set.
 func (q *Type) Done(key interface{}) {
 	q.cond.L.Lock()
 	defer q.cond.L.Unlock()
@@ -123,6 +134,7 @@ func (q *Type) Done(key interface{}) {
 	}
 }
 
+// ShutDown shuts down the queue.
 // After ShutDown is called new items will not be appended to the queue. Only
 // already appended items will be drained.
 func (q *Type) ShutDown() {
@@ -132,6 +144,7 @@ func (q *Type) ShutDown() {
 	q.cond.Broadcast()
 }
 
+// ShuttingDown tests if the queue is shutting down.
 func (q *Type) ShuttingDown() bool {
 	q.cond.L.Lock()
 	defer q.cond.L.Unlock()
