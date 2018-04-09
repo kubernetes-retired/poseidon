@@ -1,5 +1,5 @@
 /*
-Copyright 2017 The Kubernetes Authors.
+Copyright 2018 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ func (f *Framework) WaitForReplicaSetTargetSpecReplicas(replicaSet *extensions.R
 	return err
 }
 
-// WaitForReplicaSetTargetSpecReplicas waits for .spec.replicas of a RS to equal targetReplicaNum
+// WaitForReplicaSetDelete waits for the ReplicateSet to be removed
 func (f *Framework) WaitForReplicaSetDelete(replicaSet *extensions.ReplicaSet) error {
 	err := wait.Poll(Poll, pollShortTimeout, func() (bool, error) {
 		err := f.ClientSet.ExtensionsV1beta1().ReplicaSets(replicaSet.Namespace).Delete(replicaSet.Name, &metav1.DeleteOptions{})

@@ -1,5 +1,5 @@
 /*
-Copyright 2017 The Kubernetes Authors.
+Copyright 2018 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,17 +26,12 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 )
 
-// Waits for the deployment to complete, and don't check if rolling update strategy is broken.
-// Rolling update strategy is used only during a rolling update, and can be violated in other situations,
-// such as shortly after a scaling event or the deployment is just created.
+// WaitForDeploymentComplete waits for the deployment to complete, and don't check if rolling update strategy is broken.
 func (f *Framework) WaitForDeploymentComplete(d *extensions.Deployment) error {
 	return waitForDeploymentCompleteNoRollingCheck(f.ClientSet, d, Poll, pollLongTimeout)
 }
 
 // Waits for the deployment to complete.
-// If during a rolling update (rolling == true), returns an error if the deployment's
-// rolling update strategy (max unavailable or max surge) is broken at any times.
-// It's not seen as a rolling update if shortly after a scaling event or the deployment is just created.
 func waitForDeploymentCompleteNoRollingCheck(c clientset.Interface, d *extensions.Deployment, pollInterval, pollTimeout time.Duration) error {
 	var (
 		deployment *extensions.Deployment
@@ -79,7 +74,7 @@ func deploymentComplete(deployment *extensions.Deployment, newStatus *extensions
 		newStatus.ObservedGeneration >= deployment.Generation
 }
 
-// WaitForReplicaSetTargetSpecReplicas waits for .spec.replicas of a RS to equal targetReplicaNum
+// WaitForDeploymentDelete waits for the Deployment to be removed
 func (f *Framework) WaitForDeploymentDelete(d *extensions.Deployment) error {
 	err := wait.Poll(Poll, JobTimeout, func() (bool, error) {
 		err := f.ClientSet.ExtensionsV1beta1().Deployments(d.Namespace).Delete(d.Name, &metav1.DeleteOptions{})

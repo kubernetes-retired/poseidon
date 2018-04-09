@@ -1,5 +1,5 @@
 /*
-Copyright 2017 The Kubernetes Authors.
+Copyright 2018 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ func (f *Framework) WaitForAllJobPodsRunning(jobName string, parallelism int32) 
 	})
 }
 
-// WaitForReplicaSetTargetSpecReplicas waits for .spec.replicas of a RS to equal targetReplicaNum
+// WaitForJobDelete waits for job to be removed
 func (f *Framework) WaitForJobDelete(jobName string) error {
 	err := wait.Poll(Poll, JobTimeout, func() (bool, error) {
 		err := f.ClientSet.BatchV1().Jobs(f.Namespace.Name).Delete(jobName, &metav1.DeleteOptions{})

@@ -33,11 +33,9 @@ import (
 
 	"math/rand"
 	"os"
-	"time"
 )
 
 var _ = Describe("Poseidon", func() {
-	//var err error
 	flag.Parse()
 	var clientset kubernetes.Interface
 	var ns string //namespace string
@@ -90,7 +88,6 @@ var _ = Describe("Poseidon", func() {
 				err = clientset.CoreV1().Pods(ns).Delete(name, &metav1.DeleteOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				By("Waiting 5 seconds")
-				time.Sleep(time.Duration(5 * time.Second))
 				By("Check for pod deletion")
 				_, err = clientset.CoreV1().Pods(ns).Get(name, metav1.GetOptions{})
 				if err != nil {
@@ -152,7 +149,6 @@ var _ = Describe("Poseidon", func() {
 				err = f.WaitForDeploymentDelete(deployment)
 				Expect(err).NotTo(HaveOccurred())
 				By("Waiting 5 seconds")
-				time.Sleep(time.Duration(5 * time.Second))
 				By("Check for deployment deletion")
 				_, err = clientset.ExtensionsV1beta1().Deployments(ns).Get(name, metav1.GetOptions{})
 				if err != nil {
@@ -209,11 +205,9 @@ var _ = Describe("Poseidon", func() {
 				By(fmt.Sprintf("Creation of ReplicaSet %q in namespace %q succeeded.  Deleting ReplicaSet.", replicaSet.Name, ns))
 				Expect(replicaSet.Status.Replicas).To(Equal(replicaSet.Status.AvailableReplicas))
 				By("Pod was in Running state... Time to delete the ReplicaSet now...")
-				//err = clientset.ExtensionsV1beta1().ReplicaSets(ns).Delete(replicaSet.Name, &metav1.DeleteOptions{})
 				err = f.WaitForReplicaSetDelete(replicaSet)
 				Expect(err).NotTo(HaveOccurred())
 				By("Waiting 5 seconds")
-				//time.Sleep(time.Duration(5 * time.Second))
 				By("Check for ReplicaSet deletion")
 				_, err = clientset.ExtensionsV1beta1().ReplicaSets(ns).Get(name, metav1.GetOptions{})
 				if err != nil {
@@ -274,8 +268,6 @@ var _ = Describe("Poseidon", func() {
 				By("Job was in Running state... Time to delete the Job now...")
 				err = f.WaitForJobDelete(job.Name)
 				Expect(err).NotTo(HaveOccurred())
-				//By("Waiting 5 seconds")
-				//time.Sleep(time.Duration(5 * time.Second))
 				By("Check for Job deletion")
 				_, err = clientset.BatchV1().Jobs(ns).Get(name, metav1.GetOptions{})
 				if err != nil {
