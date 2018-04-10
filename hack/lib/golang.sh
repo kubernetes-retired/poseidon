@@ -322,7 +322,7 @@ EOF
   local go_version
   go_version=($(go version))
   local minimum_go_version
-  minimum_go_version=go1.9.1
+  minimum_go_version=go1.9
   if [[ "${minimum_go_version}" != $(echo -e "${minimum_go_version}\n${go_version[2]}" | sort -s -t. -k 1,1 -k 2,2n -k 3,3n | head -n1) && "${go_version[2]}" != "devel" ]]; then
     kube::log::usage_from_stdin <<EOF
 Detected go version: ${go_version[*]}.
