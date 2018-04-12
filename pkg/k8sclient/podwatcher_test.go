@@ -29,7 +29,7 @@ import (
 
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/cache"
-	"k8s.io/poseidon/pkg/firmament"
+	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 )
 
 type TestPodWatchObj struct {

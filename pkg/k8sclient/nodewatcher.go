@@ -31,7 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
-	"k8s.io/poseidon/pkg/firmament"
+	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 )
 
 func NewNodeWatcher(client kubernetes.Interface, fc firmament.FirmamentSchedulerClient) *NodeWatcher {

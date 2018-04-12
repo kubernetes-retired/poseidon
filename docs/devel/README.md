@@ -114,7 +114,7 @@ sudo docker run --net=host firmament:dev /firmament/build/src/firmament_schedule
 
   * **Running Poseidon as docker container:**
 ```
-sudo docker run --net=host --volume=$GOPATH/src/k8s.io/poseidon/kubeconfig.cfg:/config/kubeconfig.cfg \
+sudo docker run --net=host --volume=$GOPATH/src/github.com/kubernetes-sigs/poseidon/kubeconfig.cfg:/config/kubeconfig.cfg \
 gcr.io/poseidon-173606/poseidon:latest \
 --logtostderr \
 --kubeConfig=/config/kubeconfig.cfg \
