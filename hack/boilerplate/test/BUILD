@@ -11,7 +11,7 @@ go_library(
         "fail.go",
         "pass.go",
     ],
-    importpath = "k8s.io/kubernetes/hack/boilerplate/test",
+    importpath = "github.com/kubernetes-sigs/poseidon/hack/boilerplate/test",
 )
 
 filegroup(
