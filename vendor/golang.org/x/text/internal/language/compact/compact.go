@@ -11,7 +11,7 @@
 //
 // It may want to export this functionality at some point, but at this point
 // this is only available for use within x/text.
-package compact
+package compact // import "golang.org/x/text/internal/language/compact"
 
 import (
 	"sort"
