@@ -39,3 +39,5 @@ GTAGS
 GSYMS
 GRTAGS
 .projectile
+
+bazel-*
