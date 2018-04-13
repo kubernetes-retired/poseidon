@@ -21,9 +21,9 @@ import (
 	"net"
 
 	"github.com/golang/glog"
-	"google.golang.org/grpc"
 	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 	"github.com/kubernetes-sigs/poseidon/pkg/k8sclient"
+	"google.golang.org/grpc"
 )
 
 type poseidonStatsServer struct {

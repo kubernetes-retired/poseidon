@@ -27,9 +27,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
+	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/cache"
-	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 )
 
 type TestPodWatchObj struct {
