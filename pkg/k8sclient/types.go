@@ -19,7 +19,7 @@ package k8sclient
 import (
 	"sync"
 
-	"k8s.io/poseidon/pkg/firmament"
+	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"

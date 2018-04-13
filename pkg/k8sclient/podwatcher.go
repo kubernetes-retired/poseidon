@@ -25,7 +25,7 @@ import (
 	"sync"
 	"time"
 
-	"k8s.io/poseidon/pkg/firmament"
+	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 
 	"github.com/golang/glog"
 	"k8s.io/api/core/v1"

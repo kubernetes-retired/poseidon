@@ -1,5 +1,5 @@
 {
-	"ImportPath": "k8s.io/poseidon",
+	"ImportPath": "github.com/kubernetes-sigs/poseidon",
 	"GoVersion": "go1.9",
 	"GodepVersion": "v79",
 	"Packages": [

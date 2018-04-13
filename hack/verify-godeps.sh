@@ -56,7 +56,7 @@ function cleanup {
 trap cleanup EXIT
 
 # Copy the contents of the kube directory into the nice clean place
-_kubetmp="${_tmpdir}/src/k8s.io"
+_kubetmp="${_tmpdir}/src/github.com/kubernetes-sigs"
 mkdir -p "${_kubetmp}"
 # should create ${_kubectmp}/poseidon
 git archive --format=tar --prefix=poseidon/ $(git write-tree) | (cd "${_kubetmp}" && tar xf -)
