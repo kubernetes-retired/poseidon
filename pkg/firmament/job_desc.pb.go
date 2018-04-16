@@ -32,13 +32,13 @@ var _ = math.Inf
 type JobDescriptor_JobState int32
 
 const (
-	JobDescriptor_NEW       JobDescriptor_JobState = 0
-	JobDescriptor_CREATED   JobDescriptor_JobState = 1
-	JobDescriptor_RUNNING   JobDescriptor_JobState = 2
-	JobDescriptor_COMPLETED JobDescriptor_JobState = 3
-	JobDescriptor_FAILED    JobDescriptor_JobState = 4
-	JobDescriptor_ABORTED   JobDescriptor_JobState = 5
-	JobDescriptor_UNKNOWN   JobDescriptor_JobState = 6
+	JobDescriptor_NEW JobDescriptor_JobState = iota
+	JobDescriptor_CREATED
+	JobDescriptor_RUNNING
+	JobDescriptor_COMPLETED
+	JobDescriptor_FAILED
+	JobDescriptor_ABORTED
+	JobDescriptor_UNKNOWN
 )
 
 var JobDescriptor_JobState_name = map[int32]string{

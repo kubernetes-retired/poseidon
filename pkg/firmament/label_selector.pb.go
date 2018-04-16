@@ -20,9 +20,12 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	proto "github.com/golang/protobuf/proto"
+
+	"fmt"
+	"math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -32,10 +35,10 @@ var _ = math.Inf
 type LabelSelector_SelectorType int32
 
 const (
-	LabelSelector_IN_SET         LabelSelector_SelectorType = 0
-	LabelSelector_NOT_IN_SET     LabelSelector_SelectorType = 1
-	LabelSelector_EXISTS_KEY     LabelSelector_SelectorType = 2
-	LabelSelector_NOT_EXISTS_KEY LabelSelector_SelectorType = 3
+	LabelSelector_IN_SET LabelSelector_SelectorType = iota
+	LabelSelector_NOT_IN_SET
+	LabelSelector_EXISTS_KEY
+	LabelSelector_NOT_EXISTS_KEY
 )
 
 var LabelSelector_SelectorType_name = map[int32]string{
