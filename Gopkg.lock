@@ -439,9 +439,15 @@
   ]
   revision = "fff8c3d73ec5a59df69cd957ad8abeaf68f7c9be"
 
+[[projects]]
+  name = "k8s.io/kubernetes"
+  packages = ["pkg/client/conditions"]
+  revision = "d4ab47518836c750f9949b9e0d387f20fb92260b"
+  version = "v1.10.1"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e39d2fdc17a9d3e907a03f13c49bfe7ef71f77f8be13086a13c3664d47f259a9"
+  inputs-digest = "587aaacf603bbd4c4e95e6a0e16583e9c22b6cdf766d9b582d12221a3c98e524"
   solver-name = "gps-cdcl"
   solver-version = 1
