@@ -20,9 +20,12 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	proto "github.com/golang/protobuf/proto"
+
+	"fmt"
+	"math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -103,9 +106,8 @@ func (m *TaskFinalReport) GetRuntime() float64 {
 
 func init() {
 	proto.RegisterType((*TaskFinalReport)(nil), "firmament.TaskFinalReport")
+	proto.RegisterFile("task_final_report.proto", fileDescriptor12)
 }
-
-func init() { proto.RegisterFile("task_final_report.proto", fileDescriptor12) }
 
 var fileDescriptor12 = []byte{
 	// 225 bytes of a gzipped FileDescriptorProto

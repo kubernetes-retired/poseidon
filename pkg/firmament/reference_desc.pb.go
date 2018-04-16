@@ -20,9 +20,12 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	proto "github.com/golang/protobuf/proto"
+
+	"fmt"
+	"math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -32,12 +35,12 @@ var _ = math.Inf
 type ReferenceDescriptor_ReferenceType int32
 
 const (
-	ReferenceDescriptor_TOMBSTONE ReferenceDescriptor_ReferenceType = 0
-	ReferenceDescriptor_FUTURE    ReferenceDescriptor_ReferenceType = 1
-	ReferenceDescriptor_CONCRETE  ReferenceDescriptor_ReferenceType = 2
-	ReferenceDescriptor_STREAM    ReferenceDescriptor_ReferenceType = 3
-	ReferenceDescriptor_VALUE     ReferenceDescriptor_ReferenceType = 4
-	ReferenceDescriptor_ERROR     ReferenceDescriptor_ReferenceType = 5
+	ReferenceDescriptor_TOMBSTONE ReferenceDescriptor_ReferenceType = iota
+	ReferenceDescriptor_FUTURE
+	ReferenceDescriptor_CONCRETE
+	ReferenceDescriptor_STREAM
+	ReferenceDescriptor_VALUE
+	ReferenceDescriptor_ERROR
 )
 
 var ReferenceDescriptor_ReferenceType_name = map[int32]string{
@@ -68,8 +71,8 @@ type ReferenceDescriptor_ReferenceScope int32
 
 const (
 	// TODO(malte): really encode like this?
-	ReferenceDescriptor_PUBLIC  ReferenceDescriptor_ReferenceScope = 0
-	ReferenceDescriptor_PRIVATE ReferenceDescriptor_ReferenceScope = 1
+	ReferenceDescriptor_PUBLIC ReferenceDescriptor_ReferenceScope = iota
+	ReferenceDescriptor_PRIVATE
 )
 
 var ReferenceDescriptor_ReferenceScope_name = map[int32]string{

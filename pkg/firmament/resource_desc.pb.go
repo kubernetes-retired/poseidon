@@ -20,9 +20,12 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	proto "github.com/golang/protobuf/proto"
+
+	"fmt"
+	"math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -32,10 +35,10 @@ var _ = math.Inf
 type ResourceDescriptor_ResourceState int32
 
 const (
-	ResourceDescriptor_RESOURCE_UNKNOWN ResourceDescriptor_ResourceState = 0
-	ResourceDescriptor_RESOURCE_IDLE    ResourceDescriptor_ResourceState = 1
-	ResourceDescriptor_RESOURCE_BUSY    ResourceDescriptor_ResourceState = 2
-	ResourceDescriptor_RESOURCE_LOST    ResourceDescriptor_ResourceState = 3
+	ResourceDescriptor_RESOURCE_UNKNOWN ResourceDescriptor_ResourceState = iota
+	ResourceDescriptor_RESOURCE_IDLE
+	ResourceDescriptor_RESOURCE_BUSY
+	ResourceDescriptor_RESOURCE_LOST
 )
 
 var ResourceDescriptor_ResourceState_name = map[int32]string{
@@ -61,17 +64,17 @@ func (ResourceDescriptor_ResourceState) EnumDescriptor() ([]byte, []int) {
 type ResourceDescriptor_ResourceType int32
 
 const (
-	ResourceDescriptor_RESOURCE_PU          ResourceDescriptor_ResourceType = 0
-	ResourceDescriptor_RESOURCE_CORE        ResourceDescriptor_ResourceType = 1
-	ResourceDescriptor_RESOURCE_CACHE       ResourceDescriptor_ResourceType = 2
-	ResourceDescriptor_RESOURCE_NIC         ResourceDescriptor_ResourceType = 3
-	ResourceDescriptor_RESOURCE_DISK        ResourceDescriptor_ResourceType = 4
-	ResourceDescriptor_RESOURCE_SSD         ResourceDescriptor_ResourceType = 5
-	ResourceDescriptor_RESOURCE_MACHINE     ResourceDescriptor_ResourceType = 6
-	ResourceDescriptor_RESOURCE_LOGICAL     ResourceDescriptor_ResourceType = 7
-	ResourceDescriptor_RESOURCE_NUMA_NODE   ResourceDescriptor_ResourceType = 8
-	ResourceDescriptor_RESOURCE_SOCKET      ResourceDescriptor_ResourceType = 9
-	ResourceDescriptor_RESOURCE_COORDINATOR ResourceDescriptor_ResourceType = 10
+	ResourceDescriptor_RESOURCE_PU ResourceDescriptor_ResourceType = iota
+	ResourceDescriptor_RESOURCE_CORE
+	ResourceDescriptor_RESOURCE_CACHE
+	ResourceDescriptor_RESOURCE_NIC
+	ResourceDescriptor_RESOURCE_DISK
+	ResourceDescriptor_RESOURCE_SSD
+	ResourceDescriptor_RESOURCE_MACHINE
+	ResourceDescriptor_RESOURCE_LOGICAL
+	ResourceDescriptor_RESOURCE_NUMA_NODE
+	ResourceDescriptor_RESOURCE_SOCKET
+	ResourceDescriptor_RESOURCE_COORDINATOR
 )
 
 var ResourceDescriptor_ResourceType_name = map[int32]string{

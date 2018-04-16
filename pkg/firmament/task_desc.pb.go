@@ -20,9 +20,12 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	proto "github.com/golang/protobuf/proto"
+
+	"fmt"
+	"math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -32,16 +35,16 @@ var _ = math.Inf
 type TaskDescriptor_TaskState int32
 
 const (
-	TaskDescriptor_CREATED   TaskDescriptor_TaskState = 0
-	TaskDescriptor_BLOCKING  TaskDescriptor_TaskState = 1
-	TaskDescriptor_RUNNABLE  TaskDescriptor_TaskState = 2
-	TaskDescriptor_ASSIGNED  TaskDescriptor_TaskState = 3
-	TaskDescriptor_RUNNING   TaskDescriptor_TaskState = 4
-	TaskDescriptor_COMPLETED TaskDescriptor_TaskState = 5
-	TaskDescriptor_FAILED    TaskDescriptor_TaskState = 6
-	TaskDescriptor_ABORTED   TaskDescriptor_TaskState = 7
-	TaskDescriptor_DELEGATED TaskDescriptor_TaskState = 8
-	TaskDescriptor_UNKNOWN   TaskDescriptor_TaskState = 9
+	TaskDescriptor_CREATED TaskDescriptor_TaskState = iota
+	TaskDescriptor_BLOCKING
+	TaskDescriptor_RUNNABLE
+	TaskDescriptor_ASSIGNED
+	TaskDescriptor_RUNNING
+	TaskDescriptor_COMPLETED
+	TaskDescriptor_FAILED
+	TaskDescriptor_ABORTED
+	TaskDescriptor_DELEGATED
+	TaskDescriptor_UNKNOWN
 )
 
 var TaskDescriptor_TaskState_name = map[int32]string{
@@ -77,10 +80,10 @@ func (TaskDescriptor_TaskState) EnumDescriptor() ([]byte, []int) { return fileDe
 type TaskDescriptor_TaskType int32
 
 const (
-	TaskDescriptor_SHEEP  TaskDescriptor_TaskType = 0
-	TaskDescriptor_RABBIT TaskDescriptor_TaskType = 1
-	TaskDescriptor_DEVIL  TaskDescriptor_TaskType = 2
-	TaskDescriptor_TURTLE TaskDescriptor_TaskType = 3
+	TaskDescriptor_SHEEP TaskDescriptor_TaskType = iota
+	TaskDescriptor_RABBIT
+	TaskDescriptor_DEVIL
+	TaskDescriptor_TURTLE
 )
 
 var TaskDescriptor_TaskType_name = map[int32]string{

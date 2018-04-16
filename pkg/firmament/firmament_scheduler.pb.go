@@ -20,13 +20,14 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
-
 import (
-	context "golang.org/x/net/context"
-	grpc "google.golang.org/grpc"
+	"fmt"
+	"math"
+
+	"github.com/golang/protobuf/proto"
+
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -37,15 +38,15 @@ var _ = math.Inf
 type TaskReplyType int32
 
 const (
-	TaskReplyType_TASK_COMPLETED_OK      TaskReplyType = 0
-	TaskReplyType_TASK_SUBMITTED_OK      TaskReplyType = 1
-	TaskReplyType_TASK_REMOVED_OK        TaskReplyType = 2
-	TaskReplyType_TASK_FAILED_OK         TaskReplyType = 3
-	TaskReplyType_TASK_UPDATED_OK        TaskReplyType = 4
-	TaskReplyType_TASK_NOT_FOUND         TaskReplyType = 5
-	TaskReplyType_TASK_JOB_NOT_FOUND     TaskReplyType = 6
-	TaskReplyType_TASK_ALREADY_SUBMITTED TaskReplyType = 7
-	TaskReplyType_TASK_STATE_NOT_CREATED TaskReplyType = 8
+	TaskReplyType_TASK_COMPLETED_OK TaskReplyType = iota
+	TaskReplyType_TASK_SUBMITTED_OK
+	TaskReplyType_TASK_REMOVED_OK
+	TaskReplyType_TASK_FAILED_OK
+	TaskReplyType_TASK_UPDATED_OK
+	TaskReplyType_TASK_NOT_FOUND
+	TaskReplyType_TASK_JOB_NOT_FOUND
+	TaskReplyType_TASK_ALREADY_SUBMITTED
+	TaskReplyType_TASK_STATE_NOT_CREATED
 )
 
 var TaskReplyType_name = map[int32]string{
@@ -79,12 +80,12 @@ func (TaskReplyType) EnumDescriptor() ([]byte, []int) { return fileDescriptor1, 
 type NodeReplyType int32
 
 const (
-	NodeReplyType_NODE_ADDED_OK       NodeReplyType = 0
-	NodeReplyType_NODE_FAILED_OK      NodeReplyType = 1
-	NodeReplyType_NODE_REMOVED_OK     NodeReplyType = 2
-	NodeReplyType_NODE_UPDATED_OK     NodeReplyType = 3
-	NodeReplyType_NODE_NOT_FOUND      NodeReplyType = 4
-	NodeReplyType_NODE_ALREADY_EXISTS NodeReplyType = 5
+	NodeReplyType_NODE_ADDED_OK NodeReplyType = iota
+	NodeReplyType_NODE_FAILED_OK
+	NodeReplyType_NODE_REMOVED_OK
+	NodeReplyType_NODE_UPDATED_OK
+	NodeReplyType_NODE_NOT_FOUND
+	NodeReplyType_NODE_ALREADY_EXISTS
 )
 
 var NodeReplyType_name = map[int32]string{

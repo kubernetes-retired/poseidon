@@ -20,9 +20,12 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	proto "github.com/golang/protobuf/proto"
+
+	"fmt"
+	"math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -32,10 +35,10 @@ var _ = math.Inf
 type SchedulingDelta_ChangeType int32
 
 const (
-	SchedulingDelta_NOOP    SchedulingDelta_ChangeType = 0
-	SchedulingDelta_PLACE   SchedulingDelta_ChangeType = 1
-	SchedulingDelta_PREEMPT SchedulingDelta_ChangeType = 2
-	SchedulingDelta_MIGRATE SchedulingDelta_ChangeType = 3
+	SchedulingDelta_NOOP SchedulingDelta_ChangeType = iota
+	SchedulingDelta_PLACE
+	SchedulingDelta_PREEMPT
+	SchedulingDelta_MIGRATE
 )
 
 var SchedulingDelta_ChangeType_name = map[int32]string{
