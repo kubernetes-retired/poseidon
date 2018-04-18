@@ -17,7 +17,6 @@ limitations under the License.
 package test
 
 import (
-	"flag"
 	"fmt"
 	"github.com/golang/glog"
 	"github.com/kubernetes-sigs/poseidon/test/e2e/framework"
@@ -36,7 +35,6 @@ import (
 )
 
 var _ = Describe("Poseidon", func() {
-	flag.Parse()
 	var clientset kubernetes.Interface
 	var ns string //namespace string
 	hostname, _ := os.Hostname()

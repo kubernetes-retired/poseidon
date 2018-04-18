@@ -21,6 +21,8 @@ import (
 	"os"
 	"time"
 
+	"bytes"
+	"fmt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/api/core/v1"
@@ -30,9 +32,20 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"os/exec"
+	"strings"
 )
 
-var testKubeConfig = flag.String(clientcmd.RecommendedConfigPathFlag, os.Getenv(clientcmd.RecommendedConfigPathEnvVar), "Path to kubeconfig containing embedded authinfo.")
+var kubeConfig = flag.String(clientcmd.RecommendedConfigPathFlag, os.Getenv(clientcmd.RecommendedConfigPathEnvVar), "Path to kubeconfig containing embedded authinfo.")
+var kubectlPath = flag.String("kubectl-path", "kubectl", "The kubectl binary to use. For development, you might use 'cluster/kubectl.sh' here.")
+var poseidonManifestPath = flag.String("poseidonManifestPath", "github.com/kubernetes-sigs/poseidon/deploy/poseidon-deployment.yaml", "The Poseidon deployment manifest to use.")
+var firmamentManifestPath = flag.String("firmamentManifestPath", "github.com/kubernetes-sigs/poseidon/deploy/firmament-deployment.yaml", "The Firmament deployment manifest to use.")
+var heapsterManifestPath = flag.String("heapsterManifestPath", "github.com/kubernetes-sigs/poseidon/deploy/heapster-poseidon.yaml", "The heapster deployment manifest to use.")
+
+func init() {
+	flag.Parse()
+	fmt.Println(*kubeConfig, *kubectlPath, *poseidonManifestPath, *firmamentManifestPath, *heapsterManifestPath)
+}
 
 // Framework supports common operations used by e2e tests; it will keep a client & a namespace for you.
 // Eventual goal is to merge this with integration test framework.
@@ -81,7 +94,7 @@ func (f *Framework) BeforeEach() {
 	if f.ClientSet == nil {
 		var config *rest.Config
 		var err error
-		config, err = clientcmd.BuildConfigFromFlags("", *testKubeConfig)
+		config, err = clientcmd.BuildConfigFromFlags("", *kubeConfig)
 		if err != nil {
 			panic(err)
 		}
@@ -93,6 +106,15 @@ func (f *Framework) BeforeEach() {
 
 	}
 	f.Namespace, err = f.createNamespace(f.ClientSet)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = f.CreateFirmament()
+	Expect(err).NotTo(HaveOccurred())
+
+	err = f.CreatePoseidon()
+	Expect(err).NotTo(HaveOccurred())
+
+	err = f.CreateHeapster()
 	Expect(err).NotTo(HaveOccurred())
 }
 
@@ -107,6 +129,16 @@ func (f *Framework) AfterEach() {
 	Logf("Delete namespace called")
 	err = f.deleteNamespace()
 	Expect(err).NotTo(HaveOccurred())
+
+	err = f.DeletePoseidon()
+	Expect(err).NotTo(HaveOccurred())
+
+	err = f.DeleteFirmament()
+	Expect(err).NotTo(HaveOccurred())
+
+	err = f.DeleteHeapster()
+	Expect(err).NotTo(HaveOccurred())
+
 }
 
 // WaitForPodNotFound waits for the pod to be completely terminated (not "Get-able").
@@ -171,4 +203,115 @@ func (f *Framework) createNamespace(c clientset.Interface) (*v1.Namespace, error
 	}
 
 	return got, nil
+}
+
+func (f *Framework) CreateFirmament() error {
+	outputStr, errorStr, err := f.KubectlExecCreate(*firmamentManifestPath)
+	if err != nil {
+		Logf("Command error string %v", errorStr)
+		Logf("Command output string %v", outputStr)
+		Logf("%v", err)
+	}
+	return err
+}
+
+func (f *Framework) CreatePoseidon() error {
+	outputStr, errorStr, err := f.KubectlExecCreate(*poseidonManifestPath)
+	if err != nil {
+		Logf("Command error string %v", errorStr)
+		Logf("Command output string %v", outputStr)
+		Logf("%v", err)
+	}
+	return err
+}
+
+func (f *Framework) CreateHeapster() error {
+	outputStr, errorStr, err := f.KubectlExecCreate(*heapsterManifestPath)
+	if err != nil {
+		Logf("Command error string %v", errorStr)
+		Logf("Command output string %v", outputStr)
+		Logf("%v", err)
+	}
+	return err
+}
+
+func (f *Framework) DeleteFirmament() error {
+	outputStr, errorStr, err := f.KubectlExecDelete(*firmamentManifestPath)
+	if err != nil {
+		Logf("Command error string %v", errorStr)
+		Logf("Command output string %v", outputStr)
+		Logf("%v", err)
+	}
+	return err
+}
+
+func (f *Framework) DeletePoseidon() error {
+	outputStr, errorStr, err := f.KubectlExecDelete(*poseidonManifestPath)
+	if err != nil {
+		Logf("Command error string %v", errorStr)
+		Logf("Command output string %v", outputStr)
+		Logf("%v", err)
+	}
+	return err
+}
+
+func (f *Framework) DeleteHeapster() error {
+	outputStr, errorStr, err := f.KubectlExecDelete(*heapsterManifestPath)
+	if err != nil {
+		Logf("Command error string %v", errorStr)
+		Logf("Command output string %v", outputStr)
+		Logf("%v", err)
+	}
+	return err
+}
+
+// KubectlCmd runs the kubectl executable through the wrapper script.
+func KubectlCmd(args ...string) *exec.Cmd {
+	defaultArgs := []string{}
+
+	if kubeConfig != nil {
+		defaultArgs = append(defaultArgs, "--"+clientcmd.RecommendedConfigPathFlag+"="+*kubeConfig)
+
+	}
+	kubectlArgs := append(defaultArgs, args...)
+	cmd := exec.Command(*kubectlPath, kubectlArgs...)
+	return cmd
+}
+
+func (f *Framework) KubectlExecCreate(manifestPath string) (string, string, error) {
+	var stdout, stderr bytes.Buffer
+	cmdArgs := []string{
+		fmt.Sprintf("create"),
+		fmt.Sprintf("-f"),
+		fmt.Sprintf("%v", manifestPath),
+	}
+	cmd := KubectlCmd(cmdArgs...)
+	cmd.Stdout, cmd.Stderr = &stdout, &stderr
+	Logf("Running '%s %s'", cmd.Path, strings.Join(cmdArgs, " "))
+	err := cmd.Run()
+
+	if err != nil {
+		Logf("Unable to deploy %v %v", stdout.String(), stderr.String())
+	}
+
+	return stdout.String(), stderr.String(), err
+}
+
+func (f *Framework) KubectlExecDelete(manifestPath string) (string, string, error) {
+	var stdout, stderr bytes.Buffer
+	cmdArgs := []string{
+		fmt.Sprintf("delete"),
+		fmt.Sprintf("-f"),
+		fmt.Sprintf("%v", manifestPath),
+	}
+	cmd := KubectlCmd(cmdArgs...)
+	cmd.Stdout, cmd.Stderr = &stdout, &stderr
+	Logf("Running '%s %s'", cmd.Path, strings.Join(cmdArgs, " "))
+	err := cmd.Run()
+
+	if err != nil {
+		Logf("Unable to deploy %v %v", stdout.String(), stderr.String())
+	}
+
+	return stdout.String(), stderr.String(), err
 }
