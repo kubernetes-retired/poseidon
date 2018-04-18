@@ -18,7 +18,6 @@ package stats
 
 import (
 	"github.com/golang/mock/gomock"
-	//"golang.org/x/net/context"
 	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 	"reflect"
 	"time"
