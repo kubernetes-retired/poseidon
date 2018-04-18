@@ -17,9 +17,12 @@ limitations under the License.
 package main
 
 import (
+	"flag"
+	"strings"
 	"time"
 
 	"github.com/kubernetes-sigs/poseidon/pkg/config"
+	"github.com/kubernetes-sigs/poseidon/pkg/debugutil"
 	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 	"github.com/kubernetes-sigs/poseidon/pkg/k8sclient"
 	"github.com/kubernetes-sigs/poseidon/pkg/stats"
@@ -28,6 +31,36 @@ import (
 
 	"github.com/golang/glog"
 )
+
+var (
+	schedulerName      string
+	firmamentAddress   string
+	kubeConfig         string
+	kubeVersion        string
+	statsServerAddress string
+	schedulingInterval int
+	firmamentPort      string
+	enablePprof        bool
+	pprofAddress       string
+)
+
+func init() {
+	flag.StringVar(&schedulerName, "schedulerName", "poseidon", "The scheduler name with which pods are labeled")
+	flag.StringVar(&firmamentAddress, "firmamentAddress", "firmament-service.kube-system", "Firmament scheduler service port")
+	flag.StringVar(&firmamentPort, "firmamentPort", "9090", "Firmament scheduler service port")
+	flag.StringVar(&pprofAddress, "pprofAddress", "0.0.0.0:8989", "Address on which to collect runtime profiling data,default to set for all interfaces ")
+	flag.StringVar(&kubeConfig, "kubeConfig", "kubeconfig.cfg", "Path to the kubeconfig file")
+	flag.StringVar(&kubeVersion, "kubeVersion", "1.6", "Kubernetes version")
+	flag.StringVar(&statsServerAddress, "statsServerAddress", "0.0.0.0:9091", "Address on which the stats server listens")
+	flag.IntVar(&schedulingInterval, "schedulingInterval", 10, "Time between scheduler runs (in seconds)")
+	flag.BoolVar(&enablePprof, "enablePprof", false, "Enable runtime profiling data via HTTP server. Address is at client URL + \"/debug/pprof/\"")
+	flag.Parse()
+	// join the firmament address and port with a colon separator
+	// Passing the firmament address with port and colon separator throws an error
+	// for conversion from yaml to json
+	values := []string{firmamentAddress, firmamentPort}
+	firmamentAddress = strings.Join(values, ":")
+}
 
 func schedule(fc firmament.FirmamentSchedulerClient) {
 	for {
@@ -99,5 +132,8 @@ func main() {
 	go schedule(fc)
 	go stats.StartgRPCStatsServer(config.GetStatsServerAddress(), config.GetFirmamentAddress())
 	kubeMajorVer, kubeMinorVer := config.GetKubeVersion()
+	if enablePprof {
+		go debugutil.EnablePprof(pprofAddress)
+	}
 	k8sclient.New(config.GetSchedulerName(), config.GetKubeConfig(), kubeMajorVer, kubeMinorVer, config.GetFirmamentAddress())
 }
