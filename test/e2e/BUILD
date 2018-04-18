@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = ["poseidon_integration_tests.go"],
-    importpath = "github.com/kubernetes-sigs/poseidon/pkg/test",
+    importpath = "github.com/kubernetes-sigs/poseidon/test/e2e",
     visibility = ["//visibility:public"],
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",
