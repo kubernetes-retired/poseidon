@@ -26,6 +26,7 @@ ALL_TARGETS=$(make -C "${KUBE_ROOT}" PRINT_HELP=y -rpn | sed -n -e '/^$/ { n ; /
 CMD_TARGETS=$(ls -l "${KUBE_ROOT}/cmd" |awk '/^d/ {print $NF}')
 CMD_FLAG=false
 PLUGIN_CMD_FLAG=false
+FED_CMD_FLAG=false
 
 echo "--------------------------------------------------------------------------------"
 for tar in $ALL_TARGETS; do

@@ -14,21 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This script sets up a go workspace locally and builds all for all appropriate
-# platforms.
-
+# Build the docker image necessary for building Kubernetes
+#
+# This script will package the parts of the repo that we need to build
+# Kubernetes into a tar file and put it in the right place in the output
+# directory.  It will then copy over the Dockerfile and build the kube-build
+# image.
 set -o errexit
 set -o nounset
 set -o pipefail
 
-KUBE_ROOT=$(dirname "${BASH_SOURCE}")/../..
-source "${KUBE_ROOT}/hack/lib/init.sh"
+KUBE_ROOT="$(dirname "${BASH_SOURCE}")/.."
+source "${KUBE_ROOT}/build/common.sh"
 
-# NOTE: Using "${array[*]}" here is correct.  [@] becomes distinct words (in
-# bash parlance).
-
-make all WHAT="${KUBE_SERVER_TARGETS[*]}" KUBE_BUILD_PLATFORMS="${KUBE_SERVER_PLATFORMS[*]}"
-
-make all WHAT="${KUBE_TEST_TARGETS[*]}" KUBE_BUILD_PLATFORMS="${KUBE_TEST_PLATFORMS[*]}"
-
-make all WHAT="${KUBE_TEST_SERVER_TARGETS[*]}" KUBE_BUILD_PLATFORMS="${KUBE_TEST_SERVER_PLATFORMS[*]}"
+kube::build::verify_prereqs
+kube::build::build_image

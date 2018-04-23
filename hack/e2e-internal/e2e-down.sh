@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2014 The Kubernetes Authors.
+# Copyright 2015 The Kubernetes Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,21 +14,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This script sets up a go workspace locally and builds all for all appropriate
-# platforms.
-
 set -o errexit
 set -o nounset
 set -o pipefail
 
+REAL_KUBE_ROOT=$(dirname "${BASH_SOURCE}")/../../../kubernetes
 KUBE_ROOT=$(dirname "${BASH_SOURCE}")/../..
-source "${KUBE_ROOT}/hack/lib/init.sh"
 
-# NOTE: Using "${array[*]}" here is correct.  [@] becomes distinct words (in
-# bash parlance).
+: ${KUBECTL:=${REAL_KUBE_ROOT}/cluster/kubectl.sh}
+: ${KUBE_CONFIG_FILE:="config-test.sh"}
 
-make all WHAT="${KUBE_SERVER_TARGETS[*]}" KUBE_BUILD_PLATFORMS="${KUBE_SERVER_PLATFORMS[*]}"
+export KUBECTL KUBE_CONFIG_FILE
 
-make all WHAT="${KUBE_TEST_TARGETS[*]}" KUBE_BUILD_PLATFORMS="${KUBE_TEST_PLATFORMS[*]}"
+source "${KUBE_ROOT}/cluster/kube-util.sh"
 
-make all WHAT="${KUBE_TEST_SERVER_TARGETS[*]}" KUBE_BUILD_PLATFORMS="${KUBE_TEST_SERVER_PLATFORMS[*]}"
+prepare-e2e
+
+if [[ "${FEDERATION:-}" == "true" ]]; then
+  source "${KUBE_ROOT}/deploy/cluster/common.sh"
+
+  for zone in ${E2E_ZONES};do
+    # bring down an e2e cluster
+    (
+      set-federation-zone-vars "$zone"
+      test-teardown
+    )
+  done
+else
+  test-teardown
+fi

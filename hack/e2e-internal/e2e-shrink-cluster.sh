@@ -14,21 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This script sets up a go workspace locally and builds all for all appropriate
-# platforms.
-
-set -o errexit
-set -o nounset
-set -o pipefail
-
 KUBE_ROOT=$(dirname "${BASH_SOURCE}")/../..
-source "${KUBE_ROOT}/hack/lib/init.sh"
 
-# NOTE: Using "${array[*]}" here is correct.  [@] becomes distinct words (in
-# bash parlance).
+if [[ ! -z "${1:-}" ]]; then
+  export KUBE_GCE_ZONE="${1}"
+fi
+if [[ ! -z "${2:-}" ]]; then
+  export MULTIZONE="${2}"
+fi
+if [[ ! -z "${3:-}" ]]; then
+  export KUBE_DELETE_NODES="${3}"
+fi
+if [[ ! -z "${4:-}" ]]; then
+  export KUBE_USE_EXISTING_MASTER="${4}"
+fi
 
-make all WHAT="${KUBE_SERVER_TARGETS[*]}" KUBE_BUILD_PLATFORMS="${KUBE_SERVER_PLATFORMS[*]}"
+source "${KUBE_ROOT}/hack/e2e-internal/e2e-down.sh"
 
-make all WHAT="${KUBE_TEST_TARGETS[*]}" KUBE_BUILD_PLATFORMS="${KUBE_TEST_PLATFORMS[*]}"
-
-make all WHAT="${KUBE_TEST_SERVER_TARGETS[*]}" KUBE_BUILD_PLATFORMS="${KUBE_TEST_SERVER_PLATFORMS[*]}"
