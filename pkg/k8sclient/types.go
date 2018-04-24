@@ -27,67 +27,90 @@ import (
 
 const bytesToKb = 1024
 
-// Used to guard access to the pod, task and job related maps.
+// PodsCond is used to guard access to the pod, task and job related maps.
 var PodsCond *sync.Cond
+
+// PodToTD maps Kubernetes pod identifier(namespace + name) to firmament task descriptor.
 var PodToTD map[PodIdentifier]*firmament.TaskDescriptor
+
+// TaskIDToPod maps firmament task ID to Kubernetes pod identifier(namespace + name).
 var TaskIDToPod map[uint64]PodIdentifier
 var jobIDToJD map[string]*firmament.JobDescriptor
 var jobNumTasksToRemove map[string]int
 
-// Used to guard access to the node and resource related maps.
+// NodesCond is used to guard access to the node and resource related maps.
 var NodesCond *sync.Cond
+
+// NodeToRTND maps node name to firmament resource topology node descriptor.
 var NodeToRTND map[string]*firmament.ResourceTopologyNodeDescriptor
+
+// ResIDToNode maps resource ID to node name.
 var ResIDToNode map[string]string
 
+// NodePhase represents a node phase.
 type NodePhase string
 
 const (
-	NodeAdded   NodePhase = "Added"
+	// NodeAdded represents a node added phase.
+	NodeAdded NodePhase = "Added"
+	// NodeDeleted represents a node deleted phase.
 	NodeDeleted NodePhase = "Deleted"
-	NodeFailed  NodePhase = "Failed"
+	// NodeFailed represents a node failed phase.
+	NodeFailed NodePhase = "Failed"
+	// NodeUpdated represents a node updated phase.
 	NodeUpdated NodePhase = "Updated"
 )
 
+// Node is an internal structure for a Kubernetes node.
 type Node struct {
 	Hostname         string
 	Phase            NodePhase
 	IsReady          bool
 	IsOutOfDisk      bool
-	CpuCapacity      int64
-	CpuAllocatable   int64
+	CPUCapacity      int64
+	CPUAllocatable   int64
 	MemCapacityKb    int64
 	MemAllocatableKb int64
 	Labels           map[string]string
 	Annotations      map[string]string
 }
 
+// PodPhase represents a pod phase.
 type PodPhase string
 
 const (
-	PodPending   PodPhase = "Pending"
-	PodRunning   PodPhase = "Running"
+	// PodPending is an internal phase used for unscheduled pods.
+	PodPending PodPhase = "Pending"
+	// PodRunning is an internal phase used for running pods.
+	PodRunning PodPhase = "Running"
+	// PodSucceeded is an internal phase used for successfully existed pods.
 	PodSucceeded PodPhase = "Succeeded"
-	PodFailed    PodPhase = "Failed"
-	PodUnknown   PodPhase = "Unknown"
-	// Internal phase used for removed pods.
+	// PodFailed is an internal phase used for failed pods.
+	PodFailed PodPhase = "Failed"
+	// PodUnknown is an internal phase used for state unknown pods.
+	PodUnknown PodPhase = "Unknown"
+	// PodDeleted is an internal phase used for removed pods.
 	PodDeleted PodPhase = "Deleted"
-	// Internal phase for pods that are externally updated.
+	// PodUpdated is an internal phase for pods that are externally updated.
 	PodUpdated PodPhase = "Updated"
 )
 
+// PodIdentifier is used to identify a pod by its namespace and name.
 type PodIdentifier struct {
 	Name      string
 	Namespace string
 }
 
+// UniqueName returns pod namespace/name.
 func (this *PodIdentifier) UniqueName() string {
 	return this.Namespace + "/" + this.Name
 }
 
+// Pod is an internal structure for a Kubernetes pod.
 type Pod struct {
 	Identifier   PodIdentifier
 	State        PodPhase
-	CpuRequest   int64
+	CPURequest   int64
 	MemRequestKb int64
 	Labels       map[string]string
 	Annotations  map[string]string
@@ -95,6 +118,7 @@ type Pod struct {
 	OwnerRef     string
 }
 
+// NodeWatcher is a Kubernetes node watcher.
 type NodeWatcher struct {
 	//ID string
 	clientset     kubernetes.Interface
@@ -103,6 +127,7 @@ type NodeWatcher struct {
 	fc            firmament.FirmamentSchedulerClient
 }
 
+// PodWatcher is a Kubernetes pod watcher.
 type PodWatcher struct {
 	//ID string
 	clientset    kubernetes.Interface

@@ -61,13 +61,13 @@ func ChangePodPhase(pod *v1.Pod, newPhase string) *v1.Pod {
 	return &newPod
 }
 
-func ChangePodCpuAndMemRequest(pod *v1.Pod, newCpu, newMem string) *v1.Pod {
+func ChangePodCPUAndMemRequest(pod *v1.Pod, newCPU, newMem string) *v1.Pod {
 	newPod := *pod
 	newPod.Spec.Containers = []v1.Container{
 		{
 			Resources: v1.ResourceRequirements{
 				Requests: v1.ResourceList{
-					v1.ResourceCPU:    resource.MustParse(newCpu),
+					v1.ResourceCPU:    resource.MustParse(newCPU),
 					v1.ResourceMemory: resource.MustParse(newMem),
 				},
 			},
@@ -170,7 +170,7 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 					Name:      "Pod1",
 					Namespace: "Poseidon-Namespace",
 				},
-				CpuRequest:   2000,
+				CPURequest:   2000,
 				MemRequestKb: 1,
 				OwnerRef:     fakeOwnerRef,
 			},
@@ -183,7 +183,7 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 					Name:      "Pod2",
 					Namespace: "Poseidon-Namespace",
 				},
-				CpuRequest:   2000,
+				CPURequest:   2000,
 				MemRequestKb: 1,
 				OwnerRef:     fakeOwnerRef,
 			},
@@ -196,7 +196,7 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 					Name:      "Pod3",
 					Namespace: "Poseidon-Namespace",
 				},
-				CpuRequest:   2000,
+				CPURequest:   2000,
 				MemRequestKb: 1,
 				OwnerRef:     fakeOwnerRef,
 			},
@@ -209,7 +209,7 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 					Name:      "Pod4",
 					Namespace: "Poseidon-Namespace",
 				},
-				CpuRequest:   2000,
+				CPURequest:   2000,
 				MemRequestKb: 1,
 				OwnerRef:     fakeOwnerRef,
 			},
@@ -295,7 +295,7 @@ func TestPodWatcher_podWorker(t *testing.T) {
 			//TaskSubmitted case
 			key := GetKey(podData.pod, t)
 			podWatch.enqueuePodAddition(key, podData.pod)
-			newPod := ChangePodCpuAndMemRequest(testData[index].pod, "3", "3072")
+			newPod := ChangePodCPUAndMemRequest(testData[index].pod, "3", "3072")
 			podWatch.enqueuePodUpdate(key, podData.pod, newPod)
 		case 4:
 			//TaskFailed case

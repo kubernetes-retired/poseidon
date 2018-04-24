@@ -34,6 +34,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
+// NewNodeWatcher initializes a NodeWatcher based on the given Kubernetes client and Firmament client.
 func NewNodeWatcher(client kubernetes.Interface, fc firmament.FirmamentSchedulerClient) *NodeWatcher {
 	glog.Info("Starting NodeWatcher...")
 	NodesCond = sync.NewCond(&sync.Mutex{})
@@ -83,7 +84,7 @@ func NewNodeWatcher(client kubernetes.Interface, fc firmament.FirmamentScheduler
 	return nodewatcher
 }
 
-func (this *NodeWatcher) getReadyAndOutOfDiskConditions(node *v1.Node) (isReady bool, isOutOfDisk bool) {
+func (nw *NodeWatcher) getReadyAndOutOfDiskConditions(node *v1.Node) (isReady bool, isOutOfDisk bool) {
 	isReady = false
 	isOutOfDisk = false
 	for _, cond := range node.Status.Conditions {
@@ -97,8 +98,8 @@ func (this *NodeWatcher) getReadyAndOutOfDiskConditions(node *v1.Node) (isReady 
 	return isReady, isOutOfDisk
 }
 
-func (this *NodeWatcher) parseNode(node *v1.Node, phase NodePhase) *Node {
-	isReady, isOutOfDisk := this.getReadyAndOutOfDiskConditions(node)
+func (nw *NodeWatcher) parseNode(node *v1.Node, phase NodePhase) *Node {
+	isReady, isOutOfDisk := nw.getReadyAndOutOfDiskConditions(node)
 	cpuCapQuantity := node.Status.Capacity["cpu"]
 	cpuAllocQuantity := node.Status.Allocatable["cpu"]
 	memCapQuantity := node.Status.Capacity["memory"]
@@ -110,8 +111,8 @@ func (this *NodeWatcher) parseNode(node *v1.Node, phase NodePhase) *Node {
 		Phase:            phase,
 		IsReady:          isReady,
 		IsOutOfDisk:      isOutOfDisk,
-		CpuCapacity:      cpuCapQuantity.MilliValue(),
-		CpuAllocatable:   cpuAllocQuantity.MilliValue(),
+		CPUCapacity:      cpuCapQuantity.MilliValue(),
+		CPUAllocatable:   cpuAllocQuantity.MilliValue(),
 		MemCapacityKb:    memCap / bytesToKb,
 		MemAllocatableKb: memAlloc / bytesToKb,
 		Labels:           node.Labels,
@@ -119,50 +120,48 @@ func (this *NodeWatcher) parseNode(node *v1.Node, phase NodePhase) *Node {
 	}
 }
 
-func (this *NodeWatcher) enqueueNodeAddition(key, obj interface{}) {
+func (nw *NodeWatcher) enqueueNodeAddition(key, obj interface{}) {
 	node := obj.(*v1.Node)
 	if node.Spec.Unschedulable {
 		glog.Info("enqueueNodeAddition: received an Unschedulable node", node.Name)
 		return
 	}
-	addedNode := this.parseNode(node, NodeAdded)
-	this.nodeWorkQueue.Add(key, addedNode)
+	addedNode := nw.parseNode(node, NodeAdded)
+	nw.nodeWorkQueue.Add(key, addedNode)
 	glog.Info("enqueueNodeAdition: Added node ", addedNode.Hostname)
 }
 
-func (this *NodeWatcher) enqueueNodeUpdate(key, oldObj, newObj interface{}) {
+func (nw *NodeWatcher) enqueueNodeUpdate(key, oldObj, newObj interface{}) {
 	// XXX(ionel): enqueueNodeUpdate gets called whenever one of node's timestamp is updated. Figure out solution such that the method is called only when certain fields change.
 	oldNode := oldObj.(*v1.Node)
 	newNode := newObj.(*v1.Node)
 	if oldNode.Spec.Unschedulable != newNode.Spec.Unschedulable {
 		if oldNode.Spec.Unschedulable {
-			addedNode := this.parseNode(newNode, NodeAdded)
-			this.nodeWorkQueue.Add(key, addedNode)
+			addedNode := nw.parseNode(newNode, NodeAdded)
+			nw.nodeWorkQueue.Add(key, addedNode)
 			glog.Info("enqueueNodeUpdate: Added node ", addedNode.Hostname)
 			return
-		} else {
-			// Can not schedule pods on the node any more.
-			deletedNode := this.parseNode(newNode, NodeDeleted)
-			this.nodeWorkQueue.Add(key, deletedNode)
-			glog.Info("enqueueNodeUpdate: Deleted node ", deletedNode.Hostname)
-			return
 		}
+		// Can not schedule pods on the node any more.
+		deletedNode := nw.parseNode(newNode, NodeDeleted)
+		nw.nodeWorkQueue.Add(key, deletedNode)
+		glog.Info("enqueueNodeUpdate: Deleted node ", deletedNode.Hostname)
+		return
 	}
-	oldIsReady, oldIsOutOfDisk := this.getReadyAndOutOfDiskConditions(oldNode)
-	newIsReady, newIsOutOfDisk := this.getReadyAndOutOfDiskConditions(newNode)
+	oldIsReady, oldIsOutOfDisk := nw.getReadyAndOutOfDiskConditions(oldNode)
+	newIsReady, newIsOutOfDisk := nw.getReadyAndOutOfDiskConditions(newNode)
 
 	if oldIsReady != newIsReady || oldIsOutOfDisk != newIsOutOfDisk {
 		if newIsReady && !newIsOutOfDisk {
-			addedNode := this.parseNode(newNode, NodeAdded)
-			this.nodeWorkQueue.Add(key, addedNode)
+			addedNode := nw.parseNode(newNode, NodeAdded)
+			nw.nodeWorkQueue.Add(key, addedNode)
 			glog.Info("enqueueNodeUpdate: Added node ", addedNode.Hostname)
 			return
-		} else {
-			failedNode := this.parseNode(newNode, NodeFailed)
-			this.nodeWorkQueue.Add(key, failedNode)
-			glog.Info("enqueueNodeUpdate: Failed node ", failedNode.Hostname)
-			return
 		}
+		failedNode := nw.parseNode(newNode, NodeFailed)
+		nw.nodeWorkQueue.Add(key, failedNode)
+		glog.Info("enqueueNodeUpdate: Failed node ", failedNode.Hostname)
+		return
 	}
 	nodeUpdated := false
 	if !reflect.DeepEqual(oldNode.Labels, newNode.Labels) {
@@ -172,13 +171,13 @@ func (this *NodeWatcher) enqueueNodeUpdate(key, oldObj, newObj interface{}) {
 		nodeUpdated = true
 	}
 	if nodeUpdated {
-		updatedNode := this.parseNode(newNode, NodeUpdated)
-		this.nodeWorkQueue.Add(key, updatedNode)
+		updatedNode := nw.parseNode(newNode, NodeUpdated)
+		nw.nodeWorkQueue.Add(key, updatedNode)
 		glog.Info("enqueueNodeUpdate: Updated node ", updatedNode.Hostname)
 	}
 }
 
-func (this *NodeWatcher) enqueueNodeDeletion(key, obj interface{}) {
+func (nw *NodeWatcher) enqueueNodeDeletion(key, obj interface{}) {
 	node := obj.(*v1.Node)
 	if node.Spec.Unschedulable {
 		// Poseidon doesn't case about Unschedulable nodes.
@@ -188,38 +187,39 @@ func (this *NodeWatcher) enqueueNodeDeletion(key, obj interface{}) {
 		Hostname: node.Name,
 		Phase:    NodeDeleted,
 	}
-	this.nodeWorkQueue.Add(key, deletedNode)
+	nw.nodeWorkQueue.Add(key, deletedNode)
 	glog.Info("enqueueNodeDeletion: Added node ", deletedNode.Hostname)
 }
 
-func (this *NodeWatcher) Run(stopCh <-chan struct{}, nWorkers int) {
+// Run starts node watcher.
+func (nw *NodeWatcher) Run(stopCh <-chan struct{}, nWorkers int) {
 	defer utilruntime.HandleCrash()
 
 	// The workers can stop when we are done.
-	defer this.nodeWorkQueue.ShutDown()
+	defer nw.nodeWorkQueue.ShutDown()
 	defer glog.Info("Shutting down NodeWatcher")
 	glog.Info("Geting node updates...")
 
-	go this.controller.Run(stopCh)
+	go nw.controller.Run(stopCh)
 
-	if !cache.WaitForCacheSync(stopCh, this.controller.HasSynced) {
+	if !cache.WaitForCacheSync(stopCh, nw.controller.HasSynced) {
 		utilruntime.HandleError(fmt.Errorf("Timed out waiting for caches to sync"))
 		return
 	}
 
 	glog.Info("Starting node watching workers")
 	for i := 0; i < nWorkers; i++ {
-		go wait.Until(this.nodeWorker, time.Second, stopCh)
+		go wait.Until(nw.nodeWorker, time.Second, stopCh)
 	}
 
 	<-stopCh
 	glog.Info("Stopping node watcher")
 }
 
-func (this *NodeWatcher) nodeWorker() {
+func (nw *NodeWatcher) nodeWorker() {
 	for {
 		func() {
-			key, items, quit := this.nodeWorkQueue.Get()
+			key, items, quit := nw.nodeWorkQueue.Get()
 			if quit {
 				return
 			}
@@ -228,7 +228,7 @@ func (this *NodeWatcher) nodeWorker() {
 				switch node.Phase {
 				case NodeAdded:
 					NodesCond.L.Lock()
-					rtnd := this.createResourceTopologyForNode(node)
+					rtnd := nw.createResourceTopologyForNode(node)
 					_, ok := NodeToRTND[node.Hostname]
 					if ok {
 						glog.Fatalf("Node %s already exists", node.Hostname)
@@ -236,7 +236,7 @@ func (this *NodeWatcher) nodeWorker() {
 					NodeToRTND[node.Hostname] = rtnd
 					ResIDToNode[rtnd.GetResourceDesc().GetUuid()] = node.Hostname
 					NodesCond.L.Unlock()
-					firmament.NodeAdded(this.fc, rtnd)
+					firmament.NodeAdded(nw.fc, rtnd)
 				case NodeDeleted:
 					NodesCond.L.Lock()
 					rtnd, ok := NodeToRTND[node.Hostname]
@@ -245,7 +245,7 @@ func (this *NodeWatcher) nodeWorker() {
 						glog.Fatalf("Node %s does not exist", node.Hostname)
 					}
 					resID := rtnd.GetResourceDesc().GetUuid()
-					firmament.NodeRemoved(this.fc, &firmament.ResourceUID{ResourceUid: resID})
+					firmament.NodeRemoved(nw.fc, &firmament.ResourceUID{ResourceUid: resID})
 					NodesCond.L.Lock()
 					delete(NodeToRTND, node.Hostname)
 					delete(ResIDToNode, resID)
@@ -258,9 +258,9 @@ func (this *NodeWatcher) nodeWorker() {
 						glog.Fatalf("Node %s does not exist", node.Hostname)
 					}
 					resID := rtnd.GetResourceDesc().GetUuid()
-					firmament.NodeFailed(this.fc, &firmament.ResourceUID{ResourceUid: resID})
+					firmament.NodeFailed(nw.fc, &firmament.ResourceUID{ResourceUid: resID})
 					NodesCond.L.Lock()
-					this.cleanResourceStateForNode(rtnd)
+					nw.cleanResourceStateForNode(rtnd)
 					delete(NodeToRTND, node.Hostname)
 					delete(ResIDToNode, resID)
 					NodesCond.L.Unlock()
@@ -271,38 +271,38 @@ func (this *NodeWatcher) nodeWorker() {
 					if !ok {
 						glog.Fatalf("Node %s does not exist", node.Hostname)
 					}
-					firmament.NodeUpdated(this.fc, rtnd)
+					firmament.NodeUpdated(nw.fc, rtnd)
 				default:
 					glog.Fatalf("Unexpected node %s phase %s", node.Hostname, node.Phase)
 				}
 			}
-			defer this.nodeWorkQueue.Done(key)
+			defer nw.nodeWorkQueue.Done(key)
 		}()
 	}
 }
 
-func (this *NodeWatcher) cleanResourceStateForNode(rtnd *firmament.ResourceTopologyNodeDescriptor) {
+func (nw *NodeWatcher) cleanResourceStateForNode(rtnd *firmament.ResourceTopologyNodeDescriptor) {
 	delete(ResIDToNode, rtnd.GetResourceDesc().GetUuid())
 	for _, childRTND := range rtnd.GetChildren() {
-		this.cleanResourceStateForNode(childRTND)
+		nw.cleanResourceStateForNode(childRTND)
 	}
 }
 
-func (this *NodeWatcher) createResourceTopologyForNode(node *Node) *firmament.ResourceTopologyNodeDescriptor {
-	resUuid := this.generateResourceID(node.Hostname)
+func (nw *NodeWatcher) createResourceTopologyForNode(node *Node) *firmament.ResourceTopologyNodeDescriptor {
+	resUUID := nw.generateResourceID(node.Hostname)
 	rtnd := &firmament.ResourceTopologyNodeDescriptor{
 		ResourceDesc: &firmament.ResourceDescriptor{
-			Uuid:         resUuid,
+			Uuid:         resUUID,
 			Type:         firmament.ResourceDescriptor_RESOURCE_MACHINE,
 			State:        firmament.ResourceDescriptor_RESOURCE_IDLE,
 			FriendlyName: node.Hostname,
 			ResourceCapacity: &firmament.ResourceVector{
 				RamCap:   uint64(node.MemCapacityKb),
-				CpuCores: float32(node.CpuCapacity),
+				CpuCores: float32(node.CPUCapacity),
 			},
 		},
 	}
-	ResIDToNode[resUuid] = node.Hostname
+	ResIDToNode[resUUID] = node.Hostname
 	// TODO(ionel) Add annotations.
 	// Add labels.
 	for label, value := range node.Labels {
@@ -316,27 +316,27 @@ func (this *NodeWatcher) createResourceTopologyForNode(node *Node) *firmament.Re
 	// We currently only create a PU per machine because Heapster doesn't
 	// provide per PU/core statistics.
 	friendlyName := node.Hostname + "_PU #0"
-	puUuid := this.generateResourceID(friendlyName)
+	puUUID := nw.generateResourceID(friendlyName)
 	puRtnd := &firmament.ResourceTopologyNodeDescriptor{
 		ResourceDesc: &firmament.ResourceDescriptor{
-			Uuid:         puUuid,
+			Uuid:         puUUID,
 			Type:         firmament.ResourceDescriptor_RESOURCE_PU,
 			State:        firmament.ResourceDescriptor_RESOURCE_IDLE,
 			FriendlyName: friendlyName,
 			Labels:       rtnd.ResourceDesc.Labels,
 			ResourceCapacity: &firmament.ResourceVector{
 				RamCap:   uint64(node.MemCapacityKb),
-				CpuCores: float32(node.CpuCapacity),
+				CpuCores: float32(node.CPUCapacity),
 			},
 		},
-		ParentId: resUuid,
+		ParentId: resUUID,
 	}
 	rtnd.Children = append(rtnd.Children, puRtnd)
-	ResIDToNode[puUuid] = node.Hostname
+	ResIDToNode[puUUID] = node.Hostname
 
 	return rtnd
 }
 
-func (this *NodeWatcher) generateResourceID(seed string) string {
+func (nw *NodeWatcher) generateResourceID(seed string) string {
 	return GenerateUUID(seed)
 }

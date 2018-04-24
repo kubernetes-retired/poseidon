@@ -52,7 +52,7 @@ func BuildFirmamentResourceDescriptor(
 	uuid, friendlyName string,
 	cpuCores float32,
 	ramCap uint64,
-	coreOneUuid, coreOnefriendlyName string) *firmament.ResourceTopologyNodeDescriptor {
+	coreOneUUID, coreOnefriendlyName string) *firmament.ResourceTopologyNodeDescriptor {
 
 	return &firmament.ResourceTopologyNodeDescriptor{
 		ResourceDesc: &firmament.ResourceDescriptor{
@@ -68,7 +68,7 @@ func BuildFirmamentResourceDescriptor(
 		Children: []*firmament.ResourceTopologyNodeDescriptor{
 			{
 				ResourceDesc: &firmament.ResourceDescriptor{
-					Uuid:         coreOneUuid,
+					Uuid:         coreOneUUID,
 					FriendlyName: coreOnefriendlyName,
 					State:        firmament.ResourceDescriptor_RESOURCE_IDLE,
 					ResourceCapacity: &firmament.ResourceVector{
@@ -193,8 +193,8 @@ func TestNodeWatcher_parseNode(t *testing.T) {
 				Phase:            NodeAdded,
 				IsReady:          false,
 				IsOutOfDisk:      false,
-				CpuCapacity:      10000,
-				CpuAllocatable:   0,
+				CPUCapacity:      10000,
+				CPUAllocatable:   0,
 				MemCapacityKb:    9765625,
 				MemAllocatableKb: 0,
 				Labels:           nil,
@@ -234,8 +234,8 @@ func TestNodeWatcher_enqueueNodeAddition(t *testing.T) {
 				Phase:            NodeAdded,
 				IsReady:          false,
 				IsOutOfDisk:      false,
-				CpuCapacity:      10000,
-				CpuAllocatable:   0,
+				CPUCapacity:      10000,
+				CPUAllocatable:   0,
 				MemCapacityKb:    9765625,
 				MemAllocatableKb: 0,
 				Labels:           nil,
@@ -255,8 +255,8 @@ func TestNodeWatcher_enqueueNodeAddition(t *testing.T) {
 				Phase:            NodeAdded,
 				IsReady:          false,
 				IsOutOfDisk:      false,
-				CpuCapacity:      10000,
-				CpuAllocatable:   0,
+				CPUCapacity:      10000,
+				CPUAllocatable:   0,
 				MemCapacityKb:    9765625,
 				MemAllocatableKb: 0,
 				Labels:           nil,
@@ -312,8 +312,8 @@ func TestNodeWatcher_createResourceTopologyForNode(t *testing.T) {
 				Phase:            NodeAdded,
 				IsReady:          false,
 				IsOutOfDisk:      false,
-				CpuCapacity:      1000,
-				CpuAllocatable:   0,
+				CPUCapacity:      1000,
+				CPUAllocatable:   0,
 				MemCapacityKb:    9765625,
 				MemAllocatableKb: 0,
 				Labels:           nil,
@@ -332,8 +332,8 @@ func TestNodeWatcher_createResourceTopologyForNode(t *testing.T) {
 				Phase:            NodeAdded,
 				IsReady:          true,
 				IsOutOfDisk:      false,
-				CpuCapacity:      1000,
-				CpuAllocatable:   0,
+				CPUCapacity:      1000,
+				CPUAllocatable:   0,
 				MemCapacityKb:    2048,
 				MemAllocatableKb: 0,
 				Labels:           nil,

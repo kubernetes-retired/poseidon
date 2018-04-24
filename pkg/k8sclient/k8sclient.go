@@ -29,6 +29,7 @@ import (
 
 var clientSet kubernetes.Interface
 
+// BindPodToNode call Kubernetes API to place a pod on a node.
 func BindPodToNode(podName string, namespace string, nodeName string) {
 	err := clientSet.CoreV1().Pods(namespace).Bind(&v1.Binding{
 		TypeMeta: meta_v1.TypeMeta{},
@@ -44,10 +45,12 @@ func BindPodToNode(podName string, namespace string, nodeName string) {
 	}
 }
 
+// DeletePod calls Kubernetes API to delete a Pod by its namespace and name.
 func DeletePod(podName string, namespace string) {
 	clientSet.CoreV1().Pods(namespace).Delete(podName, &meta_v1.DeleteOptions{})
 }
 
+// GetClientConfig returns a kubeconfig object which to be passed to a Kubernetes client on initialization.
 func GetClientConfig(kubeconfig string) (*rest.Config, error) {
 	if kubeconfig != "" {
 		return clientcmd.BuildConfigFromFlags("", kubeconfig)
@@ -55,6 +58,7 @@ func GetClientConfig(kubeconfig string) (*rest.Config, error) {
 	return rest.InClusterConfig()
 }
 
+// New initializes a firmament and Kubernetes client and starts watching Pod and Node.
 func New(schedulerName string, kubeConfig string, kubeVersionMajor, kubeVersionMinor int, firmamentAddress string) {
 	config, err := GetClientConfig(kubeConfig)
 	if err != nil {

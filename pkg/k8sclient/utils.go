@@ -32,6 +32,7 @@ var (
 	uuidMutex sync.Mutex
 )
 
+// GenerateUUID is used to generate a UUID.
 func GenerateUUID(seed string) string {
 	var stringUUID string
 	// Lock with muex because we change the rand source.
@@ -59,6 +60,7 @@ func hash(valueOne interface{}) uint64 {
 	return newHash.Sum64()
 }
 
+// HashCombine combines two values into a new hash code.
 func HashCombine(valueOne, valueTwo interface{}) uint64 {
 	newHash := fnv.New64()
 	valueOneBytes := getBytes(valueOne)
