@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2014 The Kubernetes Authors.
+# Copyright 2017 The Kubernetes Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,21 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This script sets up a go workspace locally and builds all for all appropriate
-# platforms.
-
 set -o errexit
 set -o nounset
 set -o pipefail
 
-KUBE_ROOT=$(dirname "${BASH_SOURCE}")/../..
+KUBE_ROOT=$(dirname "${BASH_SOURCE}")/..
 source "${KUBE_ROOT}/hack/lib/init.sh"
+source "${KUBE_ROOT}/hack/lib/util.sh"
 
-# NOTE: Using "${array[*]}" here is correct.  [@] becomes distinct words (in
-# bash parlance).
+kube::log::status "Restoring kubernetes godeps"
 
-make all WHAT="${KUBE_SERVER_TARGETS[*]}" KUBE_BUILD_PLATFORMS="${KUBE_SERVER_PLATFORMS[*]}"
+if kube::util::godep_restored >/dev/null 2>&1; then
+    kube::log::status "Dependencies appear to be current - skipping download"
+    exit 0
+fi
 
-make all WHAT="${KUBE_TEST_TARGETS[*]}" KUBE_BUILD_PLATFORMS="${KUBE_TEST_PLATFORMS[*]}"
+kube::util::ensure_godep_version
 
-make all WHAT="${KUBE_TEST_SERVER_TARGETS[*]}" KUBE_BUILD_PLATFORMS="${KUBE_TEST_SERVER_PLATFORMS[*]}"
+kube::log::status "Downloading dependencies - this might take a while"
+GOPATH="${GOPATH}:${KUBE_ROOT}/staging" godep restore "$@"
+kube::log::status "Done"

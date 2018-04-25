@@ -50,51 +50,15 @@ kube::test::find_dirs() {
           -o -path './bazel-*/*' \
           -o -path './_output/*' \
           -o -path './_gopath/*' \
-          -o -path './cmd/kubeadm/test/*' \
-          -o -path './contrib/podex/*' \
           -o -path './output/*' \
           -o -path './release/*' \
           -o -path './target/*' \
           -o -path './test/e2e/*' \
-          -o -path './test/e2e_node/*' \
           -o -path './test/integration/*' \
-          -o -path './third_party/*' \
-          -o -path './staging/*' \
           -o -path './vendor/*' \
+          -o -path './poseidon/test/*' \
         \) -prune \
       \) -name '*_test.go' -print0 | xargs -0n1 dirname | sed "s|^\./|${KUBE_GO_PACKAGE}/|" | LC_ALL=C sort -u
-
-    find -L . \
-        -path './_output' -prune \
-        -o -path './vendor/k8s.io/client-go/*' \
-        -o -path './vendor/k8s.io/apiserver/*' \
-        -o -path './test/e2e_node/system/*' \
-      -name '*_test.go' -print0 | xargs -0n1 dirname | sed "s|^\./|${KUBE_GO_PACKAGE}/|" | LC_ALL=C sort -u
-
-    # run tests for client-go
-    find ./staging/src/k8s.io/client-go -name '*_test.go' \
-      -name '*_test.go' -print0 | xargs -0n1 dirname | sed 's|^\./staging/src/|./vendor/|' | LC_ALL=C sort -u
-
-    # run tests for apiserver
-    find ./staging/src/k8s.io/apiserver -name '*_test.go' \
-      -name '*_test.go' -print0 | xargs -0n1 dirname | sed 's|^\./staging/src/|./vendor/|' | LC_ALL=C sort -u
-
-    # run tests for apimachinery
-    find ./staging/src/k8s.io/apimachinery -name '*_test.go' \
-      -name '*_test.go' -print0 | xargs -0n1 dirname | sed 's|^\./staging/src/|./vendor/|' | LC_ALL=C sort -u
-
-    find ./staging/src/k8s.io/kube-aggregator -name '*_test.go' \
-      -name '*_test.go' -print0 | xargs -0n1 dirname | sed 's|^\./staging/src/|./vendor/|' | LC_ALL=C sort -u
-
-    find ./staging/src/k8s.io/apiextensions-apiserver -not \( \
-        \( \
-          -path '*/test/integration/*' \
-        \) -prune \
-      \) -name '*_test.go' \
-      -name '*_test.go' -print0 | xargs -0n1 dirname | sed 's|^\./staging/src/|./vendor/|' | LC_ALL=C sort -u
-
-    find ./staging/src/k8s.io/sample-apiserver -name '*_test.go' \
-      -name '*_test.go' -print0 | xargs -0n1 dirname | sed 's|^\./staging/src/|./vendor/|' | LC_ALL=C sort -u
   )
 }
 
@@ -112,7 +76,7 @@ KUBE_GOVERALLS_BIN=${KUBE_GOVERALLS_BIN:-}
 # "v1,compute/v1alpha1,experimental/v1alpha2;v1,compute/v2,experimental/v1alpha3"
 # FIXME: due to current implementation of a test client (see: pkg/api/testapi/testapi.go)
 # ONLY the last version is tested in each group.
-ALL_VERSIONS_CSV=$(IFS=',';echo "${KUBE_AVAILABLE_GROUP_VERSIONS[*]// /,}";IFS=$)
+ALL_VERSIONS_CSV=$(IFS=',';echo "${KUBE_AVAILABLE_GROUP_VERSIONS[*]// /,}";IFS=$),federation/v1beta1
 KUBE_TEST_API_VERSIONS="${KUBE_TEST_API_VERSIONS:-${ALL_VERSIONS_CSV}}"
 # once we have multiple group supports
 # Create a junit-style XML test report in this directory if set.

@@ -14,21 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This script sets up a go workspace locally and builds all for all appropriate
-# platforms.
+# Run a bash script in the Docker build image.
+#
+# This container will have a snapshot of the current sources.
 
 set -o errexit
 set -o nounset
 set -o pipefail
 
-KUBE_ROOT=$(dirname "${BASH_SOURCE}")/../..
-source "${KUBE_ROOT}/hack/lib/init.sh"
+KUBE_ROOT=$(dirname "${BASH_SOURCE}")/..
+source "${KUBE_ROOT}/build/common.sh"
 
-# NOTE: Using "${array[*]}" here is correct.  [@] becomes distinct words (in
-# bash parlance).
-
-make all WHAT="${KUBE_SERVER_TARGETS[*]}" KUBE_BUILD_PLATFORMS="${KUBE_SERVER_PLATFORMS[*]}"
-
-make all WHAT="${KUBE_TEST_TARGETS[*]}" KUBE_BUILD_PLATFORMS="${KUBE_TEST_PLATFORMS[*]}"
-
-make all WHAT="${KUBE_TEST_SERVER_TARGETS[*]}" KUBE_BUILD_PLATFORMS="${KUBE_TEST_SERVER_PLATFORMS[*]}"
+KUBE_RUN_COPY_OUTPUT="${KUBE_RUN_COPY_OUTPUT:-n}" "${KUBE_ROOT}/build/run.sh" bash "$@"
