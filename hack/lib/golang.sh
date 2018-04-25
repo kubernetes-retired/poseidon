@@ -124,7 +124,6 @@ readonly KUBE_TEST_BINARIES=("${KUBE_TEST_TARGETS[@]##*/}")
 readonly KUBE_TEST_BINARIES_WIN=("${KUBE_TEST_BINARIES[@]/%/.exe}")
 # If you update this list, please also update build/BUILD.
 readonly KUBE_TEST_PORTABLE=(
-  hack/e2e-internal
   hack/get-build.sh
   hack/ginkgo-e2e.sh
   hack/poseidon-ginkgo-e2e.sh
