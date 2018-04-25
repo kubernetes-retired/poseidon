@@ -14,4 +14,8 @@
 
 FROM BASEIMAGE
 
-COPY poseidon /poseidon
+ADD poseidon /
+
+EXPOSE 9091
+
+ENTRYPOINT ["/poseidon", "--log_dir=/"]

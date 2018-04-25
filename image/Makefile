@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Build the fcp image.
+# Build the poseidon image.
 #
 # Usage:
 #   [ARCH=amd64] [REGISTRY="gcr.io/google-containers"] make (build|push) 
@@ -24,8 +24,7 @@ ARCH?=amd64
 POSEIDON_BIN?=_output/dockerized/bin/linux/$(ARCH)/poseidon
 VERSION?=1.0
 
-# TODO(@irfan) : do we need to rather build our own image from scratch
-BASEIMAGE=gcr.io/google-containers/debian-hyperkube-base-$(ARCH):0.7
+BASEIMAGE=scratch
 TEMP_DIR:=$(shell mktemp -d -t poseidonXXXXXX)
 
 all: build
