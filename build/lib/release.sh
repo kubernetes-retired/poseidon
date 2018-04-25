@@ -108,50 +108,6 @@ function kube::release::package_src_tarball() {
   "${TAR}" czf "${RELEASE_TARS}/poseidon-src.tar.gz" -C "${KUBE_ROOT}" "${source_files[@]}"
 }
 
-# Package up all of the node binaries
-function kube::release::package_node_tarballs() {
-  local platform
-  for platform in "${KUBE_NODE_PLATFORMS[@]}"; do
-    local platform_tag=${platform/\//-} # Replace a "/" for a "-"
-    local arch=$(basename ${platform})
-    kube::log::status "Building tarball: node $platform_tag"
-
-    local release_stage="${RELEASE_STAGE}/node/${platform_tag}/kubernetes"
-    rm -rf "${release_stage}"
-    mkdir -p "${release_stage}/node/bin"
-
-    local node_bins=("${KUBE_NODE_BINARIES[@]}")
-    if [[ "${platform%/*}" == "windows" ]]; then
-      node_bins=("${KUBE_NODE_BINARIES_WIN[@]}")
-    fi
-    # This fancy expression will expand to prepend a path
-    # (${LOCAL_OUTPUT_BINPATH}/${platform}/) to every item in the
-    # KUBE_NODE_BINARIES array.
-    cp "${node_bins[@]/#/${LOCAL_OUTPUT_BINPATH}/${platform}/}" \
-      "${release_stage}/node/bin/"
-
-    # TODO: Docker images here
-    # kube::release::create_docker_images_for_server "${release_stage}/server/bin" "${arch}"
-
-    # Include the client binaries here too as they are useful debugging tools.
-    local client_bins=("${KUBE_CLIENT_BINARIES[@]}")
-    if [[ "${platform%/*}" == "windows" ]]; then
-      client_bins=("${KUBE_CLIENT_BINARIES_WIN[@]}")
-    fi
-    cp "${client_bins[@]/#/${LOCAL_OUTPUT_BINPATH}/${platform}/}" \
-      "${release_stage}/node/bin/"
-
-    cp "${KUBE_ROOT}/Godeps/LICENSES" "${release_stage}/"
-
-    cp "${RELEASE_TARS}/kubernetes-src.tar.gz" "${release_stage}/"
-
-    kube::release::clean_cruft
-
-    local package_name="${RELEASE_TARS}/kubernetes-node-${platform_tag}.tar.gz"
-    kube::release::create_tarball "${package_name}" "${release_stage}/.."
-  done
-}
-
 # Package up all of the server binaries
 function kube::release::package_server_tarballs() {
   local platform
@@ -166,7 +122,7 @@ function kube::release::package_server_tarballs() {
     kube::log::status "Building tarball: server $platform_tag"
 
     # Docker tags cannot contain '+'
-    local docker_tag="${KUBE_GIT_VERSION/+/_}"
+    local docker_tag=$(git rev-parse HEAD)
     if [[ -z "${docker_tag}" ]]; then
       kube::log::error "git version information missing; cannot create Docker tag"
       return 1
@@ -272,7 +228,7 @@ function kube::release::create_docker_images_for_server() {
 
     local -r docker_registry="gcr.io/google_containers"
     # Docker tags cannot contain '+'
-    local docker_tag="${KUBE_GIT_VERSION/+/_}"
+    local docker_tag=$(git rev-parse HEAD)
     if [[ -z "${docker_tag}" ]]; then
       kube::log::error "git version information missing; cannot create Docker tag"
       return 1
