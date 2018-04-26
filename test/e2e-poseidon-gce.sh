@@ -18,8 +18,8 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-SCRIPT_ROOT=$(dirname ${BASH_SOURCE})/..
-echo $SCRIPT_ROOT
+SCRIPT_ROOT=$(dirname ${BASH_SOURCE[0]})/..
+echo $SCRIPT_ROOT # ../test/..
 
 #Set environment variables
 BUILD_VERSION=$(git rev-parse HEAD)
@@ -38,24 +38,24 @@ fi
 kube_registry="${KUBE_REGISTRY:-gcr.io/${project}}"
 
 
+# work from the correct path
+cd $(dirname ${BASH_SOURCE[0]})/..
 #Create a poseidon release and extract images and packages in the  _output folder 
-sudo env PATH=$PATH make quick-release
+make quick-release
 
 #Push to Registry
-sudo env PATH=$PATH gcloud docker -- load -i ${POSEIDON_ROOT_DIR}/_output/release-images/amd64/poseidon-amd64.tar
-sudo env PATH=$PATH gcloud docker -- tag "gcr.io/google_containers/poseidon-amd64:${BUILD_VERSION}" "${kube_registry}/poseidon-amd64:${BUILD_VERSION}"
-sudo env PATH=$PATH gcloud docker -- push "${kube_registry}/poseidon-amd64:${BUILD_VERSION}"
-
-echo "pushing done"
+gcloud docker -- load -i _output/release-images/amd64/poseidon-amd64.tar
+gcloud docker -- tag "gcr.io/google_containers/poseidon-amd64:${BUILD_VERSION}" "${kube_registry}/poseidon-amd64:${BUILD_VERSION}"
+gcloud docker -- push "${kube_registry}/poseidon-amd64:${BUILD_VERSION}"
 
 #Extract Deployment files and place in the deploy folder
-sudo env PATH=$PATH tar -xzf ${POSEIDON_ROOT_DIR}/_output/release-tars/poseidon-src.tar.gz -C /tmp/
-cp /tmp/deploy/*.yaml ${POSEIDON_ROOT_DIR}/deploy/.
+tar -xzf _output/release-tars/poseidon-src.tar.gz -C /tmp/
+cp /tmp/deploy/*.yaml deploy/.
 
 
 # setup the env and correct test directory
 export KUBECONFIG=$HOME/.kube/config
-cd ${POSEIDON_ROOT_DIR}/test/e2e
+cd test/e2e
 
 # update the poseidon deployment yaml with the correct image
 sed -i "s/gcr.io\/poseidon-173606\/poseidon:latest/gcr.io\/$project\/poseidon-amd64:${BUILD_VERSION}/" $POSEIDON_MANIFEST_FILE_PATH
