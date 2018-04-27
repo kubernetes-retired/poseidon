@@ -54,7 +54,6 @@ cp /tmp/deploy/*.yaml deploy/.
 
 
 # setup the env and correct test directory
-export KUBECONFIG=$HOME/.kube/config
 cd test/e2e
 
 # update the poseidon deployment yaml with the correct image
@@ -62,5 +61,5 @@ sed -i "s/gcr.io\/poseidon-173606\/poseidon:latest/gcr.io\/$project\/poseidon-am
 
 #Run e2e test
 #go test -v ${SCRIPT_ROOT}/test/e2e/*go -args -kubeconfig=/home/ubuntu/.kube/config -firmamentManifestPath=${FIRMAMENT_MANIFEST_FILE_PATH} -poseidonManifestPath=${POSEIDON_MANIFEST_FILE_PATH}
-go test -v . -args -kubeconfig=/home/ubuntu/.kube/config -firmamentManifestPath=${FIRMAMENT_MANIFEST_FILE_PATH} -poseidonManifestPath=${POSEIDON_MANIFEST_FILE_PATH}
+go test -v . -args -firmamentManifestPath=${FIRMAMENT_MANIFEST_FILE_PATH} -poseidonManifestPath=${POSEIDON_MANIFEST_FILE_PATH}
 
