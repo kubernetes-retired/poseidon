@@ -120,6 +120,11 @@ func (f *Framework) BeforeEach() {
 	err = f.CreatePoseidon()
 	Expect(err).NotTo(HaveOccurred())
 
+	go f.GetallPodsinallNamespace()
+
+	go f.DescribePoseidonDeployment()
+	go f.DescribeFirmamentDeployment()
+
 	go f.FetchLogsforFirmament()
 	go f.FetchLogsforPoseidon()
 
@@ -348,9 +353,11 @@ func (f *Framework) LogPodsWithLabels(ns string, match map[string]string, logFun
 		logFunc("Error getting pods in namespace %q: %v", ns, err)
 		return
 	}
-	logFunc("Running kubectl logs on pods with labels %v in %v", match, ns)
-	for _, pod := range podList.Items {
-		kubectlLogPod(f.ClientSet, pod, "", logFunc)
+	if len(podList.Items) > 0 {
+		logFunc("Running kubectl logs on pods with labels %v in %v", match, ns)
+		for _, pod := range podList.Items {
+			kubectlLogPod(f.ClientSet, pod, "", logFunc)
+		}
 	}
 }
 
@@ -459,4 +466,97 @@ func countRemainingPods(c clientset.Interface, namespace string) (int, int, erro
 		}
 	}
 	return numPods, missingTimestamp, nil
+}
+
+func (f *Framework) KubectlExecDescribeDeployment(deploymentName string, ns string) (string, string, error) {
+	var stdout, stderr bytes.Buffer
+	cmdArgs := []string{
+		fmt.Sprintf("describe"),
+		fmt.Sprintf("deployment"),
+		fmt.Sprintf("%v", deploymentName),
+		fmt.Sprintf("-n"),
+		fmt.Sprintf("%v", ns),
+	}
+	cmd := KubectlCmd(cmdArgs...)
+	cmd.Stdout, cmd.Stderr = &stdout, &stderr
+	Logf("Running '%s %s'", cmd.Path, strings.Join(cmdArgs, " "))
+	err := cmd.Run()
+
+	if err != nil {
+		Logf("Unable to describe %v %v", stdout.String(), stderr.String())
+	}
+
+	return stdout.String(), stderr.String(), err
+}
+
+func (f *Framework) DescribeFirmamentDeployment() error {
+
+	// wait for namespace to delete or timeout.
+	err := wait.PollImmediate(2*time.Second, 10*time.Minute, func() (bool, error) {
+		outputStr, errorStr, _ := f.KubectlExecDescribeDeployment("firmament-scheduler", "kube-system")
+
+		Logf("DescribeFirmamentDeployment error string %v", errorStr)
+		Logf("DescribeFirmamentDeployment output string %v", outputStr)
+
+		return false, nil
+	})
+
+	if err != nil {
+		Logf("DescribeFirmamentDeployment error : %v,", err)
+	}
+
+	return err
+}
+
+func (f *Framework) DescribePoseidonDeployment() error {
+
+	// wait for namespace to delete or timeout.
+	err := wait.PollImmediate(2*time.Second, 10*time.Minute, func() (bool, error) {
+		outputStr, errorStr, _ := f.KubectlExecDescribeDeployment("poseidon", "kube-system")
+		Logf("DescribePoseidonDeployment error string %v", errorStr)
+		Logf("DescribePoseidonDeployment output string %v", outputStr)
+
+		return false, nil
+	})
+
+	if err != nil {
+		Logf("DescribePoseidonDeployment error : %v,", err)
+	}
+	return err
+}
+
+func (f *Framework) KubectlExecAllPodsNamespace() (string, string, error) {
+	var stdout, stderr bytes.Buffer
+	cmdArgs := []string{
+		fmt.Sprintf("get"),
+		fmt.Sprintf("pods"),
+		fmt.Sprintf("--all-namespaces"),
+	}
+	cmd := KubectlCmd(cmdArgs...)
+	cmd.Stdout, cmd.Stderr = &stdout, &stderr
+	Logf("Running '%s %s'", cmd.Path, strings.Join(cmdArgs, " "))
+	err := cmd.Run()
+
+	if err != nil {
+		Logf("Unable to get all  %v %v", stdout.String(), stderr.String())
+	}
+
+	return stdout.String(), stderr.String(), err
+}
+
+func (f *Framework) GetallPodsinallNamespace() error {
+
+	// wait for namespace to delete or timeout.
+	err := wait.PollImmediate(2*time.Second, 10*time.Minute, func() (bool, error) {
+		outputStr, errorStr, _ := f.KubectlExecAllPodsNamespace()
+		Logf("GetallPodsinallNamespace error string %v", errorStr)
+		Logf("GetallPodsinallNamespace output string %v", outputStr)
+		return false, nil
+	})
+
+	if err != nil {
+		Logf("GetallPodsinallNamespace error : %v,", err)
+	}
+
+	return err
 }
