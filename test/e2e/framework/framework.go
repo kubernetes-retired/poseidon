@@ -19,6 +19,7 @@ package framework
 import (
 	"flag"
 	"os"
+	"strconv"
 	"time"
 
 	"bytes"
@@ -28,6 +29,7 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -112,6 +114,9 @@ func (f *Framework) BeforeEach() {
 
 	err = f.CreatePoseidon()
 	Expect(err).NotTo(HaveOccurred())
+
+	go f.FetchLogsforFirmament()
+	go f.FetchLogsforPoseidon()
 
 }
 
@@ -288,4 +293,99 @@ func (f *Framework) KubectlExecDelete(manifestPath string) (string, string, erro
 	}
 
 	return stdout.String(), stderr.String(), err
+}
+
+// FetchLogsforPoseidon will get the Poseidon and firmament deplyment logs
+func (f *Framework) FetchLogsforPoseidon() {
+	matchLabel := map[string]string{
+		"component": "poseidon",
+	}
+
+	// wait for namespace to delete or timeout.
+	err := wait.PollImmediate(2*time.Second, 10*time.Minute, func() (bool, error) {
+		// As poseidon and firmament run in kube-system namespaces we need to pass the correct ns here
+		f.LogPodsWithLabels("kube-system", matchLabel, Logf)
+		return false, nil
+	})
+
+	if err != nil {
+		Logf("FetchLogsforPoseidon error : %v,", err)
+	}
+
+}
+
+// FetchLogsforPoseidon will get the Poseidon and firmament deplyment logs
+func (f *Framework) FetchLogsforFirmament() {
+	matchLabel := map[string]string{
+		"scheduler": "firmament",
+	}
+
+	// wait for namespace to delete or timeout.
+	err := wait.PollImmediate(2*time.Second, 10*time.Minute, func() (bool, error) {
+		// As poseidon and firmament run in kube-system namespaces we need to pass the correct ns here
+		f.LogPodsWithLabels("kube-system", matchLabel, Logf)
+		return false, nil
+	})
+
+	if err != nil {
+		Logf("FetchLogsforFrimament error : %v,", err)
+	}
+
+}
+
+func (f *Framework) LogPodsWithLabels(ns string, match map[string]string, logFunc func(ftm string, args ...interface{})) {
+	podList, err := f.ClientSet.CoreV1().Pods(ns).List(metav1.ListOptions{LabelSelector: labels.SelectorFromSet(match).String()})
+	if err != nil {
+		logFunc("Error getting pods in namespace %q: %v", ns, err)
+		return
+	}
+	logFunc("Running kubectl logs on pods with labels %v in %v", match, ns)
+	for _, pod := range podList.Items {
+		kubectlLogPod(f.ClientSet, pod, "", logFunc)
+	}
+}
+
+func kubectlLogPod(c clientset.Interface, pod v1.Pod, containerNameSubstr string, logFunc func(ftm string, args ...interface{})) {
+	for _, container := range pod.Spec.Containers {
+		if strings.Contains(container.Name, containerNameSubstr) {
+			logFunc("fetching logs for %v in pod %v", container.Name, pod.Name)
+			// Contains() matches all strings if substr is empty
+			logs, err := GetPodLogs(c, pod.Namespace, pod.Name, container.Name)
+			if err != nil {
+				logs, err = getPreviousPodLogs(c, pod.Namespace, pod.Name, container.Name)
+				if err != nil {
+					logFunc("Failed to get logs of pod %v, container %v, err: %v", pod.Name, container.Name, err)
+				}
+			}
+			logFunc("Logs of %v/%v:%v on node %v", pod.Namespace, pod.Name, container.Name, pod.Spec.NodeName)
+			logFunc("%s : STARTLOG\n%s\nENDLOG for container %v:%v:%v", containerNameSubstr, logs, pod.Namespace, pod.Name, container.Name)
+		}
+	}
+}
+
+func GetPodLogs(c clientset.Interface, namespace, podName, containerName string) (string, error) {
+	return getPodLogsInternal(c, namespace, podName, containerName, false)
+}
+
+// utility function for gomega Eventually
+func getPodLogsInternal(c clientset.Interface, namespace, podName, containerName string, previous bool) (string, error) {
+	logs, err := c.CoreV1().RESTClient().Get().
+		Resource("pods").
+		Namespace(namespace).
+		Name(podName).SubResource("log").
+		Param("container", containerName).
+		Param("previous", strconv.FormatBool(previous)).
+		Do().
+		Raw()
+	if err != nil {
+		return "", err
+	}
+	if err == nil && strings.Contains(string(logs), "Internal Error") {
+		return "", fmt.Errorf("Fetched log contains \"Internal Error\": %q.", string(logs))
+	}
+	return string(logs), err
+}
+
+func getPreviousPodLogs(c clientset.Interface, namespace, podName, containerName string) (string, error) {
+	return getPodLogsInternal(c, namespace, podName, containerName, true)
 }
