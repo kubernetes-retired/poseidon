@@ -106,6 +106,11 @@ func (f *Framework) BeforeEach() {
 		f.ClientSet = cs
 
 	}
+
+	_ = f.deleteNamespace(f.TestingNS)
+	_ = f.DeletePoseidon()
+	_ = f.DeleteFirmament()
+
 	f.Namespace, err = f.createNamespace(f.ClientSet)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -129,7 +134,7 @@ func (f *Framework) AfterEach() {
 		Expect(f.ClientSet).To(Not(Equal(nil)))
 	}
 	Logf("Delete namespace called")
-	err = f.deleteNamespace()
+	err = f.deleteNamespace(f.TestingNS)
 	Expect(err).NotTo(HaveOccurred())
 
 	err = f.DeletePoseidon()
@@ -162,15 +167,15 @@ func (f *Framework) WaitForPodNoLongerRunning(podName string) error {
 	return WaitForPodNoLongerRunningInNamespace(f.ClientSet, podName, f.Namespace.Name)
 }
 
-func (f *Framework) deleteNamespace() error {
+func (f *Framework) deleteNamespace(nsName string) error {
 
-	if err := f.ClientSet.CoreV1().Namespaces().Delete(f.Namespace.Name, nil); err != nil {
+	if err := f.ClientSet.CoreV1().Namespaces().Delete(nsName, nil); err != nil {
 		return err
 	}
 
 	// wait for namespace to delete or timeout.
 	err := wait.PollImmediate(2*time.Second, 10*time.Minute, func() (bool, error) {
-		if _, err := f.ClientSet.CoreV1().Namespaces().Get(f.Namespace.Name, metav1.GetOptions{}); err != nil {
+		if _, err := f.ClientSet.CoreV1().Namespaces().Get(nsName, metav1.GetOptions{}); err != nil {
 			if errors.IsNotFound(err) {
 				return false, nil
 			}
@@ -179,6 +184,10 @@ func (f *Framework) deleteNamespace() error {
 		}
 		return true, nil
 	})
+
+	remainingPods, missingTimestamp, _ := countRemainingPods(f.ClientSet, nsName)
+
+	Logf("Total of %v pods available in the namespace after namespace deletion and %v pods dont have deletiontimestamp", remainingPods, missingTimestamp)
 
 	return err
 
@@ -388,4 +397,66 @@ func getPodLogsInternal(c clientset.Interface, namespace, podName, containerName
 
 func getPreviousPodLogs(c clientset.Interface, namespace, podName, containerName string) (string, error) {
 	return getPodLogsInternal(c, namespace, podName, containerName, true)
+}
+
+// logPodStates logs basic info of provided pods for debugging.
+func logPodStates(pods []v1.Pod) {
+	// Find maximum widths for pod, node, and phase strings for column printing.
+	maxPodW, maxNodeW, maxPhaseW, maxGraceW := len("POD"), len("NODE"), len("PHASE"), len("GRACE")
+	for i := range pods {
+		pod := &pods[i]
+		if len(pod.ObjectMeta.Name) > maxPodW {
+			maxPodW = len(pod.ObjectMeta.Name)
+		}
+		if len(pod.Spec.NodeName) > maxNodeW {
+			maxNodeW = len(pod.Spec.NodeName)
+		}
+		if len(pod.Status.Phase) > maxPhaseW {
+			maxPhaseW = len(pod.Status.Phase)
+		}
+	}
+	// Increase widths by one to separate by a single space.
+	maxPodW++
+	maxNodeW++
+	maxPhaseW++
+	maxGraceW++
+
+	// Log pod info. * does space padding, - makes them left-aligned.
+	Logf("%-[1]*[2]s %-[3]*[4]s %-[5]*[6]s %-[7]*[8]s %[9]s",
+		maxPodW, "POD", maxNodeW, "NODE", maxPhaseW, "PHASE", maxGraceW, "GRACE", "CONDITIONS")
+	for _, pod := range pods {
+		grace := ""
+		if pod.DeletionGracePeriodSeconds != nil {
+			grace = fmt.Sprintf("%ds", *pod.DeletionGracePeriodSeconds)
+		}
+		Logf("%-[1]*[2]s %-[3]*[4]s %-[5]*[6]s %-[7]*[8]s %[9]s",
+			maxPodW, pod.ObjectMeta.Name, maxNodeW, pod.Spec.NodeName, maxPhaseW, pod.Status.Phase, maxGraceW, grace, pod.Status.Conditions)
+	}
+	Logf("") // Final empty line helps for readability.
+}
+
+func countRemainingPods(c clientset.Interface, namespace string) (int, int, error) {
+	// check for remaining pods
+	pods, err := c.CoreV1().Pods(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		return 0, 0, err
+	}
+
+	// nothing remains!
+	if len(pods.Items) == 0 {
+		return 0, 0, nil
+	}
+
+	// stuff remains, log about it
+	logPodStates(pods.Items)
+
+	// check if there were any pods with missing deletion timestamp
+	numPods := len(pods.Items)
+	missingTimestamp := 0
+	for _, pod := range pods.Items {
+		if pod.DeletionTimestamp == nil {
+			missingTimestamp++
+		}
+	}
+	return numPods, missingTimestamp, nil
 }
