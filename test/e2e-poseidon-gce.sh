@@ -18,14 +18,16 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+TEST_NAMESPACE="poseidon-test"
+
 SCRIPT_ROOT=$(dirname ${BASH_SOURCE[0]})/..
 echo $SCRIPT_ROOT # ../test/..
 
 #Set environment variables
 BUILD_VERSION=$(git rev-parse HEAD)
 POSEIDON_ROOT_DIR=${SCRIPT_ROOT}
-FIRMAMENT_MANIFEST_FILE_PATH=../../deploy/firmament-deployment.yaml
-POSEIDON_MANIFEST_FILE_PATH=../../deploy/poseidon-deployment.yaml
+FIRMAMENT_MANIFEST_FILE_PATH=../../deploy/firmament-deployment-e2e.yaml
+POSEIDON_MANIFEST_FILE_PATH=../../deploy/poseidon-deployment-e2e.yaml
 
 # Get the compute project
 project=$(gcloud info --format='value(config.project)')
@@ -60,6 +62,5 @@ cd test/e2e
 sed -i "s/gcr.io\/poseidon-173606\/poseidon:latest/gcr.io\/$project\/poseidon-amd64:${BUILD_VERSION}/" $POSEIDON_MANIFEST_FILE_PATH
 
 #Run e2e test
-#go test -v ${SCRIPT_ROOT}/test/e2e/*go -args -kubeconfig=/home/ubuntu/.kube/config -firmamentManifestPath=${FIRMAMENT_MANIFEST_FILE_PATH} -poseidonManifestPath=${POSEIDON_MANIFEST_FILE_PATH}
-go test -v . -ginkgo.v -args -firmamentManifestPath=${FIRMAMENT_MANIFEST_FILE_PATH} -poseidonManifestPath=${POSEIDON_MANIFEST_FILE_PATH}
+go test -v . -ginkgo.v -args -testNamespace=${TEST_NAMESPACE} -firmamentManifestPath=${FIRMAMENT_MANIFEST_FILE_PATH} -poseidonManifestPath=${POSEIDON_MANIFEST_FILE_PATH}
 

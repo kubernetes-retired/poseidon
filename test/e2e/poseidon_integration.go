@@ -44,9 +44,16 @@ var _ = Describe("Poseidon", func() {
 	BeforeEach(func() {
 		clientset = f.ClientSet
 		ns = f.Namespace.Name
+		//This will list all pods in the namespace
+		f.ListPodsInNamespace(ns)
 	})
 
 	AfterEach(func() {
+		//fetch poseidon and firmament logs after each test case run
+		f.FetchLogsFromFirmament(f.Namespace.Name)
+		f.FetchLogsFromPoseidon(f.Namespace.Name)
+		//This will list all pods in the namespace
+		f.ListPodsInNamespace(f.Namespace.Name)
 	})
 
 	Describe("Add Pod using Poseidon scheduler", func() {
@@ -76,6 +83,8 @@ var _ = Describe("Poseidon", func() {
 
 				By("Waiting for the pod to have running status")
 				f.WaitForPodRunning(pod.Name)
+				//This will list all pods in the namespace
+				f.ListPodsInNamespace(f.Namespace.Name)
 				pod, err = clientset.CoreV1().Pods(ns).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				glog.Info("pod status =", string(pod.Status.Phase))
@@ -84,7 +93,6 @@ var _ = Describe("Poseidon", func() {
 				By("Pod was in Running state... Time to delete the pod now...")
 				err = clientset.CoreV1().Pods(ns).Delete(name, &metav1.DeleteOptions{})
 				Expect(err).NotTo(HaveOccurred())
-				By("Waiting 5 seconds")
 				By("Check for pod deletion")
 				_, err = clientset.CoreV1().Pods(ns).Get(name, metav1.GetOptions{})
 				if err != nil {
@@ -136,6 +144,8 @@ var _ = Describe("Poseidon", func() {
 
 				By("Waiting for the Deployment to have running status")
 				f.WaitForDeploymentComplete(deployment)
+				//This will list all pods in the namespace
+				f.ListPodsInNamespace(f.Namespace.Name)
 				deployment, err = clientset.ExtensionsV1beta1().Deployments(ns).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
@@ -196,6 +206,8 @@ var _ = Describe("Poseidon", func() {
 
 				By("Waiting for the ReplicaSet to have running status")
 				f.WaitForReadyReplicaSet(replicaSet.Name)
+				//This will list all pods in the namespace
+				f.ListPodsInNamespace(f.Namespace.Name)
 				replicaSet, err = clientset.ExtensionsV1beta1().ReplicaSets(ns).Get(replicaSet.Name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
@@ -255,6 +267,8 @@ var _ = Describe("Poseidon", func() {
 
 				By("Waiting for the Job to have running status")
 				f.WaitForAllJobPodsRunning(job.Name, parallelism)
+				//This will list all pods in the namespace
+				f.ListPodsInNamespace(f.Namespace.Name)
 
 				job, err = clientset.BatchV1().Jobs(ns).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
@@ -276,8 +290,3 @@ var _ = Describe("Poseidon", func() {
 	})
 
 })
-
-/*func TestPoseidon(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Poseidon Suite")
-}*/
