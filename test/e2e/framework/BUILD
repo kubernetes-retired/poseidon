@@ -6,6 +6,8 @@ go_library(
         "deployment_util.go",
         "framework.go",
         "jobs_util.go",
+        "log_dumps.go",
+        "namespace.go",
         "rs_util.go",
         "util.go",
     ],

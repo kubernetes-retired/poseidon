@@ -18,8 +18,8 @@ package framework
 
 import (
 	"flag"
-	"time"
 	"path"
+	"time"
 
 	"bytes"
 	"fmt"
@@ -29,20 +29,20 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"os"
 	"os/exec"
 	"strings"
-	"os"
 )
 
 var kubeConfig = flag.String(clientcmd.RecommendedConfigPathFlag, os.Getenv(clientcmd.RecommendedConfigPathEnvVar), "Path to kubeconfig containing embedded authinfo.")
 var kubectlPath = flag.String("kubectl-path", "kubectl", "The kubectl binary to use. For development, you might use 'cluster/kubectl.sh' here.")
 var poseidonManifestPath = flag.String("poseidonManifestPath", "github.com/kubernetes-sigs/poseidon/deploy/poseidon-deployment.yaml", "The Poseidon deployment manifest to use.")
 var firmamentManifestPath = flag.String("firmamentManifestPath", "github.com/kubernetes-sigs/poseidon/deploy/firmament-deployment.yaml", "The Firmament deployment manifest to use.")
-var testNamespace = flag.String("testNamespace","poseidon-test","The namespace to use for test")
+var testNamespace = flag.String("testNamespace", "poseidon-test", "The namespace to use for test")
 
-const(
-	 poseidonDeploymentName="poseidon"
-	 firmamentDeploymentName="firmament-scheduler"
+const (
+	poseidonDeploymentName  = "poseidon"
+	firmamentDeploymentName = "firmament-scheduler"
 )
 
 func init() {
@@ -54,7 +54,7 @@ func init() {
 // Framework supports common operations used by e2e tests; it will keep a client & a namespace for you.
 // Eventual goal is to merge this with integration test framework.
 type Framework struct {
-	BaseName string
+	BaseName  string
 	ClientSet clientset.Interface
 	Namespace *v1.Namespace
 	TestingNS string
@@ -109,17 +109,16 @@ func (f *Framework) BeforeEach() {
 
 	Logf("Posedion test are pointing to %v", *kubeConfig)
 
-	_=f.DeleteService(f.TestingNS,"poseidon")
-	_=f.DeleteService(f.TestingNS,"firmament-service")
+	_ = f.DeleteService(f.TestingNS, "poseidon")
+	_ = f.DeleteService(f.TestingNS, "firmament-service")
 
 	// TODO(shiv): We need to pass the cluster role from env
-	_ = f.DeletePoseidonClusterRole("poseidon",f.TestingNS)
+	_ = f.DeletePoseidonClusterRole("poseidon", f.TestingNS)
 
 	// This is needed if we have a dirty test run which leaves the pods and deployments hanging
 	_ = f.deleteNamespaceIfExist(f.TestingNS)
-	_ = f.DeleteDeploymentIfExist(f.TestingNS,poseidonDeploymentName)
-	_ = f.DeleteDeploymentIfExist(f.TestingNS,firmamentDeploymentName)
-
+	_ = f.DeleteDeploymentIfExist(f.TestingNS, poseidonDeploymentName)
+	_ = f.DeleteDeploymentIfExist(f.TestingNS, firmamentDeploymentName)
 
 	f.Namespace, err = f.createNamespace(f.ClientSet)
 	Expect(err).NotTo(HaveOccurred())
@@ -131,8 +130,6 @@ func (f *Framework) BeforeEach() {
 
 	err = f.CreatePoseidon()
 	Expect(err).NotTo(HaveOccurred())
-
-
 
 }
 
@@ -152,10 +149,10 @@ func (f *Framework) AfterEach() {
 	err = f.deleteNamespace(f.TestingNS)
 	Expect(err).NotTo(HaveOccurred())
 
-	err = f.DeleteDeploymentIfExist(f.TestingNS,poseidonDeploymentName)
+	err = f.DeleteDeploymentIfExist(f.TestingNS, poseidonDeploymentName)
 	Expect(err).NotTo(HaveOccurred())
 
-	err = f.DeleteDeploymentIfExist(f.TestingNS,firmamentDeploymentName)
+	err = f.DeleteDeploymentIfExist(f.TestingNS, firmamentDeploymentName)
 	Expect(err).NotTo(HaveOccurred())
 
 }
@@ -181,7 +178,6 @@ func (f *Framework) WaitForPodRunningSlow(podName string) error {
 func (f *Framework) WaitForPodNoLongerRunning(podName string) error {
 	return WaitForPodNoLongerRunningInNamespace(f.ClientSet, podName, f.Namespace.Name)
 }
-
 
 // CreateFirmament create firmament deployment using kubectl
 // TODO(shiv): We need to refrain from using 'kubectl' command from out tests.
@@ -242,12 +238,12 @@ func (f *Framework) KubectlExecCreate(manifestPath string) (string, string, erro
 	return stdout.String(), stderr.String(), err
 }
 
-func getKubeConfigFromEnv(){
+func getKubeConfigFromEnv() {
 
-	if *kubeConfig==""{
+	if *kubeConfig == "" {
 		//read the config from the env
-		*kubeConfig=path.Join(os.Getenv("HOME"), clientcmd.RecommendedHomeDir, clientcmd.RecommendedFileName)
+		*kubeConfig = path.Join(os.Getenv("HOME"), clientcmd.RecommendedHomeDir, clientcmd.RecommendedFileName)
 
 	}
-	Logf("Location of the kubeconfig file %v",*kubeConfig)
+	Logf("Location of the kubeconfig file %v", *kubeConfig)
 }

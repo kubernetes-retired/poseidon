@@ -1,15 +1,30 @@
+/*
+Copyright 2018 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package framework
 
 import (
 	"fmt"
-	"strings"
 	"strconv"
+	"strings"
 
-
-	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	clientset "k8s.io/client-go/kubernetes"
 )
 
 // FetchLogsFromPoseidon will get the Poseidon and firmament deplyment logs
@@ -30,16 +45,16 @@ func (f *Framework) FetchLogsFromFirmament(nsName string) {
 
 // FetchLogsForAllPodsInNamespace will fetch logs from all the pods in the namespace
 // This can be called after each test is run
-func (f* Framework) FetchLogsForAllPodsInNamespace(nsName string){
+func (f *Framework) FetchLogsForAllPodsInNamespace(nsName string) {
 
 	// As poseidon and firmament run in kube-system namespaces we need to pass the correct ns here
-	f.LogPodsWithOptionalLabels(nsName,nil , Logf)
+	f.LogPodsWithOptionalLabels(nsName, nil, Logf)
 }
 
 // ListPodsInNamespace will list all the pods in a given namespaces
-func (f *Framework) ListPodsInNamespace(ns string){
+func (f *Framework) ListPodsInNamespace(ns string) {
 	podList, err := f.ClientSet.CoreV1().Pods(ns).List(metav1.ListOptions{})
-	if err!=nil{
+	if err != nil {
 		Logf("Error listing pods in namespaces %v", err)
 		return
 	}
@@ -48,10 +63,10 @@ func (f *Framework) ListPodsInNamespace(ns string){
 func (f *Framework) LogPodsWithOptionalLabels(ns string, match map[string]string, logFunc func(ftm string, args ...interface{})) {
 	var podList *v1.PodList
 	var err error
-	if match!=nil || len(match)>0{
+	if match != nil || len(match) > 0 {
 		podList, err = f.ClientSet.CoreV1().Pods(ns).List(metav1.ListOptions{LabelSelector: labels.SelectorFromSet(match).String()})
 
-	}else{
+	} else {
 		podList, err = f.ClientSet.CoreV1().Pods(ns).List(metav1.ListOptions{})
 	}
 
@@ -60,10 +75,10 @@ func (f *Framework) LogPodsWithOptionalLabels(ns string, match map[string]string
 		return
 	}
 	if len(podList.Items) > 0 {
-		if match!=nil || len(match)>0 {
+		if match != nil || len(match) > 0 {
 			logFunc("Running kubectl logs on pods with labels %v in %v namespace", match, ns)
-		}else{
-			logFunc("Running kubectl logs on pods in %v namespace",ns)
+		} else {
+			logFunc("Running kubectl logs on pods in %v namespace", ns)
 		}
 		for _, pod := range podList.Items {
 			kubectlLogPod(f.ClientSet, pod, "", logFunc)
@@ -131,8 +146,8 @@ func logPodStates(pods []v1.Pod) {
 		if len(pod.Status.Phase) > maxPhaseW {
 			maxPhaseW = len(pod.Status.Phase)
 		}
-		if len(pod.Namespace) > maxNamespaceW{
-			maxNamespaceW =len(pod.Namespace)
+		if len(pod.Namespace) > maxNamespaceW {
+			maxNamespaceW = len(pod.Namespace)
 		}
 	}
 	// Increase widths by one to separate by a single space.
@@ -151,7 +166,7 @@ func logPodStates(pods []v1.Pod) {
 			grace = fmt.Sprintf("%ds", *pod.DeletionGracePeriodSeconds)
 		}
 		Logf("%-[1]*[2]s %-[3]*[4]s %-[5]*[6]s %-[7]*[8]s %-[9]*[10]s %[11]s",
-			maxNamespaceW,pod.Namespace,maxPodW, pod.ObjectMeta.Name, maxNodeW, pod.Spec.NodeName, maxPhaseW, pod.Status.Phase, maxGraceW, grace, pod.Status.Conditions)
+			maxNamespaceW, pod.Namespace, maxPodW, pod.ObjectMeta.Name, maxNodeW, pod.Spec.NodeName, maxPhaseW, pod.Status.Phase, maxGraceW, grace, pod.Status.Conditions)
 	}
 	Logf("") // Final empty line helps for readability.
 }
