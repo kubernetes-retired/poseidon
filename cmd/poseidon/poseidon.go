@@ -26,6 +26,8 @@ import (
 	"github.com/kubernetes-sigs/poseidon/pkg/k8sclient"
 	"github.com/kubernetes-sigs/poseidon/pkg/stats"
 
+	"k8s.io/apimachinery/pkg/util/wait"
+
 	"github.com/golang/glog"
 )
 
@@ -36,16 +38,23 @@ var (
 	kubeVersion        string
 	statsServerAddress string
 	schedulingInterval int
+	firmamentPort      string
 )
 
 func init() {
 	flag.StringVar(&schedulerName, "schedulerName", "poseidon", "The scheduler name with which pods are labeled")
-	flag.StringVar(&firmamentAddress, "firmamentAddress", "firmament-service.kube-system:9090", "Firmament scheduler service address and port")
+	flag.StringVar(&firmamentAddress, "firmamentAddress", "firmament-service.kube-system", "Firmament scheduler service port")
+	flag.StringVar(&firmamentPort, "firmamentPort", "9090", "Firmament scheduler service port")
 	flag.StringVar(&kubeConfig, "kubeConfig", "kubeconfig.cfg", "Path to the kubeconfig file")
 	flag.StringVar(&kubeVersion, "kubeVersion", "1.6", "Kubernetes version")
 	flag.StringVar(&statsServerAddress, "statsServerAddress", "0.0.0.0:9091", "Address on which the stats server listens")
 	flag.IntVar(&schedulingInterval, "schedulingInterval", 10, "Time between scheduler runs (in seconds)")
 	flag.Parse()
+	// join the firmament address and port with a colon separator
+	// Passing the firmament address with port and colon separator throws an error
+	// for conversion from yaml to json
+	values := []string{firmamentAddress, firmamentPort}
+	firmamentAddress = strings.Join(values, ":")
 }
 
 func schedule(fc firmament.FirmamentSchedulerClient) {
@@ -90,13 +99,30 @@ func schedule(fc firmament.FirmamentSchedulerClient) {
 	}
 }
 
+func WaitForFirmamentSerive(fc firmament.FirmamentSchedulerClient) {
+
+	service_req := new(firmament.HealthCheckRequest)
+	err := wait.PollImmediate(2*time.Second, 10*time.Minute, func() (bool, error) {
+		ok, _ := firmament.Check(fc, service_req)
+		if !ok {
+			return false, nil
+		}
+		return true, nil
+	})
+	if err != nil {
+		glog.Fatalf("Timedout waiting for firmament service %v", err)
+	}
+}
+
 func main() {
-	glog.Info("Starting Poseidon...")
+	glog.Info("Starting Poseidon...", firmamentAddress)
 	fc, conn, err := firmament.New(firmamentAddress)
 	if err != nil {
 		panic(err)
 	}
 	defer conn.Close()
+	// Check if frimament grpc service is avaliable and then proceed
+	WaitForFirmamentSerive(fc)
 	go schedule(fc)
 	go stats.StartgRPCStatsServer(statsServerAddress, firmamentAddress)
 	kubeVer := strings.Split(kubeVersion, ".")

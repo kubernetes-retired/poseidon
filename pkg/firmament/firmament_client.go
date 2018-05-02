@@ -183,6 +183,16 @@ func AddNodeStats(client FirmamentSchedulerClient, rs *ResourceStats) {
 	}
 }
 
+func Check(client FirmamentSchedulerClient, req_service *HealthCheckRequest) (bool, error) {
+	res, err := client.Check(context.Background(), req_service)
+	if err == nil {
+		if res.GetStatus() == ServingStatus_SERVING {
+			return true, nil
+		}
+	}
+	return false, err
+}
+
 func New(address string) (FirmamentSchedulerClient, *grpc.ClientConn, error) {
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithInsecure())
