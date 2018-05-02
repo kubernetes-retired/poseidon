@@ -29,26 +29,15 @@ POSEIDON_ROOT_DIR=${SCRIPT_ROOT}
 FIRMAMENT_MANIFEST_FILE_PATH=../../deploy/firmament-deployment-e2e.yaml
 POSEIDON_MANIFEST_FILE_PATH=../../deploy/poseidon-deployment-e2e.yaml
 
-# Get the compute project
-project=$(gcloud info --format='value(config.project)')
-if [[ $project == "" ]]; then
-  echo "Could not find gcloud project"
-  exit 1
-fi
-
-# setup gcr project registry 
-kube_registry="${KUBE_REGISTRY:-gcr.io/${project}}"
-
 
 # work from the correct path
 cd $(dirname ${BASH_SOURCE[0]})/..
 #Create a poseidon release and extract images and packages in the  _output folder 
 make quick-release
 
-#Push to Registry
-gcloud docker -- load -i _output/release-images/amd64/poseidon-amd64.tar
-gcloud docker -- tag "gcr.io/google_containers/poseidon-amd64:${BUILD_VERSION}" "${kube_registry}/poseidon-amd64:${BUILD_VERSION}"
-gcloud docker -- push "${kube_registry}/poseidon-amd64:${BUILD_VERSION}"
+#Push to local registry
+docker load -i _output/release-images/amd64/poseidon-amd64.tar
+# docker -- tag "gcr.io/google_containers/poseidon-amd64:${BUILD_VERSION}" "${kube_registry}/poseidon-amd64:${BUILD_VERSION}"
 
 #Extract Deployment files and place in the deploy folder
 tar -xzf _output/release-tars/poseidon-src.tar.gz -C /tmp/
@@ -59,8 +48,8 @@ cp /tmp/deploy/*.yaml deploy/.
 cd test/e2e
 
 # update the poseidon deployment yaml with the correct image
-sed -i "s/huaweiposeidon\/poseidon:latest/gcr.io\/$project\/poseidon-amd64:${BUILD_VERSION}/" $POSEIDON_MANIFEST_FILE_PATH
+sed -i "s/huaweiposeidon\/poseidon:latest/gcr.io\/google_containers\/poseidon-amd64:${BUILD_VERSION}/" $POSEIDON_MANIFEST_FILE_PATH
 
 #Run e2e test
-go test -v . -ginkgo.v -args -testNamespace=${TEST_NAMESPACE} -firmamentManifestPath=${FIRMAMENT_MANIFEST_FILE_PATH} -poseidonManifestPath=${POSEIDON_MANIFEST_FILE_PATH}
+go test -v . -ginkgo.v -args -firmamentManifestPath=${FIRMAMENT_MANIFEST_FILE_PATH} -poseidonManifestPath=${POSEIDON_MANIFEST_FILE_PATH}
 

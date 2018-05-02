@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
       - command: [/firmament/build/src/firmament_scheduler, --flagfile=/firmament/config/firmament_scheduler_cpu_mem.cfg]
-        image: huaweifirmament/firmament:e2e
+        image: huaweifirmament/firmament:latest
         name: firmament-scheduler
         ports:
          - containerPort: 9090
