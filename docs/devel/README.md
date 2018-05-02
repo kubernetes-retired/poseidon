@@ -43,17 +43,29 @@ $ make
 Currently the Firmament repo referred in this document is our dev repo.
 We will be soon pointing it toward the main [repo](https://github.com/camsas/firmament) after our features are merged.
 
-  * **Building Poseidon:**
+  * **Building Poseidon without Bazel:**
   
   
  ```
- $ mkdir -p $GOPATH/src/k8s.io
- $ cd $GOPATH/src/k8s.io
+ $ mkdir -p $GOPATH/src/github.com/kubernetes-sigs
+ $ cd $GOPATH/src/github.com/kubernetes-sigs
  $ git clone https://github.com/kubernetes-sigs/poseidon
- # cd poseidon
+ $ cd poseidon
+ $ cd cmd/poseidon
  $ go build .
- 
  ```
+
+ * **Building Poseidon using Bazel:**
+   * Refer [Bazel](https://docs.bazel.build/versions/master/install.html) on how to install Bazel.
+ ```
+ $ mkdir -p $GOPATH/src/github.com/kubernetes-sigs
+ $ cd $GOPATH/src/github.com/kubernetes-sigs
+ $ git clone https://github.com/kubernetes-sigs/poseidon
+ $ cd poseidon
+ $ bazel build //cmd/poseidon
+```
+
+
   
  # Docker container Build
  
@@ -99,7 +111,8 @@ One can also use the below to get the list of supported arguments by Firmament.
  ```
  $ ./poseidon --logtostderr \
     --kubeConfig=<path_kubeconfig_file> \
-    --firmamentAddress=<host>:<port> \
+    --firmamentAddress=<host> \
+    --firmamentPort=<port> \
     --statsServerAddress=<host>:<port> \
     --kubeVersion=<Major.Minor>
  ```
@@ -109,7 +122,6 @@ One can also use the below to get the list of supported arguments by Firmament.
 ```
 sudo docker run --net=host firmament:dev /firmament/build/src/firmament_scheduler \
 --flagfile=/firmament/config/firmament_scheduler_cpu_mem.cfg
-
 ```
 
   * **Running Poseidon as docker container:**
@@ -118,16 +130,31 @@ sudo docker run --net=host --volume=$GOPATH/src/github.com/kubernetes-sigs/posei
 gcr.io/poseidon-173606/poseidon:latest \
 --logtostderr \
 --kubeConfig=/config/kubeconfig.cfg \
---firmamentAddress=<host>:<port> \
+--firmamentAddress=<host> \
+--firmamentPort=<port> \
 --statsServerAddress=<host>:<port> \ 
 --kubeVersion=<Major.Minor>
 ```
 
 **Note:**
-The order of execution is, first Firmament has to be started and then Poseidon is started with the Firmament's address.
+The order of execution is, first Firmament has to be started and then Poseidon is started with the Firmament's address 
+and Firmament Port.
 The order is required only when we run Poseidon and Firmament manually.
 This order is not required for installation methods, since the Poseidon service will not start-up till Firmament service is available.
 
+# Running Unit Tests
+Using Bazel
+```
+$ cd $GOPATH/src/github.com/kubernetes-sigs/poseidon
+$ bazel test -- //... -//hack/... -//vendor/... -//test/e2e/...
+```
+
+Using go Test
+```
+$ cd $GOPATH/src/github.com/kubernetes-sigs/poseidon
+$ go test $(go list ./... | grep -v /vendor/ | grep -v /test/ | grep -v /hack/)
+
+```
 
 # Testing the setup
 Run the below script and check if the pods are scheduled.
@@ -141,12 +168,52 @@ Few test scripts are available [here](https://github.com/kubernetes-sigs/poseido
 To run E2E test on a local cluster.
 
 ```
-cd poseidon/pkg/test
-go test -args --testKubeConfig=<path to the kubeconfig file>
+$ cd $GOPATH/src/github.com/kubernetes-sigs/poseidon/test/e2e
+$ go test -v . -ginkgo.v \
+-args -kubeconfig=/home/ubuntu/.kube/config \ 
+-firmamentManifestPath=../../deploy/firmament-deployment-e2e.yaml \
+-poseidonManifestPath=../../deploy/poseidon-deployment-e2e.yaml
 ```
-The local cluster should have the Poseidon and Firmament already deployed and running.
-Only very basic check is supported currenlty.
-We will be adding more test cases to this E2E.
+You can optionally modify the ```firmamentManifestPath``` and 
+```poseidonManifestPath``` arguments to point to your build images.
+```kubeconfig``` should point to the running local k8s cluster.
 
+***Note***
+You need to have a working kubernetes cluster to run the 
+above test. You can optionally try ```kubetest``` , to deploy a kubernetes
+cluster on your gce account. Please refer the doc [here](https://github.com/kubernetes/test-infra/tree/master/kubetest).
 
+# Building Release packages locally
+
+```
+$ cd $GOPATH/src/github.com/kubernetes-sigs/poseidon
+$ make release
+```
+
+# Testing release packages
+The best way to test the release packages locally, is to run the
+below script. It will build the release tar push it to docker locally and run the e2e tests.
+
+***Note***
+
+The ```'kubeconfig'``` path should be ```$HOME/.kube/config```.
+The below script run based on the above assumptions.
+And it should point to a running k8s cluster.
+
+```
+$ $GOPATH/src/github.com/kubernetes-sigs/poseidon/test/e2e
+$ test/e2e-poseidon-local.sh
+```
+
+# Code contribution
+We recommend running the following, before raising a PR.
+
+This will test all the essential checks. 
+
+```
+$ make verify
+```
+
+All the existing unit tests should [pass](https://github.com/kubernetes-sigs/poseidon/tree/master/docs/devel#running-unit-tests).
+Also recommend to run the local release test mentioned [here](https://github.com/kubernetes-sigs/poseidon/tree/master/docs/devel#testing-release-packages).
 
