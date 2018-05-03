@@ -20,28 +20,40 @@ syntax = "proto3";
 package firmament;
 
 message ResourceStats {
+  // resource_id is used to uniquely identify a resource.
   string resource_id = 1;
   uint64 timestamp = 2;
+  // cpus_stats stores the stats of each CPU.
   // The first entry is the cpu usage of cpu0 and so on.
   repeated CpuStats cpus_stats = 3;
-  // Memory stats (in KB).
+  // Below are the Memory status (in KB) of node.
+  // mem_allocatable is the allocatable memory resource of node.
   int64 mem_allocatable = 4;
+  // mem_capacity is the capacity of memory of node.
   int64 mem_capacity = 5;
   // Memory stats (fraction of total).
+  // mem_reservation is the fraction of memory reserved.
   double mem_reservation = 6;
+  // mem_utilization is the fraction of memory used.
   double mem_utilization = 7;
-  // Disk stats in KB
+  // Disk stats in KB.
   int64 disk_bw = 8;
-  // Network stats in KB
+  // Network stats in KB.
+  // net_rx_bw is received network packets in KB.
   int64 net_rx_bw = 9;
+  // net_tx_bw is transmit network packets in KB.
   int64 net_tx_bw = 10;
 }
 
 message CpuStats {
   // CPU stats in millicores.
+  // cpu_allocatable is allocatable CPU millicores of node.
   int64 cpu_allocatable = 1;
+  // cpu_capacity is the CPU capacity millicores of node.
   int64 cpu_capacity = 2;
   // CPU stats (fraction of total).
+  // cpu_reservation is the fraction of cpu millicores reserved.
   double cpu_reservation = 3;
+  // cpu_utilization is the fraction of cpu millicores used.
   double cpu_utilization = 4;
 }

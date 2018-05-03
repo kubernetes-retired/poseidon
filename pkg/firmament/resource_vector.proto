@@ -21,12 +21,18 @@ syntax = "proto3";
 
 package firmament;
 
+// ResourceVector stores all the resources which will be take in account during scheduling.
 message ResourceVector {
+  // cpu_cores is the cpu millicores of node..
   float cpu_cores = 1;
   uint64 ram_bw = 2;
+  // ram_cap is the memory capacity of node.
   uint64 ram_cap = 3; // in MB
   uint64 disk_bw = 4;
+  // disk_cap is the disk capacity of node.
   uint64 disk_cap = 5;
+  // net_tx_bw is transmit network packets in KB.
   uint64 net_tx_bw = 6;
+  // net_tx_bw is receive network packets in KB.
   uint64 net_rx_bw = 7;
 }

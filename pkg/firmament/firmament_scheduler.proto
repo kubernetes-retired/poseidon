@@ -13,20 +13,32 @@ import "task_stats.proto";
 import "scheduling_delta.proto";
 
 service FirmamentScheduler {
+  // Schedule sends a schedule request to firmament server.
   rpc Schedule (ScheduleRequest) returns (SchedulingDeltas) {}
 
+  // TaskCompleted notifies firmament server the given task is completed.
   rpc TaskCompleted (TaskUID) returns (TaskCompletedResponse) {}
+  // TaskFailed notifies firmament server the given task is failed.
   rpc TaskFailed (TaskUID) returns (TaskFailedResponse) {}
+  // TaskRemoved notifies firmament server the given task is removed.
   rpc TaskRemoved (TaskUID) returns (TaskRemovedResponse) {}
+  // TaskSubmitted notifies firmament server the given task is submitted.
   rpc TaskSubmitted (TaskDescription) returns (TaskSubmittedResponse) {}
+  // TaskUpdated notifies firmament server the given task is updated.
   rpc TaskUpdated (TaskDescription) returns (TaskUpdatedResponse) {}
 
+  // NodeAdded notifies firmament server the given node is added.
   rpc NodeAdded (ResourceTopologyNodeDescriptor) returns (NodeAddedResponse) {}
+  // NodeFailed notifies firmament server the given node is failed.
   rpc NodeFailed (ResourceUID) returns (NodeFailedResponse) {}
+  // NodeRemoved notifies firmament server the given node is removed.
   rpc NodeRemoved (ResourceUID) returns (NodeRemovedResponse) {}
+  // NodeUpdated notifies firmament server the given node is updated.
   rpc NodeUpdated (ResourceTopologyNodeDescriptor) returns (NodeUpdatedResponse) {}
 
+  // AddTaskStats sends task status to firmament server.
   rpc AddTaskStats (TaskStats) returns (TaskStatsResponse) {}
+  // AddNodeStats sends node status to firmament server.
   rpc AddNodeStats (ResourceStats) returns (ResourceStatsResponse) {}
 
   rpc Check(HealthCheckRequest) returns (HealthCheckResponse);

@@ -26,8 +26,11 @@ package firmament;
 
 import "resource_desc.proto";
 
+// ResourceTopologyNodeDescriptor describe a node resource topology information.
 message ResourceTopologyNodeDescriptor {
   ResourceDescriptor resource_desc = 1;
+  // children stores the children nodes.
   repeated ResourceTopologyNodeDescriptor children = 2;
+  // parent_id is the id of its parent topology node.
   string parent_id = 3;
 }

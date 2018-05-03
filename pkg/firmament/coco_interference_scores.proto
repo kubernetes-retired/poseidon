@@ -15,12 +15,13 @@ limitations under the License.
 */
 
 //
-// CoCo co-location interference score protobuf.
+// CoCo(co-ordinated co-location) interference score protobuf.
 
 syntax = "proto3";
 
 package firmament;
 
+// Co-ordinated co-location cost model.
 message CoCoInterferenceScores {
   uint32 devil_penalty = 1;
   uint32 rabbit_penalty = 2;
