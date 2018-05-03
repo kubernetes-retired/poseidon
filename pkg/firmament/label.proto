@@ -18,6 +18,8 @@ syntax = "proto3";
 
 package firmament;
 
+// Labels are key/value pairs that are attached to firmament resousces.It can be used to organize and
+// to select subsets of objects.
 message Label {
   string key = 1;
   string value = 2;

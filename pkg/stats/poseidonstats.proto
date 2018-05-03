@@ -18,11 +18,13 @@ syntax = "proto3";
 
 package stats;
 
+// PoseidonStats is a service that is responsbile for receiving node and pod stats.
 service PoseidonStats {
   rpc ReceiveNodeStats(stream NodeStats) returns (stream NodeStatsResponse) {}
   rpc ReceivePodStats(stream PodStats) returns (stream PodStatsResponse) {}
 }
 
+// NodeStats describes stats of node.
 message NodeStats {
   string hostname = 1;
   uint64 timestamp = 2;
@@ -40,16 +42,19 @@ message NodeStats {
   double mem_utilization = 10;
 }
 
+// NodeStatsResponseType indicates all supported node stats response type.
 enum NodeStatsResponseType {
   NODE_STATS_OK = 0;
   NODE_NOT_FOUND = 1;
 }
 
+// NodeStatsResponse describes stats of node which is parsed from NodeStats and eventually will be consumed by firmament.
 message NodeStatsResponse {
   NodeStatsResponseType type = 1;
   string hostname = 2;
 }
 
+// PodStats describes stats of pod.
 message PodStats {
   string name = 1;
   string namespace = 2;
@@ -80,11 +85,13 @@ message PodStats {
   double net_tx_rate = 24;
 }
 
+// // PodStatsResponseType indicates all supported pod stats response type.
 enum PodStatsResponseType {
   POD_STATS_OK = 0;
   POD_NOT_FOUND = 1;
 }
 
+// PodStatsResponse describes stats of pod which is parsed from PodStats and eventually will be consumed by firmament.
 message PodStatsResponse {
   PodStatsResponseType type = 1;
   string name = 2;

@@ -25,6 +25,7 @@ import (
 	"google.golang.org/grpc/grpclog"
 )
 
+// Schedule sends a schedule request to firmament server.
 func Schedule(client FirmamentSchedulerClient) *SchedulingDeltas {
 	scheduleResp, err := client.Schedule(context.Background(), &ScheduleRequest{})
 	if err != nil {
@@ -33,6 +34,7 @@ func Schedule(client FirmamentSchedulerClient) *SchedulingDeltas {
 	return scheduleResp
 }
 
+// TaskCompleted tells firmament server the given task is completed.
 func TaskCompleted(client FirmamentSchedulerClient, tuid *TaskUID) {
 	tCompletedResp, err := client.TaskCompleted(context.Background(), tuid)
 	if err != nil {
@@ -49,6 +51,7 @@ func TaskCompleted(client FirmamentSchedulerClient, tuid *TaskUID) {
 	}
 }
 
+// TaskFailed tells firmament server the given task is failed.
 func TaskFailed(client FirmamentSchedulerClient, tuid *TaskUID) {
 	tFailedResp, err := client.TaskFailed(context.Background(), tuid)
 	if err != nil {
@@ -65,6 +68,7 @@ func TaskFailed(client FirmamentSchedulerClient, tuid *TaskUID) {
 	}
 }
 
+// TaskRemoved tells firmament server the given task is removed.
 func TaskRemoved(client FirmamentSchedulerClient, tuid *TaskUID) {
 	tRemovedResp, err := client.TaskRemoved(context.Background(), tuid)
 	if err != nil {
@@ -81,6 +85,7 @@ func TaskRemoved(client FirmamentSchedulerClient, tuid *TaskUID) {
 	}
 }
 
+// TaskSubmitted tells firmament server the given task is submitted.
 func TaskSubmitted(client FirmamentSchedulerClient, td *TaskDescription) {
 	tSubmittedResp, err := client.TaskSubmitted(context.Background(), td)
 	if err != nil {
@@ -97,6 +102,7 @@ func TaskSubmitted(client FirmamentSchedulerClient, td *TaskDescription) {
 	}
 }
 
+// TaskUpdated tells firmament server the given task is updated.
 func TaskUpdated(client FirmamentSchedulerClient, td *TaskDescription) {
 	tUpdatedResp, err := client.TaskUpdated(context.Background(), td)
 	if err != nil {
@@ -113,6 +119,7 @@ func TaskUpdated(client FirmamentSchedulerClient, td *TaskDescription) {
 	}
 }
 
+// NodeAdded tells firmament server the given node is added.
 func NodeAdded(client FirmamentSchedulerClient, rtnd *ResourceTopologyNodeDescriptor) {
 	nAddedResp, err := client.NodeAdded(context.Background(), rtnd)
 	if err != nil {
@@ -127,6 +134,7 @@ func NodeAdded(client FirmamentSchedulerClient, rtnd *ResourceTopologyNodeDescri
 	}
 }
 
+// NodeFailed tells firmament server the given node is failed.
 func NodeFailed(client FirmamentSchedulerClient, ruid *ResourceUID) {
 	nFailedResp, err := client.NodeFailed(context.Background(), ruid)
 	if err != nil {
@@ -141,6 +149,7 @@ func NodeFailed(client FirmamentSchedulerClient, ruid *ResourceUID) {
 	}
 }
 
+// NodeRemoved tells firmament server the given node is removed.
 func NodeRemoved(client FirmamentSchedulerClient, ruid *ResourceUID) {
 	nRemovedResp, err := client.NodeRemoved(context.Background(), ruid)
 	if err != nil {
@@ -155,6 +164,7 @@ func NodeRemoved(client FirmamentSchedulerClient, ruid *ResourceUID) {
 	}
 }
 
+// NodeUpdated tells firmament server the given node is updated.
 func NodeUpdated(client FirmamentSchedulerClient, rtnd *ResourceTopologyNodeDescriptor) {
 	nUpdatedResp, err := client.NodeUpdated(context.Background(), rtnd)
 	if err != nil {
@@ -169,6 +179,7 @@ func NodeUpdated(client FirmamentSchedulerClient, rtnd *ResourceTopologyNodeDesc
 	}
 }
 
+// AddTaskStats sends task status to firmament server.
 func AddTaskStats(client FirmamentSchedulerClient, ts *TaskStats) {
 	_, err := client.AddTaskStats(context.Background(), ts)
 	if err != nil {
@@ -176,6 +187,7 @@ func AddTaskStats(client FirmamentSchedulerClient, ts *TaskStats) {
 	}
 }
 
+// AddNodeStats sends node status to firmament server.
 func AddNodeStats(client FirmamentSchedulerClient, rs *ResourceStats) {
 	_, err := client.AddNodeStats(context.Background(), rs)
 	if err != nil {
@@ -183,6 +195,7 @@ func AddNodeStats(client FirmamentSchedulerClient, rs *ResourceStats) {
 	}
 }
 
+// Check tests if firmament server is health
 func Check(client FirmamentSchedulerClient, req_service *HealthCheckRequest) (bool, error) {
 	res, err := client.Check(context.Background(), req_service)
 	if err == nil {
@@ -193,6 +206,8 @@ func Check(client FirmamentSchedulerClient, req_service *HealthCheckRequest) (bo
 	return false, err
 }
 
+// New creates a firmament scheduler client by a remote server address.
+// NOTE: it's an insecure connection.
 func New(address string) (FirmamentSchedulerClient, *grpc.ClientConn, error) {
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithInsecure())

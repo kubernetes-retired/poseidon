@@ -21,15 +21,21 @@ syntax = "proto3";
 
 package firmament;
 
+// SchedulingDelta is a scheduling decision from previous state.
 message SchedulingDelta {
   enum ChangeType {
+    // NOOP indicates does not change the previsou scheduling state.
     NOOP = 0;
+    // PLACE indicates schedule a task onto a node.
     PLACE = 1;
+    // PREEMPT indicates a task preempt some tasks' resouces.
     PREEMPT = 2;
+    // MIGRATE indicates migrate a task from one node the other node.
     MIGRATE = 3;
   }
 
   uint64 task_id = 1;
   string resource_id = 2;
+  // type is the scheduling decision type.
   ChangeType type = 3;
 }

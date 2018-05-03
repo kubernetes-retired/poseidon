@@ -158,6 +158,8 @@ func (s *poseidonStatsServer) ReceivePodStats(stream PoseidonStats_ReceivePodSta
 	}
 }
 
+// StartgRPCStatsServer starts a gRPC server to serve poseidon status.
+// Currently, it receives node and pod status.
 func StartgRPCStatsServer(statsServerAddress, firmamentAddress string) {
 	glog.Info("Starting stats server...")
 	listen, err := net.Listen("tcp", statsServerAddress)

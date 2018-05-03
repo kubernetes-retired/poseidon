@@ -50,14 +50,19 @@ message ResourceDescriptor {
   string uuid = 1;
   string friendly_name = 2;
   string descriptive_name = 3;
+  // state is the state of resource.
   ResourceState state = 4;
+  // task_capacity is the max number of tasks that can be scheduled on the resource.
   uint64 task_capacity = 5;
+  // last heartbeat of the resource, e.g. node.
   uint64 last_heartbeat = 6;
+  // Type of the resource
   ResourceType type = 7;
+  // schedulable indicates if the resource, e.g. node is able to schedule tasks.
   bool schedulable = 8;
+  // current_running_tasks stores all the running tasks on the resource, e.g. node.
   repeated uint64 current_running_tasks = 9;
-  // Stores the number of running tasks on the resources that
-  // are below this node,
+  // num_running_tasks_below stores the number of running tasks on the resources that are below this node.
   uint64 num_running_tasks_below = 10;
   uint64 num_slots_below = 11;
   // Resource capacity and load tracking

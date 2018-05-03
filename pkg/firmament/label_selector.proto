@@ -18,6 +18,9 @@ syntax = "proto3";
 
 package firmament;
 
+// LabelSelector can be used by client/user to identify a set of objects if their Labels match the LabelSelector.
+// Set-based label requirements allow filtering keys according to a set of values. Four kinds of operators are supported:
+// in, notin, exists (only the key identifier) and notexist.
 message LabelSelector {
   enum SelectorType {
     IN_SET = 0;

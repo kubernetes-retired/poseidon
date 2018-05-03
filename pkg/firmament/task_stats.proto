@@ -18,6 +18,7 @@ syntax = "proto3";
 
 package firmament;
 
+// TaskStats is the stats(including CPU, Memory and Network) of a task.
 message TaskStats {
   uint64 task_id = 1;
   string hostname = 2;

@@ -20,6 +20,7 @@ syntax = "proto3";
 
 package firmament;
 
+// WhareMapStats is the stats of WhareMap scheduling cost model, as described in the ISCA 2013 paper.
 message WhareMapStats {
   uint64 num_idle = 1;
   uint64 num_devils = 2;
