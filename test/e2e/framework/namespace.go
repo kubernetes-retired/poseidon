@@ -55,14 +55,14 @@ func (f *Framework) deleteNamespaceIfExist(nsName string) error {
 			Logf("%v dosent not exist, no need to delete non existing namespace", nsName)
 			return nil
 		} else {
-			Logf("error occured while fetching %v for deleting", nsName)
+			Logf("error occurred while fetching %v for deleting", nsName)
 			return err
 		}
 	} else {
 		//delete the namespace as it exist
 		Logf("Deleting %v namespace as it exists", nsName)
 		if err = f.deleteNamespace(nsName); err != nil {
-			Logf("Unable to delete %v namespace, error %v occured", nsName, err)
+			Logf("Unable to delete %v namespace, error %v occurred", nsName, err)
 			return err
 		}
 	}

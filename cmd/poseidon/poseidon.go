@@ -121,7 +121,7 @@ func main() {
 		panic(err)
 	}
 	defer conn.Close()
-	// Check if frimament grpc service is avaliable and then proceed
+	// Check if frimament grpc service is available and then proceed
 	WaitForFirmamentSerive(fc)
 	go schedule(fc)
 	go stats.StartgRPCStatsServer(statsServerAddress, firmamentAddress)

@@ -84,7 +84,7 @@ func TestNotDone(t *testing.T) {
 	}
 
 	// Get() moves the key to a temporary processing queue,
-	// Add() following a Get() on the same key will not be avaliable in the queue
+	// Add() following a Get() on the same key will not be available in the queue
 	// till the key from the previous Get() call is processed.
 	fakeQueue.Add(testDatas[1].key, testDatas[1].value)
 	fakeQueue.Get()
