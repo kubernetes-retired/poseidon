@@ -64,23 +64,23 @@ func schedule(fc firmament.FirmamentSchedulerClient) {
 		for _, delta := range deltas.GetDeltas() {
 			switch delta.GetType() {
 			case firmament.SchedulingDelta_PLACE:
-				k8sclient.PodsCond.L.Lock()
+				k8sclient.PodMux.RLock()
 				podIdentifier, ok := k8sclient.TaskIDToPod[delta.GetTaskId()]
-				k8sclient.PodsCond.L.Unlock()
+				k8sclient.PodMux.RUnlock()
 				if !ok {
 					glog.Fatalf("Placed task %d without pod pairing", delta.GetTaskId())
 				}
-				k8sclient.NodesCond.L.Lock()
+				k8sclient.NodeMux.RLock()
 				nodeName, ok := k8sclient.ResIDToNode[delta.GetResourceId()]
-				k8sclient.NodesCond.L.Unlock()
+				k8sclient.NodeMux.RUnlock()
 				if !ok {
 					glog.Fatalf("Placed task %d on resource %s without node pairing", delta.GetTaskId(), delta.GetResourceId())
 				}
 				k8sclient.BindPodToNode(podIdentifier.Name, podIdentifier.Namespace, nodeName)
 			case firmament.SchedulingDelta_PREEMPT, firmament.SchedulingDelta_MIGRATE:
-				k8sclient.PodsCond.L.Lock()
+				k8sclient.PodMux.RLock()
 				podIdentifier, ok := k8sclient.TaskIDToPod[delta.GetTaskId()]
-				k8sclient.PodsCond.L.Unlock()
+				k8sclient.PodMux.RUnlock()
 				if !ok {
 					glog.Fatalf("Preempted task %d without pod pairing", delta.GetTaskId())
 				}

@@ -37,7 +37,7 @@ import (
 // NewNodeWatcher initializes a NodeWatcher based on the given Kubernetes client and Firmament client.
 func NewNodeWatcher(client kubernetes.Interface, fc firmament.FirmamentSchedulerClient) *NodeWatcher {
 	glog.Info("Starting NodeWatcher...")
-	NodesCond = sync.NewCond(&sync.Mutex{})
+	NodeMux = new(sync.RWMutex)
 	NodeToRTND = make(map[string]*firmament.ResourceTopologyNodeDescriptor)
 	ResIDToNode = make(map[string]string)
 	nodewatcher := &NodeWatcher{
@@ -227,7 +227,7 @@ func (nw *NodeWatcher) nodeWorker() {
 				node := item.(*Node)
 				switch node.Phase {
 				case NodeAdded:
-					NodesCond.L.Lock()
+					NodeMux.Lock()
 					rtnd := nw.createResourceTopologyForNode(node)
 					_, ok := NodeToRTND[node.Hostname]
 					if ok {
@@ -235,39 +235,40 @@ func (nw *NodeWatcher) nodeWorker() {
 					}
 					NodeToRTND[node.Hostname] = rtnd
 					ResIDToNode[rtnd.GetResourceDesc().GetUuid()] = node.Hostname
-					NodesCond.L.Unlock()
+					NodeMux.Unlock()
 					firmament.NodeAdded(nw.fc, rtnd)
+
 				case NodeDeleted:
-					NodesCond.L.Lock()
+					NodeMux.RLock()
 					rtnd, ok := NodeToRTND[node.Hostname]
-					NodesCond.L.Unlock()
+					NodeMux.RUnlock()
 					if !ok {
 						glog.Fatalf("Node %s does not exist", node.Hostname)
 					}
 					resID := rtnd.GetResourceDesc().GetUuid()
 					firmament.NodeRemoved(nw.fc, &firmament.ResourceUID{ResourceUid: resID})
-					NodesCond.L.Lock()
+					NodeMux.Lock()
 					delete(NodeToRTND, node.Hostname)
 					delete(ResIDToNode, resID)
-					NodesCond.L.Unlock()
+					NodeMux.Unlock()
 				case NodeFailed:
-					NodesCond.L.Lock()
+					NodeMux.RLock()
 					rtnd, ok := NodeToRTND[node.Hostname]
-					NodesCond.L.Unlock()
+					NodeMux.RUnlock()
 					if !ok {
 						glog.Fatalf("Node %s does not exist", node.Hostname)
 					}
 					resID := rtnd.GetResourceDesc().GetUuid()
 					firmament.NodeFailed(nw.fc, &firmament.ResourceUID{ResourceUid: resID})
-					NodesCond.L.Lock()
+					NodeMux.Lock()
 					nw.cleanResourceStateForNode(rtnd)
 					delete(NodeToRTND, node.Hostname)
 					delete(ResIDToNode, resID)
-					NodesCond.L.Unlock()
+					NodeMux.Unlock()
 				case NodeUpdated:
-					NodesCond.L.Lock()
+					NodeMux.RLock()
 					rtnd, ok := NodeToRTND[node.Hostname]
-					NodesCond.L.Unlock()
+					NodeMux.RUnlock()
 					if !ok {
 						glog.Fatalf("Node %s does not exist", node.Hostname)
 					}

@@ -86,9 +86,9 @@ func (s *poseidonStatsServer) ReceiveNodeStats(stream PoseidonStats_ReceiveNodeS
 			return err
 		}
 		resourceStats := convertNodeStatsToResourceStats(nodeStats)
-		k8sclient.NodesCond.L.Lock()
+		k8sclient.NodeMux.RLock()
 		rtnd, ok := k8sclient.NodeToRTND[nodeStats.GetHostname()]
-		k8sclient.NodesCond.L.Unlock()
+		k8sclient.NodeMux.RUnlock()
 		if !ok {
 			sendErr := stream.Send(&NodeStatsResponse{
 				Type:     NodeStatsResponseType_NODE_NOT_FOUND,
@@ -129,9 +129,9 @@ func (s *poseidonStatsServer) ReceivePodStats(stream PoseidonStats_ReceivePodSta
 			Name:      podStats.Name,
 			Namespace: podStats.Namespace,
 		}
-		k8sclient.PodsCond.L.Lock()
+		k8sclient.PodMux.RLock()
 		td, ok := k8sclient.PodToTD[podIdentifier]
-		k8sclient.PodsCond.L.Unlock()
+		k8sclient.PodMux.RUnlock()
 		if !ok {
 			sendErr := stream.Send(&PodStatsResponse{
 				Type:      PodStatsResponseType_POD_NOT_FOUND,
