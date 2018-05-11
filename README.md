@@ -19,6 +19,9 @@ As we all know that as part of the Kubernetes multiple schedulers support, each 
   
   **NOTE:** Additionally, it is also very important to highlight that Firmament scales much better than default scheduler as the number of nodes increase in a cluster.
 
+# Current Project Stage
+**Alpha Release**
+
 # Design 
 
    <p align="center">
@@ -42,17 +45,22 @@ For more details about the design of this project see the [design document](http
 
 
 # Roadmap
-  * Upstream Heapster sink for Poseidon (Completion Date: 30th March 2018)
-  * E2E                                  (Completion Date: 30th April 2018)
-  * Node level Affinity and Anti-Affinity implementation (Completion Date: 30th April 2018)
-  * Pod level Affinity and Anti-Affinity implementation 
-    * Multi-round scheduling based affinity and anti-affinity (Completion Date: 15th April 2018)
-    * XOR optimization for pod-to-pod anti-affinity (Completion Date: 15th May 2018)
-    * Implement a generalized min-cost flow algorithm for pod-to-pod affinity (Completion Date: 15th June 2018)
-  * Documentation improvements
-  * Continuous running scheduling loop versus scheduling intervals mechanism (Completion Date: 30th April 2018)
-  * Provide High Availability/Failover for in-memory Firmament/Poseidon processes
-  * Resource Utilization benchmark
-  * Pre-emption support
-  
-  
+  * **Release 0.1** – Currently Available:
+    * Baseline Poseidon/Firmament Scheduling capabilities using new multi-dimensional CPU/Memory cost model is part of 
+      this release. Currently, this does not include node and pod level affinity/anti-affinity capabilities. 
+      As shown below, we are building all this out as part of the upcoming releases.    
+    * Entire test.infra BOT automation jobs are in place as part of this release.
+    
+  * **Release 0.2** – Target Date: 25th May 2018:
+    * Node level Affinity and Anti-Affinity implementation.
+  * **Release 0.3** – Target Date: 15th June 2018:
+    * Pod level Affinity and Anti-Affinity implementation using multi-round scheduling based affinity and anti-affinity.
+  * **Release 0.4** – Tentative Target Date: 29th June 2018:
+    * Taints & Tolerations.
+  * **Release 0.5** onwards:
+    * Transitioning to Metrics server API – Our current work for upstreaming new Heapster sink is not a possibility as Heapster is getting deprecated.
+    * Continuous running scheduling loop versus scheduling intervals mechanism.
+    * Provide High Availability/Failover for in-memory Firmament/Poseidon processes.
+    * Gang Scheduling.
+    * Priority Pre-emption support.
+    * Resource Utilization benchmark.
