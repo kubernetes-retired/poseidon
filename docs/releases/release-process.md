@@ -9,9 +9,7 @@ This document captures details for the overall release plan for Poseidon/Firmame
 
 # User Stories
 ### Story 1
-I want to use Poseidon and Firmament as an alternate pluggable scheduler for K8s.  
-Which release version should I use? How do I get the release binaries?  
-What version of Firmament works with what version of Poseidon?
+I want to use Poseidon and Firmament as an alternate pluggable scheduler for K8s. Which release version should I use? How do I get the release binaries? What version of Firmament works with what version of Poseidon?
 
 ### Proposed Solution
 * For a major new feature development within Firmament repo, a new Firmament release package will be created. 
