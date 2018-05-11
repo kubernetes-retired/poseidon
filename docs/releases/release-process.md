@@ -5,7 +5,7 @@ there is a need for coordinated release process in order for these two repos to 
 This document captures details for the overall release plan for Poseidon/Firmament scheduling environment.
 
 # Goals
-* Come up with a software release plan for Poseidon and Firmament such that K8s community might find it easy to use it
+* Come up with a software release plan for Poseidon and Firmament such that K8s community might find it easy to use it.
 
 # User Stories
 ### Story 1
