@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/kubernetes-sigs/poseidon.svg?branch=master)](https://travis-ci.org/kubernetes-sigs/poseidon)
+
 # Introduction
 The Poseidon/Firmament scheduler incubation project is to bring integration of Firmament Scheduler [OSDI paper](https://www.usenix.org/conference/osdi16/technical-sessions/presentation/gog) in Kubernetes.
 At a very high level, Poseidon/Firmament scheduler augments the 

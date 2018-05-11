@@ -1,27 +1,31 @@
-language: go
-
 dist: trusty
 
-go:
-  - 1.7.1
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - wget
+      - pkg-config
+      - zip
+      - g++
+      - zlib1g-dev
+      - unzip
+      - python
 
 before_install:
-  - go get github.com/ICGog/goveralls
-
-install:
-  - # Do nothing. This is needed to prevent default instal action "go get -t -v ./..." from happening here.
+  - wget https://github.com/bazelbuild/bazel/releases/download/0.13.0/bazel-0.13.0-installer-linux-x86_64.sh
+  - chmod +x bazel-0.13.0-installer-linux-x86_64.sh
+  - ./bazel-0.13.0-installer-linux-x86_64.sh --user
+  - export PATH="$PATH:$HOME/bin"
 
 script:
-  - go build -v
-  - $HOME/gopath/bin/goveralls -service=travis-ci -ignore="*.pb.go,*/*.pb.go,*/*/*.pb.go,*/*/*/*.pb.go,pkg/test/*,pkg/firmament_mock/*,pkg/*/*_test.go"
-
-branches:
-  only:
-    - master
+  - bazel build //cmd/poseidon
+  - bazel test -- //... -//hack/... -//vendor/... -//test/e2e/...
 
 notifications:
   email: true
-    - firmament-dev@camsas.org
+    - shivram.srivastava@huawei.com
 
 os:
   - linux
