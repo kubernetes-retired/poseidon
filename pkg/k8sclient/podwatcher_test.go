@@ -17,15 +17,14 @@ limitations under the License.
 package k8sclient
 
 import (
-	"reflect"
-	"testing"
-	"time"
-
 	"github.com/golang/mock/gomock"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"reflect"
+	"testing"
+	"time"
 
 	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 	"k8s.io/client-go/kubernetes/fake"
@@ -81,7 +80,7 @@ func BuildPod(namespace, podName string,
 	phase v1.PodPhase,
 	requestCPU, requestMem string,
 	deletionTime *metav1.Time,
-	ownerRef string) *v1.Pod {
+	ownerRef string, affinity *v1.Affinity) *v1.Pod {
 
 	return &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -98,6 +97,55 @@ func BuildPod(namespace, podName string,
 						Requests: v1.ResourceList{
 							v1.ResourceCPU:    resource.MustParse(requestCPU),
 							v1.ResourceMemory: resource.MustParse(requestMem),
+						},
+					},
+				},
+			},
+			Affinity: &v1.Affinity{
+				NodeAffinity: &v1.NodeAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
+						NodeSelectorTerms: []v1.NodeSelectorTerm{
+							{
+								MatchExpressions: []v1.NodeSelectorRequirement{
+									{
+										Key:      affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions[0].Key,
+										Operator: affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions[0].Operator,
+										Values:   affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions[0].Values,
+									},
+								},
+							},
+						},
+					},
+				},
+				PodAffinity: &v1.PodAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
+						{
+							LabelSelector: &metav1.LabelSelector{
+								MatchExpressions: []metav1.LabelSelectorRequirement{
+									{
+										Key:      affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchExpressions[0].Key,
+										Operator: affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchExpressions[0].Operator,
+										Values:   affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchExpressions[0].Values,
+									},
+								},
+							},
+							TopologyKey: affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].TopologyKey,
+						},
+					},
+				},
+				PodAntiAffinity: &v1.PodAntiAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
+						{
+							LabelSelector: &metav1.LabelSelector{
+								MatchExpressions: []metav1.LabelSelectorRequirement{
+									{
+										Key:      affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchExpressions[0].Key,
+										Operator: affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchExpressions[0].Operator,
+										Values:   affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchExpressions[0].Values,
+									},
+								},
+							},
+							TopologyKey: affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].TopologyKey,
 						},
 					},
 				},
@@ -157,13 +205,62 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 	keychan := make(chan interface{})
 	itemschan := make(chan []interface{})
 	fakeOwnerRef := "abcdfe12345"
+	affinity := &v1.Affinity{
+		NodeAffinity: &v1.NodeAffinity{
+			RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
+				NodeSelectorTerms: []v1.NodeSelectorTerm{
+					{
+						MatchExpressions: []v1.NodeSelectorRequirement{
+							{
+								Key:      "mem-type",
+								Operator: v1.NodeSelectorOpNotIn,
+								Values:   []string{"DDR", "DDR2"},
+							},
+						},
+					},
+				},
+			},
+		},
+		PodAffinity: &v1.PodAffinity{
+			RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
+				{
+					LabelSelector: &metav1.LabelSelector{
+						MatchExpressions: []metav1.LabelSelectorRequirement{
+							{
+								Key:      "service",
+								Operator: metav1.LabelSelectorOpIn,
+								Values:   []string{"securityscan", "value2"},
+							},
+						},
+					},
+					TopologyKey: "region",
+				},
+			},
+		},
+		PodAntiAffinity: &v1.PodAntiAffinity{
+			RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
+				{
+					LabelSelector: &metav1.LabelSelector{
+						MatchExpressions: []metav1.LabelSelectorRequirement{
+							{
+								Key:      "service",
+								Operator: metav1.LabelSelectorOpIn,
+								Values:   []string{"antivirusscan", "value2"},
+							},
+						},
+					},
+					TopologyKey: "node",
+				},
+			},
+		},
+	}
 
 	var testData = []struct {
 		pod      *v1.Pod
 		expected *Pod
 	}{
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod1", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef),
+			pod: BuildPod("Poseidon-Namespace", "Pod1", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
 			expected: &Pod{
 				State: PodPending,
 				Identifier: PodIdentifier{
@@ -173,10 +270,59 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 				CPURequest:   2000,
 				MemRequestKb: 1,
 				OwnerRef:     fakeOwnerRef,
+				Affinity: &Affinity{
+					NodeAffinity: &NodeAffinity{
+						HardScheduling: &NodeSelector{
+							NodeSelectorTerms: []NodeSelectorTerm{
+								{
+									MatchExpressions: []NodeSelectorRequirement{
+										{
+											Key:      "mem-type",
+											Operator: "NotIn",
+											Values:   []string{"DDR", "DDR2"},
+										},
+									},
+								},
+							},
+						},
+					},
+					PodAffinity: &PodAffinity{
+						HardScheduling: []PodAffinityTerm{
+							{
+								LabelSelector: &metav1.LabelSelector{
+									MatchExpressions: []metav1.LabelSelectorRequirement{
+										{
+											Key:      "service",
+											Operator: "In",
+											Values:   []string{"securityscan", "value2"},
+										},
+									},
+								},
+								TopologyKey: "region",
+							},
+						},
+					},
+					PodAntiAffinity: &PodAffinity{
+						HardScheduling: []PodAffinityTerm{
+							{
+								LabelSelector: &metav1.LabelSelector{
+									MatchExpressions: []metav1.LabelSelectorRequirement{
+										{
+											Key:      "service",
+											Operator: "In",
+											Values:   []string{"antivirusscan", "value2"},
+										},
+									},
+								},
+								TopologyKey: "node",
+							},
+						},
+					},
+				},
 			},
 		},
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod2", empty, GetPodPhase("Running"), "2", "1024", &fakeNow, fakeOwnerRef),
+			pod: BuildPod("Poseidon-Namespace", "Pod2", empty, GetPodPhase("Running"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
 			expected: &Pod{
 				State: PodRunning,
 				Identifier: PodIdentifier{
@@ -186,10 +332,59 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 				CPURequest:   2000,
 				MemRequestKb: 1,
 				OwnerRef:     fakeOwnerRef,
+				Affinity: &Affinity{
+					NodeAffinity: &NodeAffinity{
+						HardScheduling: &NodeSelector{
+							NodeSelectorTerms: []NodeSelectorTerm{
+								{
+									MatchExpressions: []NodeSelectorRequirement{
+										{
+											Key:      "mem-type",
+											Operator: "NotIn",
+											Values:   []string{"DDR", "DDR2"},
+										},
+									},
+								},
+							},
+						},
+					},
+					PodAffinity: &PodAffinity{
+						HardScheduling: []PodAffinityTerm{
+							{
+								LabelSelector: &metav1.LabelSelector{
+									MatchExpressions: []metav1.LabelSelectorRequirement{
+										{
+											Key:      "service",
+											Operator: "In",
+											Values:   []string{"securityscan", "value2"},
+										},
+									},
+								},
+								TopologyKey: "region",
+							},
+						},
+					},
+					PodAntiAffinity: &PodAffinity{
+						HardScheduling: []PodAffinityTerm{
+							{
+								LabelSelector: &metav1.LabelSelector{
+									MatchExpressions: []metav1.LabelSelectorRequirement{
+										{
+											Key:      "service",
+											Operator: "In",
+											Values:   []string{"antivirusscan", "value2"},
+										},
+									},
+								},
+								TopologyKey: "node",
+							},
+						},
+					},
+				},
 			},
 		},
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod3", empty, GetPodPhase("Succeeded"), "2", "1024", &fakeNow, fakeOwnerRef),
+			pod: BuildPod("Poseidon-Namespace", "Pod3", empty, GetPodPhase("Succeeded"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
 			expected: &Pod{
 				State: PodSucceeded,
 				Identifier: PodIdentifier{
@@ -199,10 +394,59 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 				CPURequest:   2000,
 				MemRequestKb: 1,
 				OwnerRef:     fakeOwnerRef,
+				Affinity: &Affinity{
+					NodeAffinity: &NodeAffinity{
+						HardScheduling: &NodeSelector{
+							NodeSelectorTerms: []NodeSelectorTerm{
+								{
+									MatchExpressions: []NodeSelectorRequirement{
+										{
+											Key:      "mem-type",
+											Operator: "NotIn",
+											Values:   []string{"DDR", "DDR2"},
+										},
+									},
+								},
+							},
+						},
+					},
+					PodAffinity: &PodAffinity{
+						HardScheduling: []PodAffinityTerm{
+							{
+								LabelSelector: &metav1.LabelSelector{
+									MatchExpressions: []metav1.LabelSelectorRequirement{
+										{
+											Key:      "service",
+											Operator: "In",
+											Values:   []string{"securityscan", "value2"},
+										},
+									},
+								},
+								TopologyKey: "region",
+							},
+						},
+					},
+					PodAntiAffinity: &PodAffinity{
+						HardScheduling: []PodAffinityTerm{
+							{
+								LabelSelector: &metav1.LabelSelector{
+									MatchExpressions: []metav1.LabelSelectorRequirement{
+										{
+											Key:      "service",
+											Operator: "In",
+											Values:   []string{"antivirusscan", "value2"},
+										},
+									},
+								},
+								TopologyKey: "node",
+							},
+						},
+					},
+				},
 			},
 		},
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod4", empty, GetPodPhase("Failed"), "2", "1024", &fakeNow, fakeOwnerRef),
+			pod: BuildPod("Poseidon-Namespace", "Pod4", empty, GetPodPhase("Failed"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
 			expected: &Pod{
 				State: PodFailed,
 				Identifier: PodIdentifier{
@@ -212,6 +456,55 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 				CPURequest:   2000,
 				MemRequestKb: 1,
 				OwnerRef:     fakeOwnerRef,
+				Affinity: &Affinity{
+					NodeAffinity: &NodeAffinity{
+						HardScheduling: &NodeSelector{
+							NodeSelectorTerms: []NodeSelectorTerm{
+								{
+									MatchExpressions: []NodeSelectorRequirement{
+										{
+											Key:      "mem-type",
+											Operator: "NotIn",
+											Values:   []string{"DDR", "DDR2"},
+										},
+									},
+								},
+							},
+						},
+					},
+					PodAffinity: &PodAffinity{
+						HardScheduling: []PodAffinityTerm{
+							{
+								LabelSelector: &metav1.LabelSelector{
+									MatchExpressions: []metav1.LabelSelectorRequirement{
+										{
+											Key:      "service",
+											Operator: "In",
+											Values:   []string{"securityscan", "value2"},
+										},
+									},
+								},
+								TopologyKey: "region",
+							},
+						},
+					},
+					PodAntiAffinity: &PodAffinity{
+						HardScheduling: []PodAffinityTerm{
+							{
+								LabelSelector: &metav1.LabelSelector{
+									MatchExpressions: []metav1.LabelSelectorRequirement{
+										{
+											Key:      "service",
+											Operator: "In",
+											Values:   []string{"antivirusscan", "value2"},
+										},
+									},
+								},
+								TopologyKey: "node",
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -249,24 +542,73 @@ func TestPodWatcher_podWorker(t *testing.T) {
 	var empty map[string]string
 	fakeNow := metav1.Now()
 	fakeOwnerRef := "abcdfe12345"
+	affinity := &v1.Affinity{
+		NodeAffinity: &v1.NodeAffinity{
+			RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
+				NodeSelectorTerms: []v1.NodeSelectorTerm{
+					{
+						MatchExpressions: []v1.NodeSelectorRequirement{
+							{
+								Key:      "mem-type",
+								Operator: v1.NodeSelectorOpNotIn,
+								Values:   []string{"DDR", "DDR2"},
+							},
+						},
+					},
+				},
+			},
+		},
+		PodAffinity: &v1.PodAffinity{
+			RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
+				{
+					LabelSelector: &metav1.LabelSelector{
+						MatchExpressions: []metav1.LabelSelectorRequirement{
+							{
+								Key:      "service",
+								Operator: metav1.LabelSelectorOpIn,
+								Values:   []string{"securityscan", "value2"},
+							},
+						},
+					},
+					TopologyKey: "region",
+				},
+			},
+		},
+		PodAntiAffinity: &v1.PodAntiAffinity{
+			RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
+				{
+					LabelSelector: &metav1.LabelSelector{
+						MatchExpressions: []metav1.LabelSelectorRequirement{
+							{
+								Key:      "service",
+								Operator: metav1.LabelSelectorOpIn,
+								Values:   []string{"antivirusscan", "value2"},
+							},
+						},
+					},
+					TopologyKey: "node",
+				},
+			},
+		},
+	}
 
 	var testData = []struct {
 		pod *v1.Pod
 	}{
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod1", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef),
+			pod: BuildPod("Poseidon-Namespace", "Pod1", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
 		},
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod2", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef),
+			pod: BuildPod("Poseidon-Namespace", "Pod2", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
 		},
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod3", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef),
+			pod: BuildPod("Poseidon-Namespace", "Pod3", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
 		},
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod4", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef),
+			pod: BuildPod("Poseidon-Namespace", "Pod4", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
 		},
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod5", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef),
+			pod: BuildPod("Poseidon-Namespace", "Pod5", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
 		},
 	}
 

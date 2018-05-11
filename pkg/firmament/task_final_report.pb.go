@@ -28,6 +28,7 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// TaskFinalReport describes the final state of a task in firmament scheduler.
 type TaskFinalReport struct {
 	TaskId       uint64  `protobuf:"varint,1,opt,name=task_id,json=taskId" json:"task_id,omitempty"`
 	StartTime    uint64  `protobuf:"varint,2,opt,name=start_time,json=startTime" json:"start_time,omitempty"`
@@ -42,7 +43,7 @@ type TaskFinalReport struct {
 func (m *TaskFinalReport) Reset()                    { *m = TaskFinalReport{} }
 func (m *TaskFinalReport) String() string            { return proto.CompactTextString(m) }
 func (*TaskFinalReport) ProtoMessage()               {}
-func (*TaskFinalReport) Descriptor() ([]byte, []int) { return fileDescriptor12, []int{0} }
+func (*TaskFinalReport) Descriptor() ([]byte, []int) { return fileDescriptor16, []int{0} }
 
 func (m *TaskFinalReport) GetTaskId() uint64 {
 	if m != nil {
@@ -104,9 +105,9 @@ func init() {
 	proto.RegisterType((*TaskFinalReport)(nil), "firmament.TaskFinalReport")
 }
 
-func init() { proto.RegisterFile("task_final_report.proto", fileDescriptor12) }
+func init() { proto.RegisterFile("task_final_report.proto", fileDescriptor16) }
 
-var fileDescriptor12 = []byte{
+var fileDescriptor16 = []byte{
 	// 225 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x54, 0x90, 0x31, 0x4b, 0x04, 0x31,
 	0x10, 0x85, 0x89, 0x9e, 0xbb, 0x77, 0xa3, 0x20, 0xa4, 0xf0, 0x62, 0x21, 0x1e, 0x57, 0x5d, 0x65,

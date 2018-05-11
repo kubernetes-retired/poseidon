@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package firmament;
+
+message MatchLabelsAntiAff{
+
+  string key = 1;
+
+  string value = 2;
+
+}
+
+message LabelSelectorRequirementAntiAff {
+
+  string key = 1;
+
+  string operator = 2;
+
+  repeated string values = 3;
+}
+
+message LabelSelectorAntiAff{
+
+    MatchLabelsAntiAff matchLabels = 1;
+
+  repeated LabelSelectorRequirementAntiAff matchExpressions = 2;
+}
+
+message PodAffinityTermAntiAff {
+
+    LabelSelectorAntiAff labelSelector = 1;
+
+  repeated string namespaces = 2;
+  // Empty topologyKey is not allowed.
+  string topologyKey = 3;
+}
+
+message WeightedPodAffinityTermAntiAff {
+  // weight associated with matching the corresponding podAffinityTerm,
+  // in the range 1-100.
+  int32 weight = 1;
+  // A pod affinity term, associated with the corresponding weight.
+  PodAffinityTermAntiAff podAffinityTerm = 2;
+}
+
+message PodAntiAffinity {
+
+  repeated PodAffinityTermAntiAff requiredDuringSchedulingIgnoredDuringExecution = 1;
+
+  repeated WeightedPodAffinityTermAntiAff preferredDuringSchedulingIgnoredDuringExecution = 2;
+}

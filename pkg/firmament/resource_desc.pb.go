@@ -54,7 +54,7 @@ func (x ResourceDescriptor_ResourceState) String() string {
 	return proto.EnumName(ResourceDescriptor_ResourceState_name, int32(x))
 }
 func (ResourceDescriptor_ResourceState) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor6, []int{0, 0}
+	return fileDescriptor10, []int{0, 0}
 }
 
 type ResourceDescriptor_ResourceType int32
@@ -104,21 +104,26 @@ func (x ResourceDescriptor_ResourceType) String() string {
 	return proto.EnumName(ResourceDescriptor_ResourceType_name, int32(x))
 }
 func (ResourceDescriptor_ResourceType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor6, []int{0, 1}
+	return fileDescriptor10, []int{0, 1}
 }
 
 type ResourceDescriptor struct {
-	Uuid                string                           `protobuf:"bytes,1,opt,name=uuid" json:"uuid,omitempty"`
-	FriendlyName        string                           `protobuf:"bytes,2,opt,name=friendly_name,json=friendlyName" json:"friendly_name,omitempty"`
-	DescriptiveName     string                           `protobuf:"bytes,3,opt,name=descriptive_name,json=descriptiveName" json:"descriptive_name,omitempty"`
-	State               ResourceDescriptor_ResourceState `protobuf:"varint,4,opt,name=state,enum=firmament.ResourceDescriptor_ResourceState" json:"state,omitempty"`
-	TaskCapacity        uint64                           `protobuf:"varint,5,opt,name=task_capacity,json=taskCapacity" json:"task_capacity,omitempty"`
-	LastHeartbeat       uint64                           `protobuf:"varint,6,opt,name=last_heartbeat,json=lastHeartbeat" json:"last_heartbeat,omitempty"`
-	Type                ResourceDescriptor_ResourceType  `protobuf:"varint,7,opt,name=type,enum=firmament.ResourceDescriptor_ResourceType" json:"type,omitempty"`
-	Schedulable         bool                             `protobuf:"varint,8,opt,name=schedulable" json:"schedulable,omitempty"`
-	CurrentRunningTasks []uint64                         `protobuf:"varint,9,rep,packed,name=current_running_tasks,json=currentRunningTasks" json:"current_running_tasks,omitempty"`
-	// Stores the number of running tasks on the resources that
-	// are below this node,
+	Uuid            string `protobuf:"bytes,1,opt,name=uuid" json:"uuid,omitempty"`
+	FriendlyName    string `protobuf:"bytes,2,opt,name=friendly_name,json=friendlyName" json:"friendly_name,omitempty"`
+	DescriptiveName string `protobuf:"bytes,3,opt,name=descriptive_name,json=descriptiveName" json:"descriptive_name,omitempty"`
+	// state is the state of resource.
+	State ResourceDescriptor_ResourceState `protobuf:"varint,4,opt,name=state,enum=firmament.ResourceDescriptor_ResourceState" json:"state,omitempty"`
+	// task_capacity is the max number of tasks that can be scheduled on the resource.
+	TaskCapacity uint64 `protobuf:"varint,5,opt,name=task_capacity,json=taskCapacity" json:"task_capacity,omitempty"`
+	// last heartbeat of the resource, e.g. node.
+	LastHeartbeat uint64 `protobuf:"varint,6,opt,name=last_heartbeat,json=lastHeartbeat" json:"last_heartbeat,omitempty"`
+	// Type of the resource
+	Type ResourceDescriptor_ResourceType `protobuf:"varint,7,opt,name=type,enum=firmament.ResourceDescriptor_ResourceType" json:"type,omitempty"`
+	// schedulable indicates if the resource, e.g. node is able to schedule tasks.
+	Schedulable bool `protobuf:"varint,8,opt,name=schedulable" json:"schedulable,omitempty"`
+	// current_running_tasks stores all the running tasks on the resource, e.g. node.
+	CurrentRunningTasks []uint64 `protobuf:"varint,9,rep,packed,name=current_running_tasks,json=currentRunningTasks" json:"current_running_tasks,omitempty"`
+	// num_running_tasks_below stores the number of running tasks on the resources that are below this node.
 	NumRunningTasksBelow uint64 `protobuf:"varint,10,opt,name=num_running_tasks_below,json=numRunningTasksBelow" json:"num_running_tasks_below,omitempty"`
 	NumSlotsBelow        uint64 `protobuf:"varint,11,opt,name=num_slots_below,json=numSlotsBelow" json:"num_slots_below,omitempty"`
 	// Resource capacity and load tracking
@@ -141,7 +146,7 @@ type ResourceDescriptor struct {
 func (m *ResourceDescriptor) Reset()                    { *m = ResourceDescriptor{} }
 func (m *ResourceDescriptor) String() string            { return proto.CompactTextString(m) }
 func (*ResourceDescriptor) ProtoMessage()               {}
-func (*ResourceDescriptor) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{0} }
+func (*ResourceDescriptor) Descriptor() ([]byte, []int) { return fileDescriptor10, []int{0} }
 
 func (m *ResourceDescriptor) GetUuid() string {
 	if m != nil {
@@ -303,9 +308,9 @@ func init() {
 	proto.RegisterEnum("firmament.ResourceDescriptor_ResourceType", ResourceDescriptor_ResourceType_name, ResourceDescriptor_ResourceType_value)
 }
 
-func init() { proto.RegisterFile("resource_desc.proto", fileDescriptor6) }
+func init() { proto.RegisterFile("resource_desc.proto", fileDescriptor10) }
 
-var fileDescriptor6 = []byte{
+var fileDescriptor10 = []byte{
 	// 787 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x95, 0xdf, 0x6e, 0xe3, 0x44,
 	0x14, 0xc6, 0x49, 0x93, 0x76, 0xdb, 0x93, 0x7f, 0xd3, 0x49, 0xbb, 0x0c, 0x45, 0xac, 0x4c, 0x11,

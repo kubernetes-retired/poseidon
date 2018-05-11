@@ -3,6 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = [
+        "affinity.pb.go",
         "coco_interference_scores.pb.go",
         "firmament_client.go",
         "firmament_scheduler.pb.go",
@@ -10,6 +11,9 @@ go_library(
         "job_desc.pb.go",
         "label.pb.go",
         "label_selector.pb.go",
+        "node_affinity.pb.go",
+        "pod_affinity.pb.go",
+        "pod_anti_affinity.pb.go",
         "reference_desc.pb.go",
         "resource_desc.pb.go",
         "resource_stats.pb.go",

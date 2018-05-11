@@ -28,6 +28,7 @@ import (
 	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 
 	"github.com/golang/glog"
+	"github.com/jinzhu/copier"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -146,6 +147,90 @@ func (pw *PodWatcher) getCPUMemRequest(pod *v1.Pod) (int64, int64) {
 	return cpuReq, memReq
 }
 
+func (pw *PodWatcher) getNodeSelectorTerm(pod *v1.Pod) []NodeSelectorTerm {
+
+	var nodeSelTerm []NodeSelectorTerm
+	if pod.Spec.Affinity != nil {
+		if pod.Spec.Affinity.NodeAffinity != nil {
+			if pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution != nil {
+				err := copier.Copy(&nodeSelTerm, pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms)
+				if err != nil {
+					glog.Info("NodeSelectorTerm Data could not be copied")
+				}
+
+			}
+		}
+	}
+	return nodeSelTerm
+}
+
+func (pw *PodWatcher) getPreferredSchedulingTerm(pod *v1.Pod) []PreferredSchedulingTerm {
+	var prefSchTerm []PreferredSchedulingTerm
+	if pod.Spec.Affinity != nil {
+		if pod.Spec.Affinity.NodeAffinity != nil {
+
+			err := copier.Copy(&prefSchTerm, pod.Spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution)
+			if err != nil {
+				glog.Info("PreferredSchedulingTerm Data could not be copied")
+			}
+		}
+
+	}
+	return prefSchTerm
+}
+
+func (pw *PodWatcher) getPodAffinityTerm(pod *v1.Pod) []PodAffinityTerm {
+	var podAffTerm []PodAffinityTerm
+	if pod.Spec.Affinity != nil {
+		if pod.Spec.Affinity.PodAffinity != nil {
+			err := copier.Copy(&podAffTerm, pod.Spec.Affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution)
+			if err != nil {
+				glog.Info("PodAffinityTerm Data could not be copied")
+			}
+		}
+	}
+	return podAffTerm
+}
+
+func (pw *PodWatcher) getWgtPodAffinityTerm(pod *v1.Pod) []WeightedPodAffinityTerm {
+	var wgtPodAffTerm []WeightedPodAffinityTerm
+	if pod.Spec.Affinity != nil {
+		if pod.Spec.Affinity.PodAffinity != nil {
+			err := copier.Copy(&wgtPodAffTerm, pod.Spec.Affinity.PodAffinity.PreferredDuringSchedulingIgnoredDuringExecution)
+			if err != nil {
+				glog.Info("PodAffinityTerm Data could not be copied")
+			}
+		}
+	}
+	return wgtPodAffTerm
+}
+
+func (pw *PodWatcher) getPodAffinityTermforPodAntiAffinity(pod *v1.Pod) []PodAffinityTerm {
+	var podAffTerm []PodAffinityTerm
+	if pod.Spec.Affinity != nil {
+		if pod.Spec.Affinity.PodAntiAffinity != nil {
+			err := copier.Copy(&podAffTerm, pod.Spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution)
+			if err != nil {
+				glog.Info("PodAffinityTerm Data for Pod AntiAffinity could not be copied")
+			}
+		}
+	}
+	return podAffTerm
+}
+
+func (pw *PodWatcher) getWgtPodAffinityTermforPodAntiAffinity(pod *v1.Pod) []WeightedPodAffinityTerm {
+	var wgtPodAffTerm []WeightedPodAffinityTerm
+	if pod.Spec.Affinity != nil {
+		if pod.Spec.Affinity.PodAntiAffinity != nil {
+			err := copier.Copy(&wgtPodAffTerm, pod.Spec.Affinity.PodAntiAffinity.PreferredDuringSchedulingIgnoredDuringExecution)
+			if err != nil {
+				glog.Info("PodAffinityTerm Data for Pod AntiAffinity could not be copied")
+			}
+		}
+	}
+	return wgtPodAffTerm
+}
+
 func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 	cpuReq, memReq := pw.getCPUMemRequest(pod)
 	podPhase := PodPhase("Unknown")
@@ -171,6 +256,22 @@ func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 		Annotations:  pod.Annotations,
 		NodeSelector: pod.Spec.NodeSelector,
 		OwnerRef:     GetOwnerReference(pod),
+		Affinity: &Affinity{
+			NodeAffinity: &NodeAffinity{
+				HardScheduling: &NodeSelector{
+					NodeSelectorTerms: pw.getNodeSelectorTerm(pod),
+				},
+				SoftScheduling: pw.getPreferredSchedulingTerm(pod),
+			},
+			PodAffinity: &PodAffinity{
+				HardScheduling: pw.getPodAffinityTerm(pod),
+				SoftScheduling: pw.getWgtPodAffinityTerm(pod),
+			},
+			PodAntiAffinity: &PodAffinity{
+				HardScheduling: pw.getPodAffinityTermforPodAntiAffinity(pod),
+				SoftScheduling: pw.getWgtPodAffinityTermforPodAntiAffinity(pod),
+			},
+		},
 	}
 }
 
@@ -293,7 +394,6 @@ func (pw *PodWatcher) podWorker() {
 					if !ok {
 						glog.Fatalf("Pod %s does not exist", pod.Identifier)
 					}
-
 					firmament.TaskRemoved(pw.fc, &firmament.TaskUID{TaskUid: td.Uid})
 					PodMux.Lock()
 					delete(PodToTD, pod.Identifier)
@@ -401,6 +501,41 @@ func (pw *PodWatcher) addTaskToJob(pod *Pod, jd *firmament.JobDescriptor) *firma
 	// Get the network requirement from pods label, and set it in ResourceRequest of the TaskDescriptor
 	setTaskNetworkRequirement(task, pod.Labels)
 	task.LabelSelectors = pw.getFirmamentLabelSelectorFromNodeSelectorMap(pod.NodeSelector, SortNodeSelectorsKey(pod.NodeSelector))
+
+	nodeAffinity := len(pod.Affinity.NodeAffinity.HardScheduling.NodeSelectorTerms) > 0 || len(pod.Affinity.NodeAffinity.SoftScheduling) > 0
+	podAffinity := len(pod.Affinity.PodAffinity.HardScheduling) > 0 || len(pod.Affinity.PodAffinity.SoftScheduling) > 0
+	podAntiAffinity := len(pod.Affinity.PodAntiAffinity.HardScheduling) > 0 || len(pod.Affinity.PodAntiAffinity.SoftScheduling) > 0
+	localAffinity := new(firmament.Affinity)
+
+	if nodeAffinity {
+		localAffinity.NodeAffinity = &firmament.NodeAffinity{
+			RequiredDuringSchedulingIgnoredDuringExecution: &firmament.NodeSelector{
+				NodeSelectorTerms: pw.getFirmamentNodeSelTerm(pod),
+			},
+			PreferredDuringSchedulingIgnoredDuringExecution: pw.getFirmamentPreferredSchedulingTerm(pod),
+		}
+	}
+
+	if podAffinity {
+		localAffinity.PodAffinity = &firmament.PodAffinity{
+			RequiredDuringSchedulingIgnoredDuringExecution:  pw.getFirmamentPodAffinityTerm(pod),
+			PreferredDuringSchedulingIgnoredDuringExecution: pw.getFirmamentWeightedPodAffinityTerm(pod),
+		}
+	}
+
+	if podAntiAffinity {
+		localAffinity.PodAntiAffinity = &firmament.PodAntiAffinity{
+			RequiredDuringSchedulingIgnoredDuringExecution:  pw.getFirmamentPodAffinityTermforPodAntiAffinity(pod),
+			PreferredDuringSchedulingIgnoredDuringExecution: pw.getFirmamentWeightedPodAffinityTermforPodAntiAffinity(pod),
+		}
+
+	}
+
+	task.Affinity = localAffinity
+	if nodeAffinity == false && podAffinity == false && podAntiAffinity == false {
+		task.Affinity = nil
+	}
+
 	setTaskType(task)
 
 	if jd.RootTask == nil {
@@ -466,6 +601,60 @@ func (pw *PodWatcher) getFirmamentLabelSelectorFromNodeSelectorMap(nodeSelector 
 		})
 	}
 	return firmamentLabelSelector
+}
+
+func (pw *PodWatcher) getFirmamentNodeSelTerm(pod *Pod) []*firmament.NodeSelectorTerm {
+	var fns []*firmament.NodeSelectorTerm
+	err := copier.Copy(&fns, pod.Affinity.NodeAffinity.HardScheduling.NodeSelectorTerms)
+	if err != nil {
+		glog.Info("NodeSelectorTerm could not be copied")
+	}
+	return fns
+}
+
+func (pw *PodWatcher) getFirmamentPreferredSchedulingTerm(pod *Pod) []*firmament.PreferredSchedulingTerm {
+	var pst []*firmament.PreferredSchedulingTerm
+	err := copier.Copy(&pst, pod.Affinity.NodeAffinity.SoftScheduling)
+	if err != nil {
+		glog.Info("PreferredSchedulingTerm could not be copied")
+	}
+	return pst
+}
+
+func (pw *PodWatcher) getFirmamentPodAffinityTerm(pod *Pod) []*firmament.PodAffinityTerm {
+	var pat []*firmament.PodAffinityTerm
+	err := copier.Copy(&pat, pod.Affinity.PodAffinity.HardScheduling)
+	if err != nil {
+		glog.Info("PodAffinityTerm could not be copied")
+	}
+	return pat
+}
+
+func (pw *PodWatcher) getFirmamentWeightedPodAffinityTerm(pod *Pod) []*firmament.WeightedPodAffinityTerm {
+	var wpat []*firmament.WeightedPodAffinityTerm
+	err := copier.Copy(&wpat, pod.Affinity.PodAffinity.SoftScheduling)
+	if err != nil {
+		glog.Info("WeightedPodAffinityTerm could not be copied")
+	}
+	return wpat
+}
+
+func (pw *PodWatcher) getFirmamentPodAffinityTermforPodAntiAffinity(pod *Pod) []*firmament.PodAffinityTermAntiAff {
+	var pat []*firmament.PodAffinityTermAntiAff
+	err := copier.Copy(&pat, pod.Affinity.PodAntiAffinity.HardScheduling)
+	if err != nil {
+		glog.Info("PodAffinityTerm for AntiAffinity could not be copied")
+	}
+	return pat
+}
+
+func (pw *PodWatcher) getFirmamentWeightedPodAffinityTermforPodAntiAffinity(pod *Pod) []*firmament.WeightedPodAffinityTermAntiAff {
+	var wpat []*firmament.WeightedPodAffinityTermAntiAff
+	err := copier.Copy(&wpat, pod.Affinity.PodAntiAffinity.SoftScheduling)
+	if err != nil {
+		glog.Info("WeightedPodAffinityTerm for AntiAffinity could not be copied")
+	}
+	return wpat
 }
 
 func setTaskNetworkRequirement(td *firmament.TaskDescriptor, nodeSelectors NodeSelectors) {

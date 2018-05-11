@@ -28,20 +28,26 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// ResourceVector stores all the resources which will be take in account during scheduling.
 type ResourceVector struct {
+	// cpu_cores is the cpu millicores of node..
 	CpuCores float32 `protobuf:"fixed32,1,opt,name=cpu_cores,json=cpuCores" json:"cpu_cores,omitempty"`
 	RamBw    uint64  `protobuf:"varint,2,opt,name=ram_bw,json=ramBw" json:"ram_bw,omitempty"`
-	RamCap   uint64  `protobuf:"varint,3,opt,name=ram_cap,json=ramCap" json:"ram_cap,omitempty"`
-	DiskBw   uint64  `protobuf:"varint,4,opt,name=disk_bw,json=diskBw" json:"disk_bw,omitempty"`
-	DiskCap  uint64  `protobuf:"varint,5,opt,name=disk_cap,json=diskCap" json:"disk_cap,omitempty"`
-	NetTxBw  uint64  `protobuf:"varint,6,opt,name=net_tx_bw,json=netTxBw" json:"net_tx_bw,omitempty"`
-	NetRxBw  uint64  `protobuf:"varint,7,opt,name=net_rx_bw,json=netRxBw" json:"net_rx_bw,omitempty"`
+	// ram_cap is the memory capacity of node.
+	RamCap uint64 `protobuf:"varint,3,opt,name=ram_cap,json=ramCap" json:"ram_cap,omitempty"`
+	DiskBw uint64 `protobuf:"varint,4,opt,name=disk_bw,json=diskBw" json:"disk_bw,omitempty"`
+	// disk_cap is the disk capacity of node.
+	DiskCap uint64 `protobuf:"varint,5,opt,name=disk_cap,json=diskCap" json:"disk_cap,omitempty"`
+	// net_tx_bw is transmit network packets in KB.
+	NetTxBw uint64 `protobuf:"varint,6,opt,name=net_tx_bw,json=netTxBw" json:"net_tx_bw,omitempty"`
+	// net_tx_bw is receive network packets in KB.
+	NetRxBw uint64 `protobuf:"varint,7,opt,name=net_rx_bw,json=netRxBw" json:"net_rx_bw,omitempty"`
 }
 
 func (m *ResourceVector) Reset()                    { *m = ResourceVector{} }
 func (m *ResourceVector) String() string            { return proto.CompactTextString(m) }
 func (*ResourceVector) ProtoMessage()               {}
-func (*ResourceVector) Descriptor() ([]byte, []int) { return fileDescriptor9, []int{0} }
+func (*ResourceVector) Descriptor() ([]byte, []int) { return fileDescriptor13, []int{0} }
 
 func (m *ResourceVector) GetCpuCores() float32 {
 	if m != nil {
@@ -96,9 +102,9 @@ func init() {
 	proto.RegisterType((*ResourceVector)(nil), "firmament.ResourceVector")
 }
 
-func init() { proto.RegisterFile("resource_vector.proto", fileDescriptor9) }
+func init() { proto.RegisterFile("resource_vector.proto", fileDescriptor13) }
 
-var fileDescriptor9 = []byte{
+var fileDescriptor13 = []byte{
 	// 198 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x3c, 0xcf, 0xbd, 0x6e, 0xc3, 0x20,
 	0x14, 0x05, 0x60, 0xe1, 0xfa, 0x97, 0xa1, 0x03, 0x92, 0x55, 0xb7, 0x5d, 0xac, 0x4e, 0x9e, 0xba,

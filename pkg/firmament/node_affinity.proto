@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package firmament;
+
+
+message NodeSelectorRequirement {
+
+    string key = 1;
+
+    string operator = 2;
+
+    repeated string values = 3;
+}
+
+message NodeSelectorTerm {
+    // A list of node selector requirements by node's labels.
+    // +optional
+    repeated NodeSelectorRequirement matchExpressions = 1;
+}
+message NodeSelector {
+    // Required. A list of node selector terms. The terms are ORed.
+    repeated NodeSelectorTerm nodeSelectorTerms = 1;
+}
+
+message PreferredSchedulingTerm {
+// Weight associated with matching the corresponding nodeSelectorTerm, in the range 1-100.
+    int32 weight = 1;
+
+// A node selector term, associated with the corresponding weight.
+    NodeSelectorTerm preference = 2;
+}
+message NodeAffinity {
+
+    NodeSelector requiredDuringSchedulingIgnoredDuringExecution = 1;
+
+    repeated PreferredSchedulingTerm preferredDuringSchedulingIgnoredDuringExecution = 2;
+}
+
+
