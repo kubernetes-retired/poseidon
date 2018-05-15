@@ -49,8 +49,8 @@ const (
 	CreatedByAnnotation = "kubernetes.io/created-by"
 )
 
-// SortNodeSelectors sort node selectors by its key name.
-func SortNodeSelectors(nodeSelector NodeSelectors) NodeSelectors {
+// SortNodeSelectorsKey sort node selectors keys and return an slice of sorted keys.
+func SortNodeSelectorsKey(nodeSelector NodeSelectors) []string {
 	newSortedNodeSelectors := make(NodeSelectors)
 	var keyArray []string
 	for key := range nodeSelector {
@@ -61,10 +61,8 @@ func SortNodeSelectors(nodeSelector NodeSelectors) NodeSelectors {
 		keyArray = append(keyArray, key)
 	}
 	sort.Strings(keyArray)
-	for _, key := range keyArray {
-		newSortedNodeSelectors[key] = nodeSelector[key]
-	}
-	return newSortedNodeSelectors
+
+	return keyArray
 }
 
 // NewPodWatcher initialize a PodWatcher.
@@ -399,7 +397,7 @@ func (pw *PodWatcher) addTaskToJob(pod *Pod, jd *firmament.JobDescriptor) *firma
 	}
 	// Get the network requirement from pods label, and set it in ResourceRequest of the TaskDescriptor
 	setTaskNetworkRequirement(task, pod.Labels)
-	task.LabelSelectors = pw.getFirmamentLabelSelectorFromNodeSelectorMap(SortNodeSelectors(pod.NodeSelector))
+	task.LabelSelectors = pw.getFirmamentLabelSelectorFromNodeSelectorMap(pod.NodeSelector, SortNodeSelectorsKey(pod.NodeSelector))
 	setTaskType(task)
 
 	if jd.RootTask == nil {
@@ -455,13 +453,13 @@ func GetOwnerReference(pod *v1.Pod) string {
 	return string(pod.GetObjectMeta().GetUID())
 }
 
-func (pw *PodWatcher) getFirmamentLabelSelectorFromNodeSelectorMap(nodeSelector NodeSelectors) []*firmament.LabelSelector {
+func (pw *PodWatcher) getFirmamentLabelSelectorFromNodeSelectorMap(nodeSelector NodeSelectors,nodeSelectorKeys []string) []*firmament.LabelSelector {
 	var firmamentLabelSelector []*firmament.LabelSelector
-	for key, value := range nodeSelector {
+	for _, key := range nodeSelectorKeys {
 		firmamentLabelSelector = append(firmamentLabelSelector, &firmament.LabelSelector{
 			Type:   firmament.LabelSelector_IN_SET,
-			Values: []string{value},
 			Key:    key,
+			Values: []string{nodeSelector[key]},
 		})
 	}
 	return firmamentLabelSelector
