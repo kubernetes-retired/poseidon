@@ -19,6 +19,7 @@ package framework
 import (
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -28,6 +29,7 @@ import (
 	"k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 
 	clientset "k8s.io/client-go/kubernetes"
@@ -39,7 +41,7 @@ const (
 	PodListTimeout = time.Minute
 	// Initial pod start can be delayed O(minutes) by slow docker pulls
 	// TODO: Make this 30 seconds once #4566 is resolved.
-	PodStartTimeout = 5 * time.Minute
+	PodStartTimeout = 1 * time.Minute
 
 	// If there are any orphaned namespaces to clean up, this test is running
 	// on a long lived cluster. A long wait here is preferably to spurious test
@@ -311,4 +313,66 @@ func ExpectNoErrorWithOffset(offset int, err error, explain ...interface{}) {
 func GetNodesOrDie(c clientset.Interface) *v1.NodeList {
 	all, _ := c.CoreV1().Nodes().List(metav1.ListOptions{})
 	return all
+}
+
+func AddOrUpdateLabelOnNode(c clientset.Interface, nodeName string, labelKey, labelValue string) {
+	ExpectNoError(AddLabelsToNode(c, nodeName, map[string]string{labelKey: labelValue}))
+}
+
+const (
+	retries = 5
+)
+
+func AddLabelsToNode(c clientset.Interface, nodeName string, labels map[string]string) error {
+	tokens := make([]string, 0, len(labels))
+	for k, v := range labels {
+		tokens = append(tokens, "\""+k+"\":\""+v+"\"")
+	}
+	labelString := "{" + strings.Join(tokens, ",") + "}"
+	patch := fmt.Sprintf(`{"metadata":{"labels":%v}}`, labelString)
+	var err error
+	for attempt := 0; attempt < retries; attempt++ {
+		_, err = c.CoreV1().Nodes().Patch(nodeName, types.MergePatchType, []byte(patch))
+		if err != nil {
+			if !apierrs.IsConflict(err) {
+				return err
+			}
+		} else {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	return err
+}
+
+func ExpectNodeHasLabel(c clientset.Interface, nodeName string, labelKey string, labelValue string) {
+	By("verifying the node has the label " + labelKey + " " + labelValue)
+	node, err := c.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{})
+	ExpectNoError(err)
+	Expect(node.Labels[labelKey]).To(Equal(labelValue))
+}
+
+// RemoveLabelOffNode is for cleaning up labels temporarily added to node,
+// won't fail if target label doesn't exist or has been removed.
+func RemoveLabelOffNode(c clientset.Interface, nodeName string, labelKey string) {
+	By("removing the label " + labelKey + " off the node " + nodeName)
+	ExpectNoError(RemoveLabelOffNode(c, nodeName, []string{labelKey}))
+
+	By("verifying the node doesn't have the label " + labelKey)
+	ExpectNoError(VerifyLabelsRemoved(c, nodeName, []string{labelKey}))
+}
+
+// VerifyLabelsRemoved checks if Node for given nodeName does not have any of labels from labelKeys.
+// Return non-nil error if it does.
+func VerifyLabelsRemoved(c clientset.Interface, nodeName string, labelKeys []string) error {
+	node, err := c.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	for _, labelKey := range labelKeys {
+		if node.Labels != nil && len(node.Labels[labelKey]) != 0 {
+			return fmt.Errorf("Failed removing label " + labelKey + " of the node " + nodeName)
+		}
+	}
+	return nil
 }

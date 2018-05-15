@@ -406,5 +406,114 @@ var _ = Describe("Poseidon", func() {
 			err = framework.WaitForPodRunningInNamespace(clientset, additionalPod)
 			Expect(err).To(HaveOccurred())
 		})
+
+		// Test Nodes does not have any label, hence it should be impossible to schedule Pod with
+		// nonempty Selector set.
+		/*
+			    Testname: scheduler-node-selector-not-matching
+			    Description: Ensure that scheduler respects the NodeSelector field of
+				PodSpec during scheduling (when it does not match any node).
+		*/
+		It("validates that NodeSelector is respected if not matching ", func() {
+			By("Trying to schedule Pod with nonempty NodeSelector.")
+			podName := "restricted-pod"
+			conf := testPodConfig{
+				Name:   podName,
+				Labels: map[string]string{"name": "restricted"},
+				NodeSelector: map[string]string{
+					"label": "nonempty",
+				},
+			}
+			testPod := createTestPod(f, conf)
+			// Clean up additional pod after this test.
+			defer func() {
+				framework.Logf("Time to clean up the pod [%s] now...", testPod.Name)
+				err := clientset.CoreV1().Pods(ns).Delete(testPod.Name, &metav1.DeleteOptions{})
+				Expect(err).NotTo(HaveOccurred())
+			}()
+			err := framework.WaitForPodRunningInNamespace(clientset, testPod)
+			Expect(err).To(HaveOccurred())
+		})
+
+		/*
+			    Testname: scheduler-node-selector-matching
+			    Description: Ensure that scheduler respects the NodeSelector field
+				of PodSpec during scheduling (when it matches).
+		*/
+		It("validates that NodeSelector is respected if matching ", func() {
+			// Randomly pick a node
+			nodeName := getNodeThatCanRunPodWithoutToleration(f)
+
+			By("Trying to apply a random label on the found node.")
+			k := fmt.Sprintf("kubernetes.io/e2e-%s", rand.Uint32())
+			v := "42"
+			nodeList, err := clientset.CoreV1().Nodes().List(metav1.ListOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			for _, node := range nodeList.Items {
+				// Skip the master node.
+				if IsMasterNode(node.Name) {
+					continue
+				}
+				nodeReady := false
+				for _, condition := range node.Status.Conditions {
+					if condition.Type == v1.NodeReady && condition.Status == v1.ConditionTrue {
+						nodeReady = true
+						break
+					}
+				}
+				// Skip the unready node.
+				if !nodeReady {
+					continue
+				}
+				framework.AddOrUpdateLabelOnNode(clientset, node.Name, k, v)
+				framework.ExpectNodeHasLabel(clientset, node.Name, k, v)
+			}
+
+			By("Trying to relaunch the pod, now with labels.")
+			labelPodName := "with-labels"
+			createTestPod(f, testPodConfig{
+				Name: labelPodName,
+				NodeSelector: map[string]string{
+					k: v,
+				},
+			})
+
+			// check that pod got scheduled. We intentionally DO NOT check that the
+			// pod is running because this will create a race condition with the
+			// kubelet and the scheduler: the scheduler might have scheduled a pod
+			// already when the kubelet does not know about its new label yet. The
+			// kubelet will then refuse to launch the pod.
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(Equal(nodeName))
+		})
 	})
 })
+
+func getNodeThatCanRunPodWithoutToleration(f *framework.Framework) string {
+	By("Trying to launch a pod without a toleration to get a node which can launch it.")
+	return runPodAndGetNodeName(f, testPodConfig{Name: "without-toleration"})
+}
+
+func runPodAndGetNodeName(f *framework.Framework, conf testPodConfig) string {
+	// launch a pod to find a node which can launch a pod. We intentionally do
+	// not just take the node list and choose the first of them. Depending on the
+	// cluster and the scheduler it might be that a "normal" pod cannot be
+	// scheduled onto it.
+	pod := runPausePod(f, conf)
+
+	By("Explicitly delete pod here to free the resource it takes.")
+	err := f.ClientSet.CoreV1().Pods(f.Namespace.Name).Delete(pod.Name, metav1.NewDeleteOptions(0))
+	framework.ExpectNoError(err)
+
+	return pod.Spec.NodeName
+}
+
+func runPausePod(f *framework.Framework, conf testPodConfig) *v1.Pod {
+	pod := createTestPod(f, conf)
+	framework.ExpectNoError(framework.WaitForPodRunningInNamespace(f.ClientSet, pod))
+	pod, err := f.ClientSet.CoreV1().Pods(f.Namespace.Name).Get(conf.Name, metav1.GetOptions{})
+	framework.ExpectNoError(err)
+	return pod
+}
