@@ -51,7 +51,6 @@ const (
 
 // SortNodeSelectorsKey sort node selectors keys and return an slice of sorted keys.
 func SortNodeSelectorsKey(nodeSelector NodeSelectors) []string {
-	newSortedNodeSelectors := make(NodeSelectors)
 	var keyArray []string
 	for key := range nodeSelector {
 		// Skip key with networkRequirement
@@ -453,7 +452,7 @@ func GetOwnerReference(pod *v1.Pod) string {
 	return string(pod.GetObjectMeta().GetUID())
 }
 
-func (pw *PodWatcher) getFirmamentLabelSelectorFromNodeSelectorMap(nodeSelector NodeSelectors,nodeSelectorKeys []string) []*firmament.LabelSelector {
+func (pw *PodWatcher) getFirmamentLabelSelectorFromNodeSelectorMap(nodeSelector NodeSelectors, nodeSelectorKeys []string) []*firmament.LabelSelector {
 	var firmamentLabelSelector []*firmament.LabelSelector
 	for _, key := range nodeSelectorKeys {
 		firmamentLabelSelector = append(firmamentLabelSelector, &firmament.LabelSelector{
