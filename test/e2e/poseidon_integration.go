@@ -18,6 +18,9 @@ package test
 
 import (
 	"fmt"
+	"math/rand"
+	"os"
+
 	"github.com/golang/glog"
 	"github.com/kubernetes-sigs/poseidon/test/e2e/framework"
 	. "github.com/onsi/ginkgo"
@@ -26,11 +29,9 @@ import (
 	"k8s.io/api/core/v1"
 	"k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-
-	"math/rand"
-	"os"
 )
 
 var _ = Describe("Poseidon", func() {
@@ -289,4 +290,121 @@ var _ = Describe("Poseidon", func() {
 		})
 	})
 
+	Describe("Poseidon [Predicates]", func() {
+		// This test verifies we don't allow scheduling of pods in a way that sum of
+		// limits of pods is greater than machines capacity.
+		// It assumes that cluster add-on pods stay stable and cannot be run in parallel
+		// with any other test that touches Nodes or Pods.
+		// It is so because we need to have precise control on what's running in the cluster.
+		// Test scenario:
+		// 1. Find the amount CPU resources on each node.
+		// 2. Create one pod with affinity to each node that uses 70% of the node CPU.
+		// 3. Wait for the pods to be scheduled.
+		// 4. Create another pod with no affinity to any node that need 50% of the largest node CPU.
+		// 5. Make sure this additional pod is not scheduled.
+		/*
+			    Testname: scheduler-resource-limits
+			    Description: Ensure that scheduler accounts node resources correctly
+				and respects pods' resource requirements during scheduling.
+		*/
+		It("should validates resource limits of pods that are allowed to run ", func() {
+			nodeMaxAllocatable := int64(0)
+			nodeToAllocatableMap := make(map[string]int64)
+			nodeList, err := clientset.CoreV1().Nodes().List(metav1.ListOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			for _, node := range nodeList.Items {
+				// Skip the master node.
+				if IsMasterNode(node.Name) {
+					continue
+				}
+				nodeReady := false
+				for _, condition := range node.Status.Conditions {
+					if condition.Type == v1.NodeReady && condition.Status == v1.ConditionTrue {
+						nodeReady = true
+						break
+					}
+				}
+				// Skip the unready node.
+				if !nodeReady {
+					continue
+				}
+				// Find allocatable amount of CPU.
+				allocatable, found := node.Status.Allocatable[v1.ResourceCPU]
+				Expect(found).To(Equal(true))
+				nodeToAllocatableMap[node.Name] = allocatable.MilliValue()
+				if nodeMaxAllocatable < allocatable.MilliValue() {
+					nodeMaxAllocatable = allocatable.MilliValue()
+				}
+			}
+
+			pods, err := clientset.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{})
+			framework.ExpectNoError(err)
+			for _, pod := range pods.Items {
+				_, found := nodeToAllocatableMap[pod.Spec.NodeName]
+				if found && pod.Status.Phase != v1.PodSucceeded && pod.Status.Phase != v1.PodFailed {
+					framework.Logf("Pod %v requesting resource cpu=%vm on Node %v", pod.Name, getRequestedCPU(pod), pod.Spec.NodeName)
+					nodeToAllocatableMap[pod.Spec.NodeName] -= getRequestedCPU(pod)
+				}
+			}
+
+			By("Starting Pods to consume most of the cluster CPU.")
+			// Create one pod per node that requires 70% of the node remaining CPU.
+			fillerPods := []*v1.Pod{}
+			for nodeName, cpu := range nodeToAllocatableMap {
+				requestedCPU := cpu * 7 / 10
+				framework.Logf("node [%s] cpu [%v] request [%v]", nodeName, cpu, requestedCPU)
+				fillerPods = append(fillerPods, createTestPod(f, testPodConfig{
+					Name: fmt.Sprintf("filler-pod-%d", rand.Uint32()),
+					Resources: &v1.ResourceRequirements{
+						Limits: v1.ResourceList{
+							v1.ResourceCPU: *resource.NewMilliQuantity(requestedCPU, "DecimalSI"),
+						},
+						Requests: v1.ResourceList{
+							v1.ResourceCPU: *resource.NewMilliQuantity(requestedCPU, "DecimalSI"),
+						},
+					},
+					// TODO: We need to set node level affinity.
+					SchedulerName: "poseidon",
+				}))
+			}
+			// Wait for filler pods to be scheduled.
+			for _, pod := range fillerPods {
+				framework.ExpectNoError(framework.WaitForPodRunningInNamespace(clientset, pod))
+			}
+
+			// Clean up filler pods after this test.
+			defer func() {
+				for _, pod := range fillerPods {
+					framework.Logf("Time to clean up the pod [%s] now...", pod.Name)
+					err = clientset.CoreV1().Pods(ns).Delete(pod.Name, &metav1.DeleteOptions{})
+					Expect(err).NotTo(HaveOccurred())
+				}
+			}()
+
+			By("Creating another pod that requires unavailable amount of CPU.")
+			// Create another pod that requires 50% of the largest node CPU resources.
+			// This pod should remain pending as at least 70% of CPU of other nodes in
+			// the cluster are already consumed.
+			podName := "additional-pod"
+			conf := testPodConfig{
+				Name:   podName,
+				Labels: map[string]string{"name": "additional"},
+				Resources: &v1.ResourceRequirements{
+					Limits: v1.ResourceList{
+						v1.ResourceCPU: *resource.NewMilliQuantity(nodeMaxAllocatable*5/10, "DecimalSI"),
+					},
+				},
+				SchedulerName: "poseidon",
+			}
+			additionalPod := createTestPod(f, conf)
+			// Clean up additional pod after this test.
+			defer func() {
+				framework.Logf("Time to clean up the pod [%s] now...", additionalPod.Name)
+				err = clientset.CoreV1().Pods(ns).Delete(additionalPod.Name, &metav1.DeleteOptions{})
+				Expect(err).NotTo(HaveOccurred())
+			}()
+			err = framework.WaitForPodRunningInNamespace(clientset, additionalPod)
+			Expect(err).To(HaveOccurred())
+		})
+	})
 })

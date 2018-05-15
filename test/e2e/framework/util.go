@@ -22,6 +22,7 @@ import (
 	"time"
 
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	"github.com/kubernetes-sigs/poseidon/test/e2e/framework/ginkgowrapper"
 	"k8s.io/api/core/v1"
@@ -291,4 +292,23 @@ func log(level string, format string, args ...interface{}) {
 
 func nowStamp() string {
 	return time.Now().Format(time.StampMilli)
+}
+
+func ExpectNoError(err error, explain ...interface{}) {
+	ExpectNoErrorWithOffset(1, err, explain...)
+}
+
+// ExpectNoErrorWithOffset checks if "err" is set, and if so, fails assertion while logging the error at "offset" levels above its caller
+// (for example, for call chain f -> g -> ExpectNoErrorWithOffset(1, ...) error would be logged for "f").
+func ExpectNoErrorWithOffset(offset int, err error, explain ...interface{}) {
+	if err != nil {
+		Logf("Unexpected error occurred: %v", err)
+	}
+	ExpectWithOffset(1+offset, err).NotTo(HaveOccurred(), explain...)
+}
+
+// GetMasterAndWorkerNodesOrDie will return a list masters and schedulable worker nodes
+func GetNodesOrDie(c clientset.Interface) *v1.NodeList {
+	all, _ := c.CoreV1().Nodes().List(metav1.ListOptions{})
+	return all
 }
