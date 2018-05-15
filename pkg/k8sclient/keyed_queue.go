@@ -24,7 +24,7 @@ import (
 type Queue interface {
 	// Add enqueues a key and its associated item.
 	Add(key interface{}, item interface{})
-	// Get removes an item from the queue and insets the item to the currently processing key set.
+	// Get removes an item from the queue and inserts the item to the currently processing key set.
 	Get() (key interface{}, items []interface{}, shutdown bool)
 	// Done removes the item under processing.
 	Done(key interface{})

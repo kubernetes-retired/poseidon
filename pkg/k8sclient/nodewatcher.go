@@ -180,7 +180,7 @@ func (nw *NodeWatcher) enqueueNodeUpdate(key, oldObj, newObj interface{}) {
 func (nw *NodeWatcher) enqueueNodeDeletion(key, obj interface{}) {
 	node := obj.(*v1.Node)
 	if node.Spec.Unschedulable {
-		// Poseidon doesn't case about Unschedulable nodes.
+		// Poseidon doesn't care about Unschedulable nodes.
 		return
 	}
 	deletedNode := &Node{
@@ -188,7 +188,7 @@ func (nw *NodeWatcher) enqueueNodeDeletion(key, obj interface{}) {
 		Phase:    NodeDeleted,
 	}
 	nw.nodeWorkQueue.Add(key, deletedNode)
-	glog.Info("enqueueNodeDeletion: Added node ", deletedNode.Hostname)
+	glog.Info("enqueueNodeDeletion: Deleted node ", deletedNode.Hostname)
 }
 
 // Run starts node watcher.
@@ -198,7 +198,7 @@ func (nw *NodeWatcher) Run(stopCh <-chan struct{}, nWorkers int) {
 	// The workers can stop when we are done.
 	defer nw.nodeWorkQueue.ShutDown()
 	defer glog.Info("Shutting down NodeWatcher")
-	glog.Info("Geting node updates...")
+	glog.Info("Getting node updates...")
 
 	go nw.controller.Run(stopCh)
 
