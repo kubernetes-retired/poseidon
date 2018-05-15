@@ -445,7 +445,7 @@ var _ = Describe("Poseidon", func() {
 			nodeName := getNodeThatCanRunPodWithoutToleration(f)
 
 			By("Trying to apply a random label on the found node.")
-			k := fmt.Sprintf("kubernetes.io/e2e-%s", rand.Uint32())
+			k := fmt.Sprintf("kubernetes.io/e2e-%d", rand.Uint32())
 			v := "42"
 			nodeList, err := clientset.CoreV1().Nodes().List(metav1.ListOptions{})
 			Expect(err).NotTo(HaveOccurred())

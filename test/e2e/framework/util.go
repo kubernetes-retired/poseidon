@@ -32,9 +32,9 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 
+	"github.com/golang/glog"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/client/conditions"
-	"github.com/golang/glog"
 )
 
 const (
