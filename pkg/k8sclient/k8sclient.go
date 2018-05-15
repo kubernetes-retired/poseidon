@@ -41,13 +41,16 @@ func BindPodToNode(podName string, namespace string, nodeName string) {
 			Name:      nodeName,
 		}})
 	if err != nil {
-		glog.Fatalf("Could not bind %v", err)
+		glog.Fatalf("Could not bind pod:%s to nodeName:%s, error: %v", podName, nodeName, err)
 	}
 }
 
 // DeletePod calls Kubernetes API to delete a Pod by its namespace and name.
 func DeletePod(podName string, namespace string) {
-	clientSet.CoreV1().Pods(namespace).Delete(podName, &meta_v1.DeleteOptions{})
+	err := clientSet.CoreV1().Pods(namespace).Delete(podName, &meta_v1.DeleteOptions{})
+	if err != nil {
+		glog.Fatalf("Could not delete pod:%s in namespace:%s, error: %v", podName, namespace, err)
+	}
 }
 
 // GetClientConfig returns a kubeconfig object which to be passed to a Kubernetes client on initialization.
