@@ -54,7 +54,6 @@ kube::test::find_dirs() {
           -o -path './release/*' \
           -o -path './target/*' \
           -o -path './test/e2e/*' \
-          -o -path './test/integration/*' \
           -o -path './vendor/*' \
           -o -path './poseidon/test/*' \
         \) -prune \

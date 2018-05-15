@@ -16,38 +16,6 @@
 #   ./bazel-bin/hack/make-rules/test-e2e-node
 #
 # TODO(#47064): Should be a sh_test instead of sh_binary
-sh_binary(
-    name = "test-cmd",
-    srcs = ["test-cmd.sh"],
-    deps = [
-        ":test-cmd-util",
-        "//hack/lib",
-    ],
-)
-
-sh_binary(
-    name = "test-e2e-node",
-    srcs = ["test-e2e-node.sh"],
-    deps = [
-        "//hack/lib",
-    ],
-)
-
-sh_binary(
-    name = "test-integration",
-    srcs = ["test-cmd.sh"],
-    deps = [
-        "//hack/lib",
-    ],
-)
-
-sh_binary(
-    name = "test-kubeadm-cmd",
-    srcs = ["test-kubeadm-cmd.sh"],
-    deps = [
-        "//hack/lib",
-    ],
-)
 
 sh_binary(
     name = "build",
@@ -60,14 +28,6 @@ sh_binary(
 sh_binary(
     name = "cross",
     srcs = ["cross.sh"],
-    deps = [
-        "//hack/lib",
-    ],
-)
-
-sh_binary(
-    name = "test",
-    srcs = ["test.sh"],
     deps = [
         "//hack/lib",
     ],
@@ -89,13 +49,6 @@ sh_binary(
     ],
 )
 
-sh_library(
-    name = "test-cmd-util",
-    srcs = [
-        "test-cmd-util.sh",
-    ],
-    data = ["//pkg/kubectl/validation:testdata/v1/validPod.yaml"],
-)
 
 filegroup(
     name = "package-srcs",
