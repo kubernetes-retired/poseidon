@@ -34,6 +34,7 @@ import (
 
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/client/conditions"
+	"github.com/golang/glog"
 )
 
 const (
@@ -356,10 +357,44 @@ func ExpectNodeHasLabel(c clientset.Interface, nodeName string, labelKey string,
 // won't fail if target label doesn't exist or has been removed.
 func RemoveLabelOffNode(c clientset.Interface, nodeName string, labelKey string) {
 	By("removing the label " + labelKey + " off the node " + nodeName)
-	ExpectNoError(RemoveLabelOffNode(c, nodeName, []string{labelKey}))
+	ExpectNoError(removeLabelOffNode(c, nodeName, []string{labelKey}))
 
 	By("verifying the node doesn't have the label " + labelKey)
 	ExpectNoError(VerifyLabelsRemoved(c, nodeName, []string{labelKey}))
+}
+
+// removeLabelOffNode is for cleaning up labels temporarily added to node,
+// won't fail if target label doesn't exist or has been removed.
+func removeLabelOffNode(c clientset.Interface, nodeName string, labelKeys []string) error {
+	var node *v1.Node
+	var err error
+	for attempt := 0; attempt < retries; attempt++ {
+		node, err = c.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{})
+		if err != nil {
+			return err
+		}
+		if node.Labels == nil {
+			return nil
+		}
+		for _, labelKey := range labelKeys {
+			if node.Labels == nil || len(node.Labels[labelKey]) == 0 {
+				break
+			}
+			delete(node.Labels, labelKey)
+		}
+		_, err = c.CoreV1().Nodes().Update(node)
+		if err != nil {
+			if !apierrs.IsConflict(err) {
+				return err
+			} else {
+				glog.V(2).Infof("Conflict when trying to remove a labels %v from %v", labelKeys, nodeName)
+			}
+		} else {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	return err
 }
 
 // VerifyLabelsRemoved checks if Node for given nodeName does not have any of labels from labelKeys.

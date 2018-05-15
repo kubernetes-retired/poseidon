@@ -21,7 +21,6 @@ import (
 
 	"github.com/kubernetes-sigs/poseidon/test/e2e/framework"
 	"k8s.io/api/core/v1"
-	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
