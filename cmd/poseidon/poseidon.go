@@ -71,11 +71,12 @@ func schedule(fc firmament.FirmamentSchedulerClient) {
 	}
 }
 
+// WaitForFirmamentService blocks till the Firmament service is available
 func WaitForFirmamentService(fc firmament.FirmamentSchedulerClient) {
 
-	service_req := new(firmament.HealthCheckRequest)
+	serviceReq := new(firmament.HealthCheckRequest)
 	err := wait.PollImmediate(2*time.Second, 10*time.Minute, func() (bool, error) {
-		ok, _ := firmament.Check(fc, service_req)
+		ok, _ := firmament.Check(fc, serviceReq)
 		if !ok {
 			return false, nil
 		}
