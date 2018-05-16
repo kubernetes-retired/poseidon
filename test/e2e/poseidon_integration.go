@@ -447,27 +447,9 @@ var _ = Describe("Poseidon", func() {
 			By("Trying to apply a random label on the found node.")
 			k := fmt.Sprintf("kubernetes.io/e2e-%d", rand.Uint32())
 			v := "42"
-			nodeList, err := clientset.CoreV1().Nodes().List(metav1.ListOptions{})
-			Expect(err).NotTo(HaveOccurred())
-			for _, node := range nodeList.Items {
-				// Skip the master node.
-				if IsMasterNode(node.Name) {
-					continue
-				}
-				nodeReady := false
-				for _, condition := range node.Status.Conditions {
-					if condition.Type == v1.NodeReady && condition.Status == v1.ConditionTrue {
-						nodeReady = true
-						break
-					}
-				}
-				// Skip the unready node.
-				if !nodeReady {
-					continue
-				}
-				framework.AddOrUpdateLabelOnNode(clientset, node.Name, k, v)
-				framework.ExpectNodeHasLabel(clientset, node.Name, k, v)
-			}
+
+			framework.AddOrUpdateLabelOnNode(clientset, nodeName, k, v)
+			framework.ExpectNodeHasLabel(clientset, nodeName, k, v)
 
 			By("Trying to relaunch the pod, now with labels.")
 			labelPodName := "with-labels"
