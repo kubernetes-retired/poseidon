@@ -1,0 +1,8 @@
+---
+schedulerName: poseidon
+firmamentAddress: 0.0.0.0
+kubeConfig: "/home/.kube/config_fromjson"
+kubeVersion: 1.8
+statsServerAddress: 0.0.0.0:9091
+schedulingInterval: 10
+firmamentPort: 9090

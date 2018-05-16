@@ -18,20 +18,19 @@ package config
 
 import (
 	"flag"
-	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/golang/glog"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-
-	"strconv"
-	"strings"
 )
 
 var config poseidonConfig
 
 type poseidonConfig struct {
-	SchedulerName      string `json:"schedulername,omitempty"`
-	FirmamentAddress   string `json:"firmamentaddress,omitempty"`
+	SchedulerName      string `json:"schedulerName,omitempty"`
+	FirmamentAddress   string `json:"firmamentAddress,omitempty"`
 	KubeConfig         string `json:"kubeConfig,omitempty"`
 	KubeVersion        string `json:"kubeVersion,omitempty"`
 	StatsServerAddress string `json:"statsServerAddress,omitempty"`
@@ -107,7 +106,7 @@ func ReadFromConfigFile() {
 	if err != nil {
 		glog.Fatal("unmarshal poseidon_config file failed", err)
 	}
-	fmt.Println("ReadFromConfigFile", config)
+	glog.Info("ReadFromConfigFile", config)
 }
 
 // ReadFromCommandLineFlags reads command line flags and these will override poseidonConfig file flags.
@@ -125,7 +124,7 @@ func ReadFromCommandLineFlags() {
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
 	viper.BindPFlags(pflag.CommandLine)
-	fmt.Println("ReadFromCommandLineFlags", config)
+	glog.Info("ReadFromCommandLineFlags", config)
 }
 
 func init() {
