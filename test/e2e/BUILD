@@ -13,7 +13,10 @@ go_test(
 
 go_library(
     name = "go_default_library",
-    srcs = ["poseidon_integration.go"],
+    srcs = [
+        "poseidon_integration.go",
+        "predicates.go",
+    ],
     importpath = "github.com/kubernetes-sigs/poseidon/test/e2e",
     visibility = ["//visibility:public"],
     deps = [
@@ -25,6 +28,7 @@ go_library(
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/api/extensions/v1beta1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/errors:go_default_library",
+        "//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/client-go/kubernetes:go_default_library",
     ],

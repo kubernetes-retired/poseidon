@@ -6,6 +6,7 @@ go_library(
     importpath = "github.com/kubernetes-sigs/poseidon/cmd/poseidon",
     visibility = ["//visibility:private"],
     deps = [
+        "//pkg/config:go_default_library",
         "//pkg/firmament:go_default_library",
         "//pkg/k8sclient:go_default_library",
         "//pkg/stats:go_default_library",

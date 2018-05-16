@@ -49,7 +49,6 @@ sh_binary(
     ],
 )
 
-
 filegroup(
     name = "package-srcs",
     srcs = glob(["**"]),
