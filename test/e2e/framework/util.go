@@ -42,7 +42,7 @@ const (
 	PodListTimeout = time.Minute
 	// Initial pod start can be delayed O(minutes) by slow docker pulls
 	// TODO: Make this 30 seconds once #4566 is resolved.
-	PodStartTimeout = 1 * time.Minute
+	PodStartTimeout = 5 * time.Minute
 
 	// If there are any orphaned namespaces to clean up, this test is running
 	// on a long lived cluster. A long wait here is preferably to spurious test
