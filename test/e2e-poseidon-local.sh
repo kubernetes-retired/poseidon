@@ -51,5 +51,5 @@ cd test/e2e
 sed -i "s/huaweiposeidon\/poseidon:latest/gcr.io\/google_containers\/poseidon-amd64:${BUILD_VERSION}/" $POSEIDON_MANIFEST_FILE_PATH
 
 #Run e2e test
-go test -v . -ginkgo.v -args -firmamentManifestPath=${FIRMAMENT_MANIFEST_FILE_PATH} -poseidonManifestPath=${POSEIDON_MANIFEST_FILE_PATH}
+go test -v . -timeout=60m -ginkgo.v -args -firmamentManifestPath=${FIRMAMENT_MANIFEST_FILE_PATH} -poseidonManifestPath=${POSEIDON_MANIFEST_FILE_PATH}
 
