@@ -126,6 +126,12 @@ func ReadFromCommandLineFlags() {
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
+
+	// This is required to make flag package suppress the below error msg
+	// ERROR: logging before flag.Parse:
+	// please refer https://github.com/kubernetes/kubernetes/issues/17162
+	flag.CommandLine.Parse([]string{})
+
 	viper.BindPFlags(pflag.CommandLine)
 	glog.Info("ReadFromCommandLineFlags", config)
 }
