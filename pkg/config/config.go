@@ -61,13 +61,16 @@ func GetKubeConfig() string {
 // GetKubeVersion returns the KubeMajor and Minor version from the config
 func GetKubeVersion() (int, int) {
 	kubeVer := strings.Split(config.KubeVersion, ".")
+	if len(kubeVer) < 2 {
+		glog.Fatalf("Incorrect content in --kubeVersion %s, kubeVersion should be in the format of X.Y", config.KubeVersion)
+	}
 	kubeMajorVer, err := strconv.Atoi(kubeVer[0])
 	if err != nil {
-		glog.Fatalf("Incorrect content in --kubeVersion %s", config.KubeVersion)
+		glog.Fatalf("Incorrect content in --kubeVersion %s, kubeVersion should be in the format of X.Y and X should be an non-negative integer", config.KubeVersion)
 	}
 	kubeMinorVer, err := strconv.Atoi(kubeVer[1])
 	if err != nil {
-		glog.Fatalf("Incorrect content in --kubeVersion %s", config.KubeVersion)
+		glog.Fatalf("Incorrect content in --kubeVersion %s, kubeVersion should be in the format of X.Y and Y should be an non-negative integer", config.KubeVersion)
 	}
 	return kubeMajorVer, kubeMinorVer
 }
@@ -112,7 +115,7 @@ func ReadFromConfigFile() {
 // ReadFromCommandLineFlags reads command line flags and these will override poseidonConfig file flags.
 func ReadFromCommandLineFlags() {
 	pflag.StringVar(&config.SchedulerName, "schedulerName", "poseidon", "The scheduler name with which pods are labeled")
-	pflag.StringVar(&config.FirmamentAddress, "firmamentAddress", "firmament-service.kube-system", "Firmament scheduler service port")
+	pflag.StringVar(&config.FirmamentAddress, "firmamentAddress", "firmament-service.kube-system", "Firmament scheduler service address")
 	pflag.StringVar(&config.FirmamentPort, "firmamentPort", "9090", "Firmament scheduler service port")
 	pflag.StringVar(&config.KubeConfig, "kubeConfig", "kubeconfig.cfg", "Path to the kubeconfig file")
 	pflag.StringVar(&config.KubeVersion, "kubeVersion", "1.6", "Kubernetes version")
