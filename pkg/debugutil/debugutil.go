@@ -74,9 +74,14 @@ func RuntimeStack() {
 
 // EnablePprof registers pprof handlers and runtimeStack
 func EnablePprof(pprofAddress string) {
+	mux := http.NewServeMux()
 	for p, h := range PProfHandlers() {
-		http.Handle(p, h)
+		mux.Handle(p, h)
+	}
+	server := &http.Server{
+		Addr:    pprofAddress,
+		Handler: mux,
 	}
 	go RuntimeStack()
-	go glog.Fatal(http.ListenAndServe(pprofAddress, nil))
+	go glog.Fatal(server.ListenAndServe())
 }

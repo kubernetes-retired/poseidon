@@ -37,6 +37,8 @@ type poseidonConfig struct {
 	SchedulingInterval int    `json:"schedulingInterval,omitempty"`
 	FirmamentPort      string `json:"firmamentPort,omitempty"`
 	ConfigPath         string `json:"configPath,omitempty"`
+	EnablePprof        bool   `json:"enablePprof,omitempty"`
+	PprofAddress       string `json:"pprofAddress,omitempty"`
 }
 
 // GetSchedulerName returns the SchedulerName from config
@@ -93,6 +95,16 @@ func GetConfigPath() string {
 	return config.ConfigPath
 }
 
+// GetEnablePprof returns the pprof ability from  config
+func GetEnablePprof() bool {
+	return config.EnablePprof
+}
+
+// GetPprofAddress returns the pprof address from which to go profiling
+func GetPprofAddress() string {
+	return config.PprofAddress
+}
+
 // ReadFromConfigFile to read from yaml,json,toml etc poseidonConfig file
 // Note:
 //  The poseidonConfig values will be overwritten if flag for the same key are present
@@ -123,7 +135,8 @@ func ReadFromCommandLineFlags() {
 	pflag.IntVar(&config.SchedulingInterval, "schedulingInterval", 10, "Time between scheduler runs (in seconds)")
 	pflag.StringVar(&config.ConfigPath, "configPath", ".",
 		"The path to the config file (i.e poseidon_cfg) without filename or extension, supported extensions/formats are Yaml, Json")
-
+	flag.BoolVar(&config.EnablePprof, "enablePprof", false, "Enable runtime profiling data via HTTP server. Address is at client URL + \"/debug/pprof/\"")
+	flag.StringVar(&config.PprofAddress, "pprofAddress", "0.0.0.0:8989", "Address on which to collect runtime profiling data,default to set for all interfaces ")
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
 
