@@ -83,7 +83,8 @@ var _ = Describe("Poseidon", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				By("Waiting for the pod to have running status")
-				f.WaitForPodRunning(pod.Name)
+				err = f.WaitForPodRunning(pod.Name)
+				Expect(err).NotTo(HaveOccurred())
 				//This will list all pods in the namespace
 				f.ListPodsInNamespace(f.Namespace.Name)
 				pod, err = clientset.CoreV1().Pods(ns).Get(name, metav1.GetOptions{})
@@ -144,7 +145,8 @@ var _ = Describe("Poseidon", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				By("Waiting for the Deployment to have running status")
-				f.WaitForDeploymentComplete(deployment)
+				err = f.WaitForDeploymentComplete(deployment)
+				Expect(err).NotTo(HaveOccurred())
 				//This will list all pods in the namespace
 				f.ListPodsInNamespace(f.Namespace.Name)
 				deployment, err = clientset.ExtensionsV1beta1().Deployments(ns).Get(name, metav1.GetOptions{})
@@ -206,7 +208,8 @@ var _ = Describe("Poseidon", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				By("Waiting for the ReplicaSet to have running status")
-				f.WaitForReadyReplicaSet(replicaSet.Name)
+				err = f.WaitForReadyReplicaSet(replicaSet.Name)
+				Expect(err).NotTo(HaveOccurred())
 				//This will list all pods in the namespace
 				f.ListPodsInNamespace(f.Namespace.Name)
 				replicaSet, err = clientset.ExtensionsV1beta1().ReplicaSets(ns).Get(replicaSet.Name, metav1.GetOptions{})
@@ -267,7 +270,8 @@ var _ = Describe("Poseidon", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				By("Waiting for the Job to have running status")
-				f.WaitForAllJobPodsRunning(job.Name, parallelism)
+				err = f.WaitForAllJobPodsRunning(job.Name, parallelism)
+				Expect(err).NotTo(HaveOccurred())
 				//This will list all pods in the namespace
 				f.ListPodsInNamespace(f.Namespace.Name)
 
