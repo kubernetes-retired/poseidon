@@ -39,6 +39,7 @@ var kubectlPath = flag.String("kubectl-path", "kubectl", "The kubectl binary to 
 var poseidonManifestPath = flag.String("poseidonManifestPath", "github.com/kubernetes-sigs/poseidon/deploy/poseidon-deployment.yaml", "The Poseidon deployment manifest to use.")
 var firmamentManifestPath = flag.String("firmamentManifestPath", "github.com/kubernetes-sigs/poseidon/deploy/firmament-deployment.yaml", "The Firmament deployment manifest to use.")
 var testNamespace = flag.String("testNamespace", "poseidon-test", "The namespace to use for test")
+var clusterRole = flag.String("clusterRole", os.Getenv("CLUSTERROLE"), "The cluster role")
 
 const (
 	poseidonDeploymentName  = "poseidon"
@@ -116,8 +117,10 @@ func (f *Framework) BeforeEach() {
 		Logf("Error deleting service firmament-service: %v", err)
 	}
 
-	// TODO(shiv): We need to pass the cluster role from env
-	if err := f.DeletePoseidonClusterRole("poseidon", f.TestingNS); err != nil {
+	if len(*clusterRole) == 0 {
+		*clusterRole = "poseidon"
+	}
+	if err := f.DeletePoseidonClusterRole(*clusterRole, f.TestingNS); err != nil {
 		Logf("Error deleting cluster role: %v", err)
 	}
 
