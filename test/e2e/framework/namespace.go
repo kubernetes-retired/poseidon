@@ -17,12 +17,14 @@ limitations under the License.
 package framework
 
 import (
+	"fmt"
+	"time"
+
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
-	"time"
 )
 
 func (f *Framework) createNamespace(c clientset.Interface) (*v1.Namespace, error) {
@@ -55,15 +57,13 @@ func (f *Framework) deleteNamespaceIfExist(nsName string) error {
 			Logf("%v dosent not exist, no need to delete non existing namespace", nsName)
 			return nil
 		} else {
-			Logf("error occurred while fetching %v for deleting", nsName)
-			return err
+			return fmt.Errorf("error occurred while fetching %v for deleting: %v", nsName, err)
 		}
 	} else {
 		//delete the namespace as it exist
 		Logf("Deleting %v namespace as it exists", nsName)
 		if err = f.deleteNamespace(nsName); err != nil {
-			Logf("Unable to delete %v namespace, error %v occurred", nsName, err)
-			return err
+			return fmt.Errorf("unable to delete %v namespace, error: %v occurred", nsName, err)
 		}
 	}
 	return nil

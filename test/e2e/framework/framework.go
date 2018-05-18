@@ -107,18 +107,30 @@ func (f *Framework) BeforeEach() {
 
 	}
 
-	Logf("Posedion test are pointing to %v", *kubeConfig)
+	Logf("Poseidon test are pointing to %v", *kubeConfig)
 
-	_ = f.DeleteService(f.TestingNS, "poseidon")
-	_ = f.DeleteService(f.TestingNS, "firmament-service")
+	if err := f.DeleteService(f.TestingNS, "poseidon"); err != nil {
+		Logf("Error deleting service poseidon: %v", err)
+	}
+	if err := f.DeleteService(f.TestingNS, "firmament-service"); err != nil {
+		Logf("Error deleting service firmament-service: %v", err)
+	}
 
 	// TODO(shiv): We need to pass the cluster role from env
-	_ = f.DeletePoseidonClusterRole("poseidon", f.TestingNS)
+	if err := f.DeletePoseidonClusterRole("poseidon", f.TestingNS); err != nil {
+		Logf("Error deleting cluster role: %v", err)
+	}
 
 	// This is needed if we have a dirty test run which leaves the pods and deployments hanging
-	_ = f.deleteNamespaceIfExist(f.TestingNS)
-	_ = f.DeleteDeploymentIfExist(f.TestingNS, poseidonDeploymentName)
-	_ = f.DeleteDeploymentIfExist(f.TestingNS, firmamentDeploymentName)
+	if err := f.deleteNamespaceIfExist(f.TestingNS); err != nil {
+		Logf("Error occurred when delete namespace if exist: %v", err)
+	}
+	if err := f.DeleteDeploymentIfExist(f.TestingNS, poseidonDeploymentName); err != nil {
+		Logf("Error occurred when delete deployment if exist: %v", err)
+	}
+	if err := f.DeleteDeploymentIfExist(f.TestingNS, firmamentDeploymentName); err != nil {
+		Logf("Error occurred when delete deployment if exist: %v", err)
+	}
 
 	f.Namespace, err = f.createNamespace(f.ClientSet)
 	Expect(err).NotTo(HaveOccurred())
