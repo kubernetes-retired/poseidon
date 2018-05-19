@@ -39,6 +39,7 @@ var kubectlPath = flag.String("kubectl-path", "kubectl", "The kubectl binary to 
 var poseidonManifestPath = flag.String("poseidonManifestPath", "github.com/kubernetes-sigs/poseidon/deploy/poseidon-deployment.yaml", "The Poseidon deployment manifest to use.")
 var firmamentManifestPath = flag.String("firmamentManifestPath", "github.com/kubernetes-sigs/poseidon/deploy/firmament-deployment.yaml", "The Firmament deployment manifest to use.")
 var testNamespace = flag.String("testNamespace", "poseidon-test", "The namespace to use for test")
+var clusterRole = flag.String("clusterRole", os.Getenv("CLUSTERROLE"), "The cluster role")
 
 const (
 	poseidonDeploymentName  = "poseidon"
@@ -107,18 +108,32 @@ func (f *Framework) BeforeEach() {
 
 	}
 
-	Logf("Posedion test are pointing to %v", *kubeConfig)
+	Logf("Poseidon test are pointing to %v", *kubeConfig)
 
-	_ = f.DeleteService(f.TestingNS, "poseidon")
-	_ = f.DeleteService(f.TestingNS, "firmament-service")
+	if err := f.DeleteService(f.TestingNS, "poseidon"); err != nil {
+		Logf("Error deleting service poseidon: %v", err)
+	}
+	if err := f.DeleteService(f.TestingNS, "firmament-service"); err != nil {
+		Logf("Error deleting service firmament-service: %v", err)
+	}
 
-	// TODO(shiv): We need to pass the cluster role from env
-	_ = f.DeletePoseidonClusterRole("poseidon", f.TestingNS)
+	if len(*clusterRole) == 0 {
+		*clusterRole = "poseidon"
+	}
+	if err := f.DeletePoseidonClusterRole(*clusterRole, f.TestingNS); err != nil {
+		Logf("Error deleting cluster role: %v", err)
+	}
 
 	// This is needed if we have a dirty test run which leaves the pods and deployments hanging
-	_ = f.deleteNamespaceIfExist(f.TestingNS)
-	_ = f.DeleteDeploymentIfExist(f.TestingNS, poseidonDeploymentName)
-	_ = f.DeleteDeploymentIfExist(f.TestingNS, firmamentDeploymentName)
+	if err := f.deleteNamespaceIfExist(f.TestingNS); err != nil {
+		Logf("Error occurred when delete namespace if exist: %v", err)
+	}
+	if err := f.DeleteDeploymentIfExist(f.TestingNS, poseidonDeploymentName); err != nil {
+		Logf("Error occurred when delete deployment if exist: %v", err)
+	}
+	if err := f.DeleteDeploymentIfExist(f.TestingNS, firmamentDeploymentName); err != nil {
+		Logf("Error occurred when delete deployment if exist: %v", err)
+	}
 
 	f.Namespace, err = f.createNamespace(f.ClientSet)
 	Expect(err).NotTo(HaveOccurred())

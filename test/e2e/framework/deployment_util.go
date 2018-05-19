@@ -23,6 +23,7 @@ import (
 	extensions "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
 )
@@ -100,52 +101,52 @@ func (f *Framework) DeleteDeploymentIfExist(nsName string, deploymentName string
 			return nil
 		} else {
 			// error occurred while trying to fetch the deployment info
-			Logf("Unable to fetch the deployment %v", deploymentName)
-			return err
+			return fmt.Errorf("unable to fetch the deployment %v. error: %v", deploymentName, err)
 		}
 	}
 	// delete the deployment
 	// Note: we use apps/v1beta1 since and test use extension/v1beta for deployments
 	// apps/v1beta1 is used by poseidon and firmament deployment
 	// TODO(shiv): Need to move the tests to also use apps v1beta1 api
-	err := f.ClientSet.AppsV1beta1().Deployments(nsName).Delete(deploymentName, &metav1.DeleteOptions{})
-	if errors.IsNotFound(err) {
-		Logf("%v deployment doesn't exist", deploymentName)
-		return nil
-	} else {
-		Logf("Unable to delete the deployment %v from namespace %v", deploymentName, nsName)
-		return err
-	}
-}
-
-// DeletePoseidonClusterRole deletes a cluster role and role binding
-func (f *Framework) DeletePoseidonClusterRole(clusterRole string, nsName string) error {
-
-	err := f.ClientSet.RbacV1().ClusterRoleBindings().Delete(clusterRole, &metav1.DeleteOptions{})
-	if !errors.IsNotFound(err) {
-		Logf("Error deleting cluster role binding %v", clusterRole)
-	}
-
-	// now deleting the cluster role
-	err = f.ClientSet.RbacV1().ClusterRoles().Delete(clusterRole, &metav1.DeleteOptions{})
-	if !errors.IsNotFound(err) {
-		Logf("Error deleting cluster role %v", clusterRole)
-	}
-
-	// now deleting the service account
-	err = f.ClientSet.CoreV1().ServiceAccounts(nsName).Delete(clusterRole, &metav1.DeleteOptions{})
-	if !errors.IsNotFound(err) {
-		Logf("Error deleting service account %v", clusterRole)
+	if err := f.ClientSet.AppsV1beta1().Deployments(nsName).Delete(deploymentName, &metav1.DeleteOptions{}); err != nil {
+		if errors.IsNotFound(err) {
+			Logf("Deployment %v doesn't exist", deploymentName)
+			return nil
+		} else {
+			return fmt.Errorf("unable to delete the deployment %v from namespace %v. error: %v", deploymentName, nsName, err)
+		}
 	}
 	return nil
 }
 
 // DeletePoseidonClusterRole deletes a cluster role and role binding
+func (f *Framework) DeletePoseidonClusterRole(clusterRole string, nsName string) error {
+	var errs []error
+	err := f.ClientSet.RbacV1().ClusterRoleBindings().Delete(clusterRole, &metav1.DeleteOptions{})
+	if !errors.IsNotFound(err) {
+		errs = append(errs, fmt.Errorf("error deleting cluster role binding %v", clusterRole))
+	}
+
+	// now deleting the cluster role
+	err = f.ClientSet.RbacV1().ClusterRoles().Delete(clusterRole, &metav1.DeleteOptions{})
+	if !errors.IsNotFound(err) {
+		errs = append(errs, fmt.Errorf("error deleting cluster role %v", clusterRole))
+	}
+
+	// now deleting the service account
+	err = f.ClientSet.CoreV1().ServiceAccounts(nsName).Delete(clusterRole, &metav1.DeleteOptions{})
+	if !errors.IsNotFound(err) {
+		errs = append(errs, fmt.Errorf("error deleting service account %v", clusterRole))
+	}
+	return utilerrors.NewAggregate(errs)
+}
+
+// DeleteService deletes a service
 func (f *Framework) DeleteService(nsName string, serviceName string) error {
 
 	err := f.ClientSet.CoreV1().Services(nsName).Delete(serviceName, &metav1.DeleteOptions{})
 	if !errors.IsNotFound(err) {
-		Logf("Error deleting %v service", serviceName)
+		return err
 	}
 	return nil
 }
