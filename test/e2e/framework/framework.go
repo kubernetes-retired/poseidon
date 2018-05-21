@@ -29,6 +29,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/api/core/v1"
+	"k8s.io/api/extensions/v1beta1"
+	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -36,8 +40,8 @@ import (
 
 var kubeConfig = flag.String(clientcmd.RecommendedConfigPathFlag, os.Getenv(clientcmd.RecommendedConfigPathEnvVar), "Path to kubeconfig containing embedded authinfo.")
 var kubectlPath = flag.String("kubectl-path", "kubectl", "The kubectl binary to use. For development, you might use 'cluster/kubectl.sh' here.")
-var poseidonManifestPath = flag.String("poseidonManifestPath", "github.com/kubernetes-sigs/poseidon/deploy/poseidon-deployment.yaml", "The Poseidon deployment manifest to use.")
-var firmamentManifestPath = flag.String("firmamentManifestPath", "github.com/kubernetes-sigs/poseidon/deploy/firmament-deployment.yaml", "The Firmament deployment manifest to use.")
+var poseidonVersion = flag.String("poseidonVersion", "version", "The poseidon image version")
+var gcrProject = flag.String("gcrProject", "google_containers", "The gcloud project")
 var testNamespace = flag.String("testNamespace", "poseidon-test", "The namespace to use for test")
 var clusterRole = flag.String("clusterRole", os.Getenv("CLUSTERROLE"), "The cluster role")
 
@@ -48,7 +52,6 @@ const (
 
 func init() {
 	flag.Parse()
-	fmt.Println(*kubeConfig, *kubectlPath, *poseidonManifestPath, *firmamentManifestPath)
 	getKubeConfigFromEnv()
 }
 
@@ -194,30 +197,57 @@ func (f *Framework) WaitForPodNoLongerRunning(podName string) error {
 	return WaitForPodNoLongerRunningInNamespace(f.ClientSet, podName, f.Namespace.Name)
 }
 
-// CreateFirmament create firmament deployment using kubectl
-// TODO(shiv): We need to refrain from using 'kubectl' command from out tests.
-// Refer issue: https://github.com/kubernetes/test-infra/issues/7901
+// CreateFirmament create firmament deployment
 func (f *Framework) CreateFirmament() error {
-	outputStr, errorStr, err := f.KubectlExecCreate(*firmamentManifestPath)
+	Logf("Create Firmament Deployment")
+	deployment, err := f.createFirmamentDeployment()
 	if err != nil {
-		Logf("kubectl create firmamnet deployment command error string %v", errorStr)
-		Logf("kubectl create firmamnet deployment command output string %v", outputStr)
-		Logf("%v", err)
+		return fmt.Errorf("failed to create Firmament Deployment. error: %v", err)
 	}
-	return err
+
+	Logf("Create Firmament Service")
+	if err := f.createFirmamentService(); err != nil {
+		return fmt.Errorf("failed to create Firmament Service. error: %v", err)
+	}
+
+	if err := f.WaitForDeploymentComplete(deployment); err != nil {
+		return fmt.Errorf("timeout to wait deployment: %v to complete. error: %v", deployment, err)
+	}
+	return nil
 }
 
-// CreatePoseidon create firmament deployment using kubectl
-// TODO(shiv): We need to refrain from using 'kubectl' command from out tests.
-// Refer issue: https://github.com/kubernetes/test-infra/issues/7901
+// CreatePoseidon create firmament deployment
 func (f *Framework) CreatePoseidon() error {
-	outputStr, errorStr, err := f.KubectlExecCreate(*poseidonManifestPath)
-	if err != nil {
-		Logf("Command error string %v", errorStr)
-		Logf("Command output string %v", outputStr)
-		Logf("%v", err)
+	Logf("Create Poseidon ClusterRoleBinding")
+	if err := f.createPoseidonClusterRoleBinding(); err != nil {
+		return fmt.Errorf("failed to create Poseidon ClusterRoleBinding. error: %v", err)
 	}
-	return err
+
+	Logf("Create Poseidon ClusterRole")
+	if err := f.createPoseidonClusterRole(); err != nil {
+		return fmt.Errorf("failed to create Poseidon ClusterRole. error: %v", err)
+	}
+
+	Logf("Create Poseidon ServiceAccount")
+	if err := f.createPoseidonServiceAccount(); err != nil {
+		return fmt.Errorf("failed to create Poseidon ServiceAccount. error: %v", err)
+	}
+
+	Logf("Create Poseidon Service")
+	if err := f.createPoseidonService(); err != nil {
+		return fmt.Errorf("failed to create Poseidon Service. error: %v", err)
+	}
+
+	Logf("Create Poseidon Deployment")
+	deployment, err := f.createPoseidonDeployment()
+	if err != nil {
+		return fmt.Errorf("failed to create Poseidon Deployment. error: %v", err)
+	}
+
+	if err := f.WaitForDeploymentComplete(deployment); err != nil {
+		return fmt.Errorf("timeout to wait deployment: %v to complete. error: %v", deployment, err)
+	}
+	return nil
 }
 
 // KubectlCmd runs the kubectl executable through the wrapper script.
@@ -261,4 +291,225 @@ func getKubeConfigFromEnv() {
 
 	}
 	Logf("Location of the kubeconfig file %v", *kubeConfig)
+}
+
+func (f *Framework) createFirmamentService() error {
+	_, err := f.ClientSet.CoreV1().Services(f.TestingNS).Create(&v1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "firmament-service",
+		},
+		Spec: v1.ServiceSpec{
+			Ports: []v1.ServicePort{{
+				Protocol:   "TCP",
+				Port:       9090,
+				TargetPort: intstr.FromInt(9090),
+			}},
+			Selector: map[string]string{
+				"scheduler": "firmament",
+			},
+		},
+	})
+	return err
+}
+
+func (f *Framework) createFirmamentDeployment() (*v1beta1.Deployment, error) {
+	var replicas, revisionHistoryLimit int32
+	replicas = 1
+	revisionHistoryLimit = 10
+	deployment, err := f.ClientSet.ExtensionsV1beta1().Deployments(f.TestingNS).Create(&v1beta1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels: map[string]string{"scheduler": "firmament"},
+			Name:   "firmament-scheduler",
+		},
+		Spec: v1beta1.DeploymentSpec{
+			Replicas:             &replicas,
+			RevisionHistoryLimit: &revisionHistoryLimit,
+			Template: v1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{"scheduler": "firmament"},
+				},
+				Spec: v1.PodSpec{
+					Containers: []v1.Container{
+						{
+							Name:    "firmament-scheduler",
+							Image:   "huaweifirmament/firmament:latest",
+							Command: []string{"/firmament/build/src/firmament_scheduler", "--flagfile=/firmament/config/firmament_scheduler_cpu_mem.cfg"},
+							Ports:   []v1.ContainerPort{{ContainerPort: 9090}},
+						},
+					},
+					HostNetwork: true,
+					HostPID:     false,
+					Volumes:     []v1.Volume{},
+				},
+			},
+		},
+	})
+	return deployment, err
+}
+
+func (f *Framework) createPoseidonClusterRoleBinding() error {
+	_, err := f.ClientSet.RbacV1().ClusterRoleBindings().Create(&rbacv1.ClusterRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   "poseidon",
+			Labels: map[string]string{"kubernetes.io/bootstrapping": "rbac-defaults"},
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Name:      "poseidon",
+				Namespace: f.TestingNS,
+			},
+		},
+		RoleRef: rbacv1.RoleRef{
+			Kind:     "ClusterRole",
+			Name:     "poseidon",
+			APIGroup: "rbac.authorization.k8s.io",
+		},
+	})
+	return err
+}
+
+func (f *Framework) createPoseidonClusterRole() error {
+	_, err := f.ClientSet.RbacV1().ClusterRoles().Create(&rbacv1.ClusterRole{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   "poseidon",
+			Labels: map[string]string{"kubernetes.io/bootstrapping": "rbac-defaults"},
+		},
+		Rules: []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"events"},
+				Verbs:     []string{"create", "patch", "update"},
+			},
+			{
+				APIGroups: []string{""},
+				Resources: []string{"endpoints"},
+				Verbs:     []string{"create"},
+			},
+			{
+				APIGroups:     []string{""},
+				ResourceNames: []string{"poseidon"},
+				Resources:     []string{"endpoints"},
+				Verbs:         []string{"delete", "get", "patch", "update"},
+			},
+			{
+				APIGroups: []string{""},
+				Resources: []string{"nodes"},
+				Verbs:     []string{"get", "list", "watch"},
+			},
+			{
+				APIGroups: []string{""},
+				Resources: []string{"pods"},
+				Verbs:     []string{"delete", "get", "list", "watch"},
+			},
+			{
+				APIGroups: []string{""},
+				Resources: []string{"bindings", "pods/binding"},
+				Verbs:     []string{"create"},
+			},
+			{
+				APIGroups: []string{""},
+				Resources: []string{"pods/status"},
+				Verbs:     []string{"patch", "update"},
+			},
+			{
+				APIGroups: []string{""},
+				Resources: []string{"replicationcontrollers", "services"},
+				Verbs:     []string{"get", "list", "watch"},
+			},
+			{
+				APIGroups: []string{"apps", "extensions"},
+				Resources: []string{"replicasets"},
+				Verbs:     []string{"get", "list", "watch"},
+			},
+			{
+				APIGroups: []string{"apps"},
+				Resources: []string{"statefulsets"},
+				Verbs:     []string{"get", "list", "watch"},
+			},
+			{
+				APIGroups: []string{"policy"},
+				Resources: []string{"poddisruptionbudgets"},
+				Verbs:     []string{"get", "list", "watch"},
+			},
+			{
+				APIGroups: []string{""},
+				Resources: []string{"persistentvolumeclaims", "persistentvolumes"},
+				Verbs:     []string{"get", "list", "watch"},
+			},
+		},
+	})
+	return err
+}
+
+func (f *Framework) createPoseidonServiceAccount() error {
+	_, err := f.ClientSet.CoreV1().ServiceAccounts(f.TestingNS).Create(&v1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{Name: "poseidon"},
+	})
+	return err
+}
+
+func (f *Framework) createPoseidonService() error {
+	_, err := f.ClientSet.CoreV1().Services(f.TestingNS).Create(&v1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "poseidon",
+		},
+		Spec: v1.ServiceSpec{
+			Ports: []v1.ServicePort{{
+				Protocol:   "TCP",
+				Port:       9091,
+				TargetPort: intstr.FromInt(9091),
+			}},
+			Selector: map[string]string{
+				"poseidonservice": "poseidon",
+			},
+		},
+	})
+	return err
+}
+
+func (f *Framework) createPoseidonDeployment() (*v1beta1.Deployment, error) {
+	var replicas, revisionHistoryLimit int32
+	replicas = 1
+	revisionHistoryLimit = 10
+	privileged := false
+	poseidonImage := fmt.Sprintf("gcr.io/%s/poseidon-amd64:%s", *gcrProject, *poseidonVersion)
+	deployment, err := f.ClientSet.ExtensionsV1beta1().Deployments(f.TestingNS).Create(&v1beta1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels: map[string]string{"component": "poseidon", "tier": "control-plane", "poseidonservice": "poseidon"},
+			Name:   "poseidon",
+		},
+		Spec: v1beta1.DeploymentSpec{
+			Replicas:             &replicas,
+			RevisionHistoryLimit: &revisionHistoryLimit,
+			Template: v1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{"component": "poseidon", "tier": "control-plane", "poseidonservice": "poseidon", "version": "first"},
+				},
+				Spec: v1.PodSpec{
+					ServiceAccountName: "poseidon",
+					Containers: []v1.Container{
+						{
+							Name:    "poseidon",
+							Image:   poseidonImage,
+							Command: []string{"/poseidon", "--logtostderr", "--kubeConfig=", "--kubeVersion=1.6", "--firmamentAddress=firmament-service.poseidon-test", "--firmamentPort=9090"},
+						},
+					},
+					InitContainers: []v1.Container{
+						{
+							Name:            "init-firmamentservice",
+							Image:           "radial/busyboxplus:curl",
+							Command:         []string{"sh", "-c", "until nslookup firmament-service.poseidon-test; do echo waiting for firmamentservice; sleep 1; done;"},
+							SecurityContext: &v1.SecurityContext{Privileged: &privileged},
+							VolumeMounts:    []v1.VolumeMount{},
+						},
+					},
+					HostNetwork: false,
+					HostPID:     false,
+					Volumes:     []v1.Volume{},
+				},
+			},
+		},
+	})
+	return deployment, err
 }
