@@ -268,11 +268,11 @@ func (nw *NodeWatcher) nodeWorker() {
 				case NodeUpdated:
 					NodeMux.RLock()
 					rtnd, ok := NodeToRTND[node.Hostname]
-					nw.updateResourceDescriptor(node, rtnd)
-					NodeMux.RUnlock()
 					if !ok {
 						glog.Fatalf("Node %s does not exist", node.Hostname)
 					}
+					nw.updateResourceDescriptor(node, rtnd)
+					NodeMux.RUnlock()
 					firmament.NodeUpdated(nw.fc, rtnd)
 				default:
 					glog.Fatalf("Unexpected node %s phase %s", node.Hostname, node.Phase)
