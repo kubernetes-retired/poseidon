@@ -372,6 +372,10 @@ func (pw *PodWatcher) updateTask(pod *Pod, td *firmament.TaskDescriptor) {
 				Value: value,
 			})
 	}
+
+	// update label selectors
+	td.LabelSelectors = nil
+	td.LabelSelectors = pw.getFirmamentLabelSelectorFromNodeSelectorMap(pod.NodeSelector, SortNodeSelectorsKey(pod.NodeSelector))
 }
 
 func (pw *PodWatcher) addTaskToJob(pod *Pod, jd *firmament.JobDescriptor) *firmament.TaskDescriptor {
