@@ -26,8 +26,6 @@ echo $SCRIPT_ROOT # ../test/..
 #Set environment variables
 BUILD_VERSION=$(git rev-parse HEAD)
 POSEIDON_ROOT_DIR=${SCRIPT_ROOT}
-FIRMAMENT_MANIFEST_FILE_PATH=../../deploy/firmament-deployment-e2e.yaml
-POSEIDON_MANIFEST_FILE_PATH=../../deploy/poseidon-deployment-e2e.yaml
 
 
 # work from the correct path
@@ -47,9 +45,7 @@ cp /tmp/deploy/*.yaml deploy/.
 # setup the env and correct test directory
 cd test/e2e
 
-# update the poseidon deployment yaml with the correct image
-sed -i "s/huaweiposeidon\/poseidon:latest/gcr.io\/google_containers\/poseidon-amd64:${BUILD_VERSION}/" $POSEIDON_MANIFEST_FILE_PATH
 
 #Run e2e test
-go test -v . -timeout=60m -ginkgo.v -args -firmamentManifestPath=${FIRMAMENT_MANIFEST_FILE_PATH} -poseidonManifestPath=${POSEIDON_MANIFEST_FILE_PATH} -poseidonVersion=${BUILD_VERSION} -gcrProject="google_containers"
+go test -v . -timeout=60m -ginkgo.v -args -poseidonVersion=${BUILD_VERSION} -gcrProject="google_containers"
 

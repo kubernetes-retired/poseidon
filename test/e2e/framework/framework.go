@@ -42,8 +42,6 @@ var kubeConfig = flag.String(clientcmd.RecommendedConfigPathFlag, os.Getenv(clie
 var kubectlPath = flag.String("kubectl-path", "kubectl", "The kubectl binary to use. For development, you might use 'cluster/kubectl.sh' here.")
 var poseidonVersion = flag.String("poseidonVersion", "version", "The poseidon image version")
 var gcrProject = flag.String("gcrProject", "google_containers", "The gcloud project")
-var poseidonManifestPath = flag.String("poseidonManifestPath", "github.com/kubernetes-sigs/poseidon/deploy/poseidon-deployment.yaml", "The Poseidon deployment manifest to use.")
-var firmamentManifestPath = flag.String("firmamentManifestPath", "github.com/kubernetes-sigs/poseidon/deploy/firmament-deployment.yaml", "The Firmament deployment manifest to use.")
 var testNamespace = flag.String("testNamespace", "poseidon-test", "The namespace to use for test")
 var clusterRole = flag.String("clusterRole", os.Getenv("CLUSTERROLE"), "The cluster role")
 
@@ -54,7 +52,6 @@ const (
 
 func init() {
 	flag.Parse()
-	fmt.Println(*kubeConfig, *kubectlPath, *poseidonManifestPath, *firmamentManifestPath)
 	getKubeConfigFromEnv()
 }
 
@@ -201,8 +198,6 @@ func (f *Framework) WaitForPodNoLongerRunning(podName string) error {
 }
 
 // CreateFirmament create firmament deployment using kubectl
-// TODO(shiv): We need to refrain from using 'kubectl' command from out tests.
-// Refer issue: https://github.com/kubernetes/test-infra/issues/7901
 func (f *Framework) CreateFirmament() error {
 	err := f.createFirmamentDeployment()
 	Logf("\n createFirmamentDeployment   err:%v \n", err)
@@ -212,8 +207,6 @@ func (f *Framework) CreateFirmament() error {
 }
 
 // CreatePoseidon create firmament deployment using kubectl
-// TODO(shiv): We need to refrain from using 'kubectl' command from out tests.
-// Refer issue: https://github.com/kubernetes/test-infra/issues/7901
 func (f *Framework) CreatePoseidon() error {
 	err := f.createPoseidonClusterRoleBinding()
 	Logf("\n createPoseidonClusterRoleBinding   err:%v \n", err)
