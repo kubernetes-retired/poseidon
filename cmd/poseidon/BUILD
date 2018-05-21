@@ -7,6 +7,7 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//pkg/config:go_default_library",
+        "//pkg/debugutil:go_default_library",
         "//pkg/firmament:go_default_library",
         "//pkg/k8sclient:go_default_library",
         "//pkg/stats:go_default_library",

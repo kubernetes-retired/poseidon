@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/kubernetes-sigs/poseidon/pkg/config"
+	"github.com/kubernetes-sigs/poseidon/pkg/debugutil"
 	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 	"github.com/kubernetes-sigs/poseidon/pkg/k8sclient"
 	"github.com/kubernetes-sigs/poseidon/pkg/stats"
@@ -94,6 +95,10 @@ func main() {
 		panic(err)
 	}
 	defer conn.Close()
+	if config.GetEnablePprof() {
+		glog.Infof("pprof is enabled under %s", config.GetPprofAddress()+debugutil.HTTPPrefixPProf)
+		go debugutil.EnablePprof(config.GetPprofAddress())
+	}
 	// Check if firmament grpc service is available and then proceed
 	WaitForFirmamentService(fc)
 	go schedule(fc)
