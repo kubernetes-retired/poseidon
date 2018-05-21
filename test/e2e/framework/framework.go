@@ -197,27 +197,56 @@ func (f *Framework) WaitForPodNoLongerRunning(podName string) error {
 	return WaitForPodNoLongerRunningInNamespace(f.ClientSet, podName, f.Namespace.Name)
 }
 
-// CreateFirmament create firmament deployment using kubectl
+// CreateFirmament create firmament deployment
 func (f *Framework) CreateFirmament() error {
-	err := f.createFirmamentDeployment()
-	Logf("\n createFirmamentDeployment   err:%v \n", err)
-	err = f.createFirmamentService()
-	Logf("\n createFirmamentService   err:%v \n", err)
+	Logf("Create Firmament Deployment")
+	deployment, err := f.createFirmamentDeployment()
+	if err != nil {
+		return fmt.Errorf("failed to create Firmament Deployment. error: %v", err)
+	}
+
+	Logf("Create Firmament Service")
+	if err := f.createFirmamentService(); err != nil {
+		return fmt.Errorf("failed to create Firmament Service. error: %v", err)
+	}
+
+	if err := f.WaitForDeploymentComplete(deployment); err != nil {
+		return fmt.Errorf("timeout to wait deployment: %v to complete. error: %v", deployment, err)
+	}
 	return nil
 }
 
-// CreatePoseidon create firmament deployment using kubectl
+// CreatePoseidon create firmament deployment
 func (f *Framework) CreatePoseidon() error {
-	err := f.createPoseidonClusterRoleBinding()
-	Logf("\n createPoseidonClusterRoleBinding   err:%v \n", err)
-	err = f.createPoseidonClusterRole()
-	Logf("\n createPoseidonClusterRole   err:%v \n", err)
-	err = f.createPoseidonServiceAccount()
-	Logf("\n createPoseidonServiceAccount   err:%v \n", err)
-	err = f.createPoseidonService()
-	Logf("\n createPoseidonService   err:%v \n", err)
-	err = f.createPoseidonDeployment()
-	Logf("\n createPoseidonDeployment   err:%v \n", err)
+	Logf("Create Poseidon ClusterRoleBinding")
+	if err := f.createPoseidonClusterRoleBinding(); err != nil {
+		return fmt.Errorf("failed to create Poseidon ClusterRoleBinding. error: %v", err)
+	}
+
+	Logf("Create Poseidon ClusterRole")
+	if err := f.createPoseidonClusterRole(); err != nil {
+		return fmt.Errorf("failed to create Poseidon ClusterRole. error: %v", err)
+	}
+
+	Logf("Create Poseidon ServiceAccount")
+	if err := f.createPoseidonServiceAccount(); err != nil {
+		return fmt.Errorf("failed to create Poseidon ServiceAccount. error: %v", err)
+	}
+
+	Logf("Create Poseidon Service")
+	if err := f.createPoseidonService(); err != nil {
+		return fmt.Errorf("failed to create Poseidon Service. error: %v", err)
+	}
+
+	Logf("Create Poseidon Deployment")
+	deployment, err := f.createPoseidonDeployment()
+	if err != nil {
+		return fmt.Errorf("failed to create Poseidon Deployment. error: %v", err)
+	}
+
+	if err := f.WaitForDeploymentComplete(deployment); err != nil {
+		return fmt.Errorf("timeout to wait deployment: %v to complete. error: %v", deployment, err)
+	}
 	return nil
 }
 
@@ -283,11 +312,11 @@ func (f *Framework) createFirmamentService() error {
 	return err
 }
 
-func (f *Framework) createFirmamentDeployment() error {
+func (f *Framework) createFirmamentDeployment() (*v1beta1.Deployment, error) {
 	var replicas, revisionHistoryLimit int32
 	replicas = 1
 	revisionHistoryLimit = 10
-	_, err := f.ClientSet.ExtensionsV1beta1().Deployments(f.TestingNS).Create(&v1beta1.Deployment{
+	deployment, err := f.ClientSet.ExtensionsV1beta1().Deployments(f.TestingNS).Create(&v1beta1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{"scheduler": "firmament"},
 			Name:   "firmament-scheduler",
@@ -315,7 +344,7 @@ func (f *Framework) createFirmamentDeployment() error {
 			},
 		},
 	})
-	return err
+	return deployment, err
 }
 
 func (f *Framework) createPoseidonClusterRoleBinding() error {
@@ -439,14 +468,13 @@ func (f *Framework) createPoseidonService() error {
 	return err
 }
 
-func (f *Framework) createPoseidonDeployment() error {
+func (f *Framework) createPoseidonDeployment() (*v1beta1.Deployment, error) {
 	var replicas, revisionHistoryLimit int32
 	replicas = 1
 	revisionHistoryLimit = 10
 	privileged := false
 	poseidonImage := fmt.Sprintf("gcr.io/%s/poseidon-amd64:%s", *gcrProject, *poseidonVersion)
-	Logf("\n in createPoseidonDeployment   poseidonImage:%s \n", poseidonImage)
-	_, err := f.ClientSet.ExtensionsV1beta1().Deployments(f.TestingNS).Create(&v1beta1.Deployment{
+	deployment, err := f.ClientSet.ExtensionsV1beta1().Deployments(f.TestingNS).Create(&v1beta1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{"component": "poseidon", "tier": "control-plane", "poseidonservice": "poseidon"},
 			Name:   "poseidon",
@@ -483,5 +511,5 @@ func (f *Framework) createPoseidonDeployment() error {
 			},
 		},
 	})
-	return err
+	return deployment, err
 }
