@@ -427,6 +427,7 @@ var _ = Describe("Poseidon", func() {
 				NodeSelector: map[string]string{
 					"label": "nonempty",
 				},
+				SchedulerName: "poseidon",
 			}
 			testPod := createTestPod(f, conf)
 			// Clean up additional pod after this test.
@@ -462,6 +463,7 @@ var _ = Describe("Poseidon", func() {
 				NodeSelector: map[string]string{
 					k: v,
 				},
+				SchedulerName: "poseidon",
 			})
 
 			// check that pod got scheduled. We intentionally DO NOT check that the
@@ -479,7 +481,7 @@ var _ = Describe("Poseidon", func() {
 
 func getNodeThatCanRunPodWithoutToleration(f *framework.Framework) string {
 	By("Trying to launch a pod without a toleration to get a node which can launch it.")
-	return runPodAndGetNodeName(f, testPodConfig{Name: "without-toleration"})
+	return runPodAndGetNodeName(f, testPodConfig{Name: "without-toleration", SchedulerName: "poseidon"})
 }
 
 func runPodAndGetNodeName(f *framework.Framework, conf testPodConfig) string {

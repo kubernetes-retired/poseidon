@@ -268,10 +268,11 @@ func (nw *NodeWatcher) nodeWorker() {
 				case NodeUpdated:
 					NodeMux.RLock()
 					rtnd, ok := NodeToRTND[node.Hostname]
-					NodeMux.RUnlock()
 					if !ok {
 						glog.Fatalf("Node %s does not exist", node.Hostname)
 					}
+					nw.updateResourceDescriptor(node, rtnd)
+					NodeMux.RUnlock()
 					firmament.NodeUpdated(nw.fc, rtnd)
 				default:
 					glog.Fatalf("Unexpected node %s phase %s", node.Hostname, node.Phase)
@@ -340,4 +341,16 @@ func (nw *NodeWatcher) createResourceTopologyForNode(node *Node) *firmament.Reso
 
 func (nw *NodeWatcher) generateResourceID(seed string) string {
 	return GenerateUUID(seed)
+}
+
+// updateResourceDescriptor to update the labels to resource descriptor
+func (nw *NodeWatcher) updateResourceDescriptor(node *Node, rtnd *firmament.ResourceTopologyNodeDescriptor) {
+	rtnd.ResourceDesc.Labels = nil
+	for label, value := range node.Labels {
+		rtnd.ResourceDesc.Labels = append(rtnd.ResourceDesc.Labels,
+			&firmament.Label{
+				Key:   label,
+				Value: value,
+			})
+	}
 }
