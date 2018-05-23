@@ -137,9 +137,9 @@ func (pw *PodWatcher) getCPUMemRequest(pod *v1.Pod) (int64, int64) {
 	memReq := int64(0)
 	for _, container := range pod.Spec.Containers {
 		request := container.Resources.Requests
-		cpuReqQuantity := request["cpu"]
+		cpuReqQuantity := request[v1.ResourceCPU]
 		cpuReq += cpuReqQuantity.MilliValue()
-		memReqQuantity := request["memory"]
+		memReqQuantity := request[v1.ResourceMemory]
 		memReqCont, _ := memReqQuantity.AsInt64()
 		memReq += memReqCont
 	}
@@ -148,16 +148,16 @@ func (pw *PodWatcher) getCPUMemRequest(pod *v1.Pod) (int64, int64) {
 
 func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 	cpuReq, memReq := pw.getCPUMemRequest(pod)
-	podPhase := PodPhase("Unknown")
+	podPhase := PodUnknown
 	switch pod.Status.Phase {
-	case "Pending":
-		podPhase = "Pending"
-	case "Running":
-		podPhase = "Running"
-	case "Succeeded":
-		podPhase = "Succeeded"
-	case "Failed":
-		podPhase = "Failed"
+	case v1.PodPending:
+		podPhase = PodPending
+	case v1.PodRunning:
+		podPhase = PodRunning
+	case v1.PodSucceeded:
+		podPhase = PodSucceeded
+	case v1.PodFailed:
+		podPhase = PodFailed
 	}
 	return &Pod{
 		Identifier: PodIdentifier{
