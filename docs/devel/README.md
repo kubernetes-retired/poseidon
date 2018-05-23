@@ -171,11 +171,10 @@ To run E2E test on a local cluster.
 $ cd $GOPATH/src/github.com/kubernetes-sigs/poseidon/test/e2e
 $ go test -v . -ginkgo.v \
 -args -kubeconfig=/home/ubuntu/.kube/config \ 
--firmamentManifestPath=../../deploy/firmament-deployment-e2e.yaml \
--poseidonManifestPath=../../deploy/poseidon-deployment-e2e.yaml
+-poseidonVersion=${BUILD_VERSION} \
+-gcrProject="google_containers"
 ```
-You can optionally modify the ```firmamentManifestPath``` and 
-```poseidonManifestPath``` arguments to point to your build images.
+You can get ```${BUILD_VERSION}``` by ```BUILD_VERSION=$(git rev-parse HEAD)```
 ```kubeconfig``` should point to the running local k8s cluster.
 
 ***Note***
