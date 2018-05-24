@@ -199,6 +199,9 @@ below script. It will build the release tar push it to docker locally and run th
 The ```'kubeconfig'``` path should be ```$HOME/.kube/config```.
 The below script run based on the above assumptions.
 And it should point to a running k8s cluster.
+If your running k8s cluster that is started by local-up-cluster.sh, you should ```export HOSTNAME_OVERRIDE=$master-ip``` before running local-up-cluster.sh.
+```$master-ip``` is the non-loopback IP of your machine where running the k8s cluster.
+And copy ```KUBECONFIG```(such as ```/var/run/kubernetes/admin.kubeconfig```) to ```$HOME/.kube/config``` before running test/e2e-poseidon-local.sh.
 
 ```
 $ $GOPATH/src/github.com/kubernetes-sigs/poseidon/test/e2e
