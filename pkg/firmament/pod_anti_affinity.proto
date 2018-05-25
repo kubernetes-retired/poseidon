@@ -21,14 +21,14 @@ message LabelSelectorRequirementAntiAff {
 
 message LabelSelectorAntiAff{
 
-    MatchLabelsAntiAff matchLabels = 1;
+  MatchLabelsAntiAff matchLabels = 1;
 
   repeated LabelSelectorRequirementAntiAff matchExpressions = 2;
 }
 
 message PodAffinityTermAntiAff {
 
-    LabelSelectorAntiAff labelSelector = 1;
+  LabelSelectorAntiAff labelSelector = 1;
 
   repeated string namespaces = 2;
   // Empty topologyKey is not allowed.

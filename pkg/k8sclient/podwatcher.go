@@ -148,14 +148,13 @@ func (pw *PodWatcher) getCPUMemRequest(pod *v1.Pod) (int64, int64) {
 }
 
 func (pw *PodWatcher) getNodeSelectorTerm(pod *v1.Pod) []NodeSelectorTerm {
-
 	var nodeSelTerm []NodeSelectorTerm
 	if pod.Spec.Affinity != nil {
 		if pod.Spec.Affinity.NodeAffinity != nil {
 			if pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution != nil {
 				err := copier.Copy(&nodeSelTerm, pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms)
 				if err != nil {
-					glog.Info("NodeSelectorTerm Data could not be copied")
+					glog.Errorf("NodeSelectorTerm %v could not be copied, err: %v", pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms, err)
 				}
 
 			}
@@ -168,10 +167,9 @@ func (pw *PodWatcher) getPreferredSchedulingTerm(pod *v1.Pod) []PreferredSchedul
 	var prefSchTerm []PreferredSchedulingTerm
 	if pod.Spec.Affinity != nil {
 		if pod.Spec.Affinity.NodeAffinity != nil {
-
 			err := copier.Copy(&prefSchTerm, pod.Spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution)
 			if err != nil {
-				glog.Info("PreferredSchedulingTerm Data could not be copied")
+				glog.Errorf("PreferredSchedulingTerm %v could not be copied, err: %v", pod.Spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution, err)
 			}
 		}
 
@@ -185,7 +183,7 @@ func (pw *PodWatcher) getPodAffinityTerm(pod *v1.Pod) []PodAffinityTerm {
 		if pod.Spec.Affinity.PodAffinity != nil {
 			err := copier.Copy(&podAffTerm, pod.Spec.Affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution)
 			if err != nil {
-				glog.Info("PodAffinityTerm Data could not be copied")
+				glog.Errorf("PodAffinityTerm %v could not be copied, err: %v", pod.Spec.Affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution, err)
 			}
 		}
 	}
@@ -198,7 +196,7 @@ func (pw *PodWatcher) getWgtPodAffinityTerm(pod *v1.Pod) []WeightedPodAffinityTe
 		if pod.Spec.Affinity.PodAffinity != nil {
 			err := copier.Copy(&wgtPodAffTerm, pod.Spec.Affinity.PodAffinity.PreferredDuringSchedulingIgnoredDuringExecution)
 			if err != nil {
-				glog.Info("PodAffinityTerm Data could not be copied")
+				glog.Errorf("WeightedPodAffinityTerm %v could not be copied, err: %v", pod.Spec.Affinity.PodAffinity.PreferredDuringSchedulingIgnoredDuringExecution, err)
 			}
 		}
 	}
@@ -211,7 +209,7 @@ func (pw *PodWatcher) getPodAffinityTermforPodAntiAffinity(pod *v1.Pod) []PodAff
 		if pod.Spec.Affinity.PodAntiAffinity != nil {
 			err := copier.Copy(&podAffTerm, pod.Spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution)
 			if err != nil {
-				glog.Info("PodAffinityTerm Data for Pod AntiAffinity could not be copied")
+				glog.Errorf("PodAffinityTerm %v for PodAntiAffinity could not be copied, err: %v", pod.Spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution, err)
 			}
 		}
 	}
@@ -224,7 +222,7 @@ func (pw *PodWatcher) getWgtPodAffinityTermforPodAntiAffinity(pod *v1.Pod) []Wei
 		if pod.Spec.Affinity.PodAntiAffinity != nil {
 			err := copier.Copy(&wgtPodAffTerm, pod.Spec.Affinity.PodAntiAffinity.PreferredDuringSchedulingIgnoredDuringExecution)
 			if err != nil {
-				glog.Info("PodAffinityTerm Data for Pod AntiAffinity could not be copied")
+				glog.Errorf("WeightedPodAffinityTerm %v for PodAntiAffinity could not be copied, err: %v", pod.Spec.Affinity.PodAntiAffinity.PreferredDuringSchedulingIgnoredDuringExecution, err)
 			}
 		}
 	}
@@ -607,7 +605,7 @@ func (pw *PodWatcher) getFirmamentNodeSelTerm(pod *Pod) []*firmament.NodeSelecto
 	var fns []*firmament.NodeSelectorTerm
 	err := copier.Copy(&fns, pod.Affinity.NodeAffinity.HardScheduling.NodeSelectorTerms)
 	if err != nil {
-		glog.Info("NodeSelectorTerm could not be copied")
+		glog.Errorf("NodeSelectorTerm %v could not be copied to firmament, err: %v", pod.Affinity.NodeAffinity.HardScheduling.NodeSelectorTerms, err)
 	}
 	return fns
 }
@@ -616,7 +614,7 @@ func (pw *PodWatcher) getFirmamentPreferredSchedulingTerm(pod *Pod) []*firmament
 	var pst []*firmament.PreferredSchedulingTerm
 	err := copier.Copy(&pst, pod.Affinity.NodeAffinity.SoftScheduling)
 	if err != nil {
-		glog.Info("PreferredSchedulingTerm could not be copied")
+		glog.Errorf("PreferredSchedulingTerm %v could not be copied to firmament, err: %v", pod.Affinity.NodeAffinity.SoftScheduling, err)
 	}
 	return pst
 }
@@ -625,7 +623,7 @@ func (pw *PodWatcher) getFirmamentPodAffinityTerm(pod *Pod) []*firmament.PodAffi
 	var pat []*firmament.PodAffinityTerm
 	err := copier.Copy(&pat, pod.Affinity.PodAffinity.HardScheduling)
 	if err != nil {
-		glog.Info("PodAffinityTerm could not be copied")
+		glog.Errorf("PodAffinityTerm %v could not be copied to firmament, err: %v", pod.Affinity.PodAffinity.HardScheduling, err)
 	}
 	return pat
 }
@@ -634,7 +632,7 @@ func (pw *PodWatcher) getFirmamentWeightedPodAffinityTerm(pod *Pod) []*firmament
 	var wpat []*firmament.WeightedPodAffinityTerm
 	err := copier.Copy(&wpat, pod.Affinity.PodAffinity.SoftScheduling)
 	if err != nil {
-		glog.Info("WeightedPodAffinityTerm could not be copied")
+		glog.Errorf("WeightedPodAffinityTerm %v could not be copied to firmament, err: %v", pod.Affinity.PodAffinity.SoftScheduling, err)
 	}
 	return wpat
 }
@@ -643,7 +641,7 @@ func (pw *PodWatcher) getFirmamentPodAffinityTermforPodAntiAffinity(pod *Pod) []
 	var pat []*firmament.PodAffinityTermAntiAff
 	err := copier.Copy(&pat, pod.Affinity.PodAntiAffinity.HardScheduling)
 	if err != nil {
-		glog.Info("PodAffinityTerm for AntiAffinity could not be copied")
+		glog.Errorf("PodAffinityTerm %v for PodAntiAffinity could not be copied to firmament, err: %v", pod.Affinity.PodAntiAffinity.HardScheduling, err)
 	}
 	return pat
 }
@@ -652,7 +650,7 @@ func (pw *PodWatcher) getFirmamentWeightedPodAffinityTermforPodAntiAffinity(pod 
 	var wpat []*firmament.WeightedPodAffinityTermAntiAff
 	err := copier.Copy(&wpat, pod.Affinity.PodAntiAffinity.SoftScheduling)
 	if err != nil {
-		glog.Info("WeightedPodAffinityTerm for AntiAffinity could not be copied")
+		glog.Errorf("WeightedPodAffinityTerm %v for PodAntiAffinity could not be copied to firmament, err: %v", pod.Affinity.PodAntiAffinity.SoftScheduling, err)
 	}
 	return wpat
 }
