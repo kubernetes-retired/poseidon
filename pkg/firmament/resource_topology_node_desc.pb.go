@@ -28,16 +28,19 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// ResourceTopologyNodeDescriptor describe a node resource topology information.
 type ResourceTopologyNodeDescriptor struct {
-	ResourceDesc *ResourceDescriptor               `protobuf:"bytes,1,opt,name=resource_desc,json=resourceDesc" json:"resource_desc,omitempty"`
-	Children     []*ResourceTopologyNodeDescriptor `protobuf:"bytes,2,rep,name=children" json:"children,omitempty"`
-	ParentId     string                            `protobuf:"bytes,3,opt,name=parent_id,json=parentId" json:"parent_id,omitempty"`
+	ResourceDesc *ResourceDescriptor `protobuf:"bytes,1,opt,name=resource_desc,json=resourceDesc" json:"resource_desc,omitempty"`
+	// children stores the children nodes.
+	Children []*ResourceTopologyNodeDescriptor `protobuf:"bytes,2,rep,name=children" json:"children,omitempty"`
+	// parent_id is the id of its parent topology node.
+	ParentId string `protobuf:"bytes,3,opt,name=parent_id,json=parentId" json:"parent_id,omitempty"`
 }
 
 func (m *ResourceTopologyNodeDescriptor) Reset()                    { *m = ResourceTopologyNodeDescriptor{} }
 func (m *ResourceTopologyNodeDescriptor) String() string            { return proto.CompactTextString(m) }
 func (*ResourceTopologyNodeDescriptor) ProtoMessage()               {}
-func (*ResourceTopologyNodeDescriptor) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{0} }
+func (*ResourceTopologyNodeDescriptor) Descriptor() ([]byte, []int) { return fileDescriptor12, []int{0} }
 
 func (m *ResourceTopologyNodeDescriptor) GetResourceDesc() *ResourceDescriptor {
 	if m != nil {
@@ -64,9 +67,9 @@ func init() {
 	proto.RegisterType((*ResourceTopologyNodeDescriptor)(nil), "firmament.ResourceTopologyNodeDescriptor")
 }
 
-func init() { proto.RegisterFile("resource_topology_node_desc.proto", fileDescriptor8) }
+func init() { proto.RegisterFile("resource_topology_node_desc.proto", fileDescriptor12) }
 
-var fileDescriptor8 = []byte{
+var fileDescriptor12 = []byte{
 	// 186 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x2c, 0x4a, 0x2d, 0xce,
 	0x2f, 0x2d, 0x4a, 0x4e, 0x8d, 0x2f, 0xc9, 0x2f, 0xc8, 0xcf, 0xc9, 0x4f, 0xaf, 0x8c, 0xcf, 0xcb,

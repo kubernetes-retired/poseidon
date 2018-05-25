@@ -28,6 +28,8 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// Labels are key/value pairs that are attached to firmament resousces.It can be used to organize and
+// to select subsets of objects.
 type Label struct {
 	Key   string `protobuf:"bytes,1,opt,name=key" json:"key,omitempty"`
 	Value string `protobuf:"bytes,2,opt,name=value" json:"value,omitempty"`
@@ -36,7 +38,7 @@ type Label struct {
 func (m *Label) Reset()                    { *m = Label{} }
 func (m *Label) String() string            { return proto.CompactTextString(m) }
 func (*Label) ProtoMessage()               {}
-func (*Label) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{0} }
+func (*Label) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{0} }
 
 func (m *Label) GetKey() string {
 	if m != nil {
@@ -56,9 +58,9 @@ func init() {
 	proto.RegisterType((*Label)(nil), "firmament.Label")
 }
 
-func init() { proto.RegisterFile("label.proto", fileDescriptor3) }
+func init() { proto.RegisterFile("label.proto", fileDescriptor4) }
 
-var fileDescriptor3 = []byte{
+var fileDescriptor4 = []byte{
 	// 90 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0xce, 0x49, 0x4c, 0x4a,
 	0xcd, 0xd1, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x4c, 0xcb, 0x2c, 0xca, 0x4d, 0xcc, 0x4d,

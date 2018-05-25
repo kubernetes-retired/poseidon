@@ -16,6 +16,7 @@ go_library(
         "//pkg/firmament:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/google/uuid:go_default_library",
+        "//vendor/github.com/jinzhu/copier:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/fields:go_default_library",

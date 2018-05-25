@@ -54,9 +54,12 @@ func (x LabelSelector_SelectorType) String() string {
 	return proto.EnumName(LabelSelector_SelectorType_name, int32(x))
 }
 func (LabelSelector_SelectorType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor4, []int{0, 0}
+	return fileDescriptor5, []int{0, 0}
 }
 
+// LabelSelector can be used by client/user to identify a set of objects if their Labels match the LabelSelector.
+// Set-based label requirements allow filtering keys according to a set of values. Four kinds of operators are supported:
+// in, notin, exists (only the key identifier) and notexist.
 type LabelSelector struct {
 	Type   LabelSelector_SelectorType `protobuf:"varint,1,opt,name=type,enum=firmament.LabelSelector_SelectorType" json:"type,omitempty"`
 	Key    string                     `protobuf:"bytes,2,opt,name=key" json:"key,omitempty"`
@@ -66,7 +69,7 @@ type LabelSelector struct {
 func (m *LabelSelector) Reset()                    { *m = LabelSelector{} }
 func (m *LabelSelector) String() string            { return proto.CompactTextString(m) }
 func (*LabelSelector) ProtoMessage()               {}
-func (*LabelSelector) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{0} }
+func (*LabelSelector) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{0} }
 
 func (m *LabelSelector) GetType() LabelSelector_SelectorType {
 	if m != nil {
@@ -94,9 +97,9 @@ func init() {
 	proto.RegisterEnum("firmament.LabelSelector_SelectorType", LabelSelector_SelectorType_name, LabelSelector_SelectorType_value)
 }
 
-func init() { proto.RegisterFile("label_selector.proto", fileDescriptor4) }
+func init() { proto.RegisterFile("label_selector.proto", fileDescriptor5) }
 
-var fileDescriptor4 = []byte{
+var fileDescriptor5 = []byte{
 	// 191 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xc9, 0x49, 0x4c, 0x4a,
 	0xcd, 0x89, 0x2f, 0x4e, 0xcd, 0x49, 0x4d, 0x2e, 0xc9, 0x2f, 0xd2, 0x2b, 0x28, 0xca, 0x2f, 0xc9,

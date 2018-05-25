@@ -206,6 +206,13 @@ func podCompleted(c clientset.Interface, podName, namespace string) wait.Conditi
 	}
 }
 
+// WaitTimeoutForPodNotPending returns an error if it took too long for the pod to go out of pending state.
+// The resourceVersion is used when Watching object changes, it tells since when we care
+// about changes to the pod.
+func WaitTimeoutForPodNotPending(c clientset.Interface, ns, podName string, timeout time.Duration) error {
+	return wait.PollImmediate(Poll, timeout, podNotPending(c, podName, ns))
+}
+
 // WaitForPodNotPending returns an error if it took too long for the pod to go out of pending state.
 // The resourceVersion is used when Watching object changes, it tells since when we care
 // about changes to the pod.
@@ -312,7 +319,11 @@ func ExpectNoErrorWithOffset(offset int, err error, explain ...interface{}) {
 
 // GetMasterAndWorkerNodesOrDie will return a list masters and schedulable worker nodes
 func GetNodesOrDie(c clientset.Interface) *v1.NodeList {
-	all, _ := c.CoreV1().Nodes().List(metav1.ListOptions{})
+	all, err := c.CoreV1().Nodes().List(metav1.ListOptions{})
+	if err != nil {
+		Logf("error while retrieving node list %v", err)
+		return nil
+	}
 	return all
 }
 
@@ -410,4 +421,49 @@ func VerifyLabelsRemoved(c clientset.Interface, nodeName string, labelKeys []str
 		}
 	}
 	return nil
+}
+
+// IsMasterNode returns true if its a master node or false otherwise.
+func IsMasterNode(nodeName string) bool {
+	// We are trying to capture "master(-...)?$" regexp.
+	// However, using regexp.MatchString() results even in more than 35%
+	// of all space allocations in ControllerManager spent in this function.
+	// That's why we are trying to be a bit smarter.
+	if strings.HasSuffix(nodeName, "master") {
+		return true
+	}
+	if len(nodeName) >= 10 {
+		return strings.HasSuffix(nodeName[:len(nodeName)-3], "master-")
+	}
+	return false
+}
+
+// ListSchedulabelNodes get an slice of nodes that are schedulable
+func ListSchedulableNodes(c clientset.Interface) []v1.Node {
+	var schedulableNodeList []v1.Node
+	nodeList := GetNodesOrDie(c)
+	if nodeList == nil {
+		Logf("nodelist is nil")
+		return nil
+	}
+	for _, node := range nodeList.Items {
+		// Skip the master node.
+		if IsMasterNode(node.Name) {
+			continue
+		}
+		nodeReady := false
+		for _, condition := range node.Status.Conditions {
+			if condition.Type == v1.NodeReady && condition.Status == v1.ConditionTrue {
+				nodeReady = true
+				break
+			}
+		}
+		// Skip the unready node.
+		if !nodeReady {
+			continue
+		}
+		schedulableNodeList = append(schedulableNodeList, node)
+		Logf("got node %v", node.Name)
+	}
+	return schedulableNodeList
 }

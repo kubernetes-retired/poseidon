@@ -32,11 +32,12 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"time"
 )
 
 var _ = Describe("Poseidon", func() {
 	var clientset kubernetes.Interface
-	var ns string //namespace string
+	var ns string // namespace string
 	hostname, _ := os.Hostname()
 	f := framework.NewDefaultFramework("sched-poseidon")
 
@@ -45,15 +46,15 @@ var _ = Describe("Poseidon", func() {
 	BeforeEach(func() {
 		clientset = f.ClientSet
 		ns = f.Namespace.Name
-		//This will list all pods in the namespace
+		// This will list all pods in the namespace
 		f.ListPodsInNamespace(ns)
 	})
 
 	AfterEach(func() {
-		//fetch poseidon and firmament logs after each test case run
+		// fetch poseidon and firmament logs after each test case run
 		f.FetchLogsFromFirmament(f.Namespace.Name)
 		f.FetchLogsFromPoseidon(f.Namespace.Name)
-		//This will list all pods in the namespace
+		// This will list all pods in the namespace
 		f.ListPodsInNamespace(f.Namespace.Name)
 	})
 
@@ -65,7 +66,7 @@ var _ = Describe("Poseidon", func() {
 			It("should succeed deploying pod using firmament scheduler", func() {
 				labels := make(map[string]string)
 				labels["schedulerName"] = "poseidon"
-				//Create a K8s Pod with poseidon
+				// Create a K8s Pod with poseidon
 				pod, err := clientset.CoreV1().Pods(ns).Create(&v1.Pod{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:   name,
@@ -85,7 +86,7 @@ var _ = Describe("Poseidon", func() {
 				By("Waiting for the pod to have running status")
 				err = f.WaitForPodRunning(pod.Name)
 				Expect(err).NotTo(HaveOccurred())
-				//This will list all pods in the namespace
+				// This will list all pods in the namespace
 				f.ListPodsInNamespace(f.Namespace.Name)
 				pod, err = clientset.CoreV1().Pods(ns).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
@@ -147,7 +148,7 @@ var _ = Describe("Poseidon", func() {
 				By("Waiting for the Deployment to have running status")
 				err = f.WaitForDeploymentComplete(deployment)
 				Expect(err).NotTo(HaveOccurred())
-				//This will list all pods in the namespace
+				// This will list all pods in the namespace
 				f.ListPodsInNamespace(f.Namespace.Name)
 				deployment, err = clientset.ExtensionsV1beta1().Deployments(ns).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
@@ -174,7 +175,7 @@ var _ = Describe("Poseidon", func() {
 			name := fmt.Sprintf("test-nginx-rs-%d", rand.Uint32())
 
 			It("should succeed deploying ReplicaSet using firmament scheduler", func() {
-				//Create a K8s ReplicaSet with poseidon scheduler
+				// Create a K8s ReplicaSet with poseidon scheduler
 				var replicas int32
 				replicas = 3
 				replicaSet, err := clientset.ExtensionsV1beta1().ReplicaSets(ns).Create(&v1beta1.ReplicaSet{
@@ -210,7 +211,7 @@ var _ = Describe("Poseidon", func() {
 				By("Waiting for the ReplicaSet to have running status")
 				err = f.WaitForReadyReplicaSet(replicaSet.Name)
 				Expect(err).NotTo(HaveOccurred())
-				//This will list all pods in the namespace
+				// This will list all pods in the namespace
 				f.ListPodsInNamespace(f.Namespace.Name)
 				replicaSet, err = clientset.ExtensionsV1beta1().ReplicaSets(ns).Get(replicaSet.Name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
@@ -238,7 +239,7 @@ var _ = Describe("Poseidon", func() {
 			It("should succeed deploying Job using firmament scheduler", func() {
 				labels := make(map[string]string)
 				labels["name"] = "test-job"
-				//Create a K8s Job with poseidon scheduler
+				// Create a K8s Job with poseidon scheduler
 				var parallelism int32 = 2
 				job, err := clientset.BatchV1().Jobs(ns).Create(&batchv1.Job{
 					ObjectMeta: metav1.ObjectMeta{
@@ -272,7 +273,7 @@ var _ = Describe("Poseidon", func() {
 				By("Waiting for the Job to have running status")
 				err = f.WaitForAllJobPodsRunning(job.Name, parallelism)
 				Expect(err).NotTo(HaveOccurred())
-				//This will list all pods in the namespace
+				// This will list all pods in the namespace
 				f.ListPodsInNamespace(f.Namespace.Name)
 
 				job, err = clientset.BatchV1().Jobs(ns).Get(name, metav1.GetOptions{})
@@ -306,11 +307,11 @@ var _ = Describe("Poseidon", func() {
 		// 3. Wait for the pods to be scheduled.
 		// 4. Create another pod with no affinity to any node that need 50% of the largest node CPU.
 		// 5. Make sure this additional pod is not scheduled.
-		/*
-			    Testname: scheduler-resource-limits
-			    Description: Ensure that scheduler accounts node resources correctly
-				and respects pods' resource requirements during scheduling.
-		*/
+
+		//	    Testname: scheduler-resource-limits
+		//	    Description: Ensure that scheduler accounts node resources correctly
+		//		and respects pods' resource requirements during scheduling.
+
 		It("should validates resource limits of pods that are allowed to run ", func() {
 			nodeMaxAllocatable := int64(0)
 			nodeToAllocatableMap := make(map[string]int64)
@@ -318,7 +319,7 @@ var _ = Describe("Poseidon", func() {
 			Expect(err).NotTo(HaveOccurred())
 			for _, node := range nodeList.Items {
 				// Skip the master node.
-				if IsMasterNode(node.Name) {
+				if framework.IsMasterNode(node.Name) {
 					continue
 				}
 				nodeReady := false
@@ -407,7 +408,8 @@ var _ = Describe("Poseidon", func() {
 				err = clientset.CoreV1().Pods(ns).Delete(additionalPod.Name, &metav1.DeleteOptions{})
 				Expect(err).NotTo(HaveOccurred())
 			}()
-			err = framework.WaitForPodRunningInNamespace(clientset, additionalPod)
+			// we wait only for 2 minuted to check if the pod can be scheduled here, since this pod will never be scheduled
+			err = framework.WaitTimeoutForPodRunningInNamespace(clientset, additionalPod.Name, additionalPod.Namespace, time.Minute*2)
 			Expect(err).To(HaveOccurred())
 		})
 
@@ -436,7 +438,8 @@ var _ = Describe("Poseidon", func() {
 				err := clientset.CoreV1().Pods(ns).Delete(testPod.Name, &metav1.DeleteOptions{})
 				Expect(err).NotTo(HaveOccurred())
 			}()
-			err := framework.WaitForPodRunningInNamespace(clientset, testPod)
+			// wait only for 2 minutes as we know this pod wont be scheduled.
+			err := framework.WaitTimeoutForPodNotPending(clientset, ns, testPod.Name, time.Minute*2)
 			Expect(err).To(HaveOccurred())
 		})
 
@@ -458,7 +461,7 @@ var _ = Describe("Poseidon", func() {
 
 			By("Trying to relaunch the pod, now with labels.")
 			labelPodName := "with-labels"
-			createTestPod(f, testPodConfig{
+			testPod := createTestPod(f, testPodConfig{
 				Name: labelPodName,
 				NodeSelector: map[string]string{
 					k: v,
@@ -466,15 +469,503 @@ var _ = Describe("Poseidon", func() {
 				SchedulerName: "poseidon",
 			})
 
+			// Clean up additional pod after this test.
+			defer func() {
+				framework.Logf("Time to clean up the pod [%s] now...", testPod.Name)
+				err := clientset.CoreV1().Pods(ns).Delete(testPod.Name, &metav1.DeleteOptions{})
+				Expect(err).NotTo(HaveOccurred())
+			}()
+
 			// check that pod got scheduled. We intentionally DO NOT check that the
 			// pod is running because this will create a race condition with the
 			// kubelet and the scheduler: the scheduler might have scheduled a pod
 			// already when the kubelet does not know about its new label yet. The
 			// kubelet will then refuse to launch the pod.
+			By("validate if pods match the node label")
 			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
 			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
 			framework.ExpectNoError(err)
 			Expect(labelPod.Spec.NodeName).To(Equal(nodeName))
+
+			By("Remove the node label")
+			framework.RemoveLabelOffNode(clientset, nodeName, k)
+			err = framework.VerifyLabelsRemoved(clientset, nodeName, []string{k})
+			Expect(err).NotTo(HaveOccurred())
+		})
+	})
+
+	Describe("Poseidon [NodeAffinity hard-constraint]", func() {
+		labelPodName := "with-nodeaffinity-hard"
+		testpod := testPodConfig{
+			Name: labelPodName,
+			Affinity: &v1.Affinity{
+				NodeAffinity: &v1.NodeAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
+						NodeSelectorTerms: []v1.NodeSelectorTerm{
+							{
+								MatchExpressions: []v1.NodeSelectorRequirement{
+									{
+										Key:      "gpu",
+										Operator: v1.NodeSelectorOpIn,
+										Values: []string{
+											"nvidia",
+											"zotac-nvidia",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			SchedulerName: "poseidon",
+		}
+		It("validates scheduler respect's a pod with requiredDuringSchedulingIgnoredDuringExecution constraint", func() {
+
+			By("Trying to get a schedulable node")
+			schedulableNodes := framework.ListSchedulableNodes(clientset)
+			if len(schedulableNodes) < 1 {
+				Skip(fmt.Sprintf("Skipping this test case as the required minimum nodes not avaliable "))
+			}
+			nodeOne := schedulableNodes[0]
+
+			By("Trying to apply a label on the found node.")
+			k := "gpu"
+			v := "nvidia"
+			framework.AddOrUpdateLabelOnNode(clientset, nodeOne.Name, k, v)
+			framework.ExpectNodeHasLabel(clientset, nodeOne.Name, k, v)
+
+			By("Trying to launch the pod, now with requiredDuringSchedulingIgnoredDuringExecution constraint")
+			createTestPod(f, testpod)
+
+			By("Validate if the pod is running in the node having the label")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(Equal(nodeOne.Name))
+
+			By("Remove the node label")
+			framework.RemoveLabelOffNode(clientset, nodeOne.Name, k)
+			err = framework.VerifyLabelsRemoved(clientset, nodeOne.Name, []string{k})
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Delete the pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPod.Name, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+
+		It("validates that a pod with requiredDuringSchedulingIgnoredDuringExecution stays pending if no node match the constraint", func() {
+
+			By("Re-create a pod with requiredDuringSchedulingIgnoredDuringExecution constraint")
+
+			createTestPod(f, testpod)
+			// wait only for 2 minutes, as we know this pod wont be scheduled
+			err := framework.WaitTimeoutForPodNotPending(clientset, ns, labelPodName, time.Minute*2)
+			Expect(err).To(HaveOccurred())
+
+			By("Delete the pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+	})
+
+	Describe("Poseidon [NodeAffinity soft-constraint]", func() {
+		labelPodName := "with-nodeaffinity-soft"
+		k := "drive"
+		v := "ssd"
+
+		testpod := testPodConfig{
+			Name: labelPodName,
+			Affinity: &v1.Affinity{
+				NodeAffinity: &v1.NodeAffinity{
+					PreferredDuringSchedulingIgnoredDuringExecution: []v1.PreferredSchedulingTerm{
+						{
+							Weight: 10,
+							Preference: v1.NodeSelectorTerm{
+								MatchExpressions: []v1.NodeSelectorRequirement{
+									{
+										Key:      k,
+										Operator: v1.NodeSelectorOpIn,
+										Values: []string{
+											v,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			SchedulerName: "poseidon",
+		}
+
+		It("validates scheduler respect's a pod with preferredDuringSchedulingIgnoredDuringExecution constraint if a node satisfy ", func() {
+			By("Trying to get a schedulable node")
+			schedulableNodes := framework.ListSchedulableNodes(clientset)
+			if len(schedulableNodes) < 1 {
+				Skip(fmt.Sprintf("Skipping this test case as the required minimum nodes not avaliable "))
+			}
+			nodeOne := schedulableNodes[0]
+
+			By("Trying to apply a label on the found node.")
+
+			framework.AddOrUpdateLabelOnNode(clientset, nodeOne.Name, k, v)
+			framework.ExpectNodeHasLabel(clientset, nodeOne.Name, k, v)
+
+			By("Trying to launch the pod, now with requiredDuringSchedulingIgnoredDuringExecution constraint.")
+			createTestPod(f, testpod)
+
+			By("Validate if the pod is running in the node having the preferred label")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(Equal(nodeOne.Name))
+
+			By("Remove the node label")
+			framework.RemoveLabelOffNode(clientset, nodeOne.Name, k)
+			err = framework.VerifyLabelsRemoved(clientset, nodeOne.Name, []string{k})
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Delete the pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+
+		It("validates scheduler schedules a pod even if preferredDuringSchedulingIgnoredDuringExecution constraint is not satisfied by any node", func() {
+
+			By("re-create a pod, now with requiredDuringSchedulingIgnoredDuringExecution constraint.")
+			createTestPod(f, testpod)
+
+			By("Validate if the pod is running")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			_, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+
+			By("Delete the pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+	})
+
+	Describe("Poseidon [NodeAffinity hard and soft constraint]", func() {
+		var nodeOne, nodeTwo v1.Node
+		labelPodName := "with-nodeaffinity-hard-soft"
+		testpod := testPodConfig{
+			Name: labelPodName,
+			Affinity: &v1.Affinity{
+				NodeAffinity: &v1.NodeAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
+						NodeSelectorTerms: []v1.NodeSelectorTerm{
+							{
+								MatchExpressions: []v1.NodeSelectorRequirement{
+									{
+										Key:      "gpu",
+										Operator: v1.NodeSelectorOpIn,
+										Values: []string{
+											"nvidia",
+											"zotac-nvidia",
+										},
+									},
+								},
+							},
+						},
+					},
+					PreferredDuringSchedulingIgnoredDuringExecution: []v1.PreferredSchedulingTerm{
+						{
+							Weight: 10,
+							Preference: v1.NodeSelectorTerm{
+								MatchExpressions: []v1.NodeSelectorRequirement{
+									{
+										Key:      "drive",
+										Operator: v1.NodeSelectorOpIn,
+										Values: []string{
+											"ssd",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			SchedulerName: "poseidon",
+		}
+		It("validates if scheduler respect's a pod's with both hard and soft constraint", func() {
+
+			By("Trying to get a schedulable node")
+			schedulableNodes := framework.ListSchedulableNodes(clientset)
+			if len(schedulableNodes) < 2 {
+				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of two node and only %d nodes avaliable", len(schedulableNodes)))
+			}
+			nodeOne = schedulableNodes[0]
+			nodeTwo = schedulableNodes[1]
+
+			By("Trying to apply a label on the node one.")
+			framework.AddOrUpdateLabelOnNode(clientset, nodeOne.Name, "gpu", "zotac-nvidia")
+			framework.ExpectNodeHasLabel(clientset, nodeOne.Name, "gpu", "zotac-nvidia")
+
+			By("Trying to apply two label on the node two")
+			framework.AddOrUpdateLabelOnNode(clientset, nodeTwo.Name, "gpu", "nvidia")
+			framework.ExpectNodeHasLabel(clientset, nodeTwo.Name, "gpu", "nvidia")
+			framework.AddOrUpdateLabelOnNode(clientset, nodeTwo.Name, "drive", "ssd")
+			framework.ExpectNodeHasLabel(clientset, nodeTwo.Name, "drive", "ssd")
+
+			By("Trying to launch the pod, now with requiredDuringSchedulingIgnoredDuringExecution and preferredDuringSchedulingIgnoredDuringExecution constraints")
+			createTestPod(f, testpod)
+
+			By("Validate if the pod is running in node-two matching both the hard and soft constraints")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(Equal(nodeTwo.Name))
+
+			By("Remove the soft(drive) label from node-two")
+			framework.RemoveLabelOffNode(clientset, nodeTwo.Name, "drive")
+			err = framework.VerifyLabelsRemoved(clientset, nodeTwo.Name, []string{"drive"})
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Delete the pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+
+		It("validates scheduler schedules a pod on any node matching the hard constraints", func() {
+
+			By("re-create a pod, now with requiredDuringSchedulingIgnoredDuringExecution and preferredDuringSchedulingIgnoredDuringExecution constraint.")
+			createTestPod(f, testpod)
+
+			By("Validate if the pod is running in either node-one or node-two")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(SatisfyAny(Equal(nodeOne.Name), Equal(nodeTwo.Name)))
+
+			By("Delete the pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Remove the from node-two")
+			framework.RemoveLabelOffNode(clientset, nodeTwo.Name, "gpu")
+			err = framework.VerifyLabelsRemoved(clientset, nodeTwo.Name, []string{"gpu"})
+			Expect(err).NotTo(HaveOccurred())
+			framework.RemoveLabelOffNode(clientset, nodeOne.Name, "gpu")
+			err = framework.VerifyLabelsRemoved(clientset, nodeOne.Name, []string{"gpu"})
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+	})
+
+	Describe("Poseidon [Anti-NodeAffinity hard and soft constraint]", func() {
+		var nodeOne, nodeTwo, nodeThree v1.Node
+		labelPodName := "with-anti-affinity-hard-soft"
+		testpod := testPodConfig{
+			Name: labelPodName,
+			Affinity: &v1.Affinity{
+				NodeAffinity: &v1.NodeAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
+						NodeSelectorTerms: []v1.NodeSelectorTerm{
+							{
+								MatchExpressions: []v1.NodeSelectorRequirement{
+									{
+										Key:      "gpu",
+										Operator: v1.NodeSelectorOpNotIn,
+										Values: []string{
+											"nvidia",
+											"zotac-nvidia",
+										},
+									},
+								},
+							},
+						},
+					},
+					PreferredDuringSchedulingIgnoredDuringExecution: []v1.PreferredSchedulingTerm{
+						{
+							Weight: 10,
+							Preference: v1.NodeSelectorTerm{
+								MatchExpressions: []v1.NodeSelectorRequirement{
+									{
+										Key:      "drive",
+										Operator: v1.NodeSelectorOpIn,
+										Values: []string{
+											"ssd",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			SchedulerName: "poseidon",
+		}
+		It("validates scheduler respect's a pod's anti-affinity constraint", func() {
+
+			By("Trying to get a schedulable node")
+			schedulableNodes := framework.ListSchedulableNodes(clientset)
+			if len(schedulableNodes) < 3 {
+				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of three node and only %d nodes avaliable", len(schedulableNodes)))
+			}
+			nodeOne = schedulableNodes[0]
+			nodeTwo = schedulableNodes[1]
+			nodeThree = schedulableNodes[2]
+
+			By(fmt.Sprintf("Trying to apply a label on %s", nodeOne.Name))
+			framework.AddOrUpdateLabelOnNode(clientset, nodeOne.Name, "gpu", "zotac-nvidia")
+			framework.ExpectNodeHasLabel(clientset, nodeOne.Name, "gpu", "zotac-nvidia")
+
+			By(fmt.Sprintf("Trying to apply a label on %s.", nodeTwo.Name))
+			framework.AddOrUpdateLabelOnNode(clientset, nodeTwo.Name, "gpu", "nvidia")
+			framework.ExpectNodeHasLabel(clientset, nodeTwo.Name, "gpu", "nvidia")
+
+			By(fmt.Sprintf("Trying to apply a label on %s.", nodeThree.Name))
+			framework.AddOrUpdateLabelOnNode(clientset, nodeThree.Name, "drive", "ssd")
+			framework.ExpectNodeHasLabel(clientset, nodeThree.Name, "drive", "ssd")
+
+			By(fmt.Sprintf("Trying to launch the pod, with anti-affinity constraints on nodes %s and %s", nodeOne.Name, nodeTwo.Name))
+			createTestPod(f, testpod)
+
+			By(fmt.Sprintf("Validate if the pod is running on %s satisfying soft constraints as it has anti-affinity contraint's to other two nodes", nodeThree.Name))
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(Equal(nodeThree.Name))
+
+			By(fmt.Sprintf("Remove the label from %s", nodeOne.Name))
+			framework.RemoveLabelOffNode(clientset, nodeOne.Name, "gpu")
+			err = framework.VerifyLabelsRemoved(clientset, nodeOne.Name, []string{"gpu"})
+			Expect(err).NotTo(HaveOccurred())
+
+			By(fmt.Sprintf("Remove the label from %s", nodeTwo.Name))
+			framework.RemoveLabelOffNode(clientset, nodeTwo.Name, "gpu")
+			err = framework.VerifyLabelsRemoved(clientset, nodeTwo.Name, []string{"gpu"})
+			Expect(err).NotTo(HaveOccurred())
+
+			By(fmt.Sprintf("Remove the label from %s", nodeThree.Name))
+			framework.RemoveLabelOffNode(clientset, nodeTwo.Name, "drive")
+			err = framework.VerifyLabelsRemoved(clientset, nodeTwo.Name, []string{"drive"})
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Delete the pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+	})
+
+	Describe("Poseidon [Nodeselector with node Anti-Affinity hard and soft constraint]", func() {
+		var nodeOne, nodeTwo v1.Node
+		labelPodName := "node-affinity-nodesel-hard-and-soft"
+		testpod := testPodConfig{
+			Name: labelPodName,
+			NodeSelector: map[string]string{
+				"disktype": "ssd",
+			},
+			Affinity: &v1.Affinity{
+				NodeAffinity: &v1.NodeAffinity{
+					RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
+						NodeSelectorTerms: []v1.NodeSelectorTerm{
+							{
+								MatchExpressions: []v1.NodeSelectorRequirement{
+									{
+										Key:      "gpu",
+										Operator: v1.NodeSelectorOpNotIn,
+										Values: []string{
+											"nvidia",
+											"zotac-nvidia",
+										},
+									},
+								},
+							},
+						},
+					},
+					PreferredDuringSchedulingIgnoredDuringExecution: []v1.PreferredSchedulingTerm{
+						{
+							Weight: 10,
+							Preference: v1.NodeSelectorTerm{
+								MatchExpressions: []v1.NodeSelectorRequirement{
+									{
+										Key:      "drive",
+										Operator: v1.NodeSelectorOpIn,
+										Values: []string{
+											"ssd",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			SchedulerName: "poseidon",
+		}
+		It("validates scheduler respect's a pod's anti-affinity constraint", func() {
+
+			By("Trying to get a schedulable node")
+			schedulableNodes := framework.ListSchedulableNodes(clientset)
+			if len(schedulableNodes) < 2 {
+				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of three node and only %d nodes avaliable", len(schedulableNodes)))
+			}
+			nodeOne = schedulableNodes[0]
+			nodeTwo = schedulableNodes[1]
+
+			By(fmt.Sprintf("Trying to apply a label on %s", nodeOne.Name))
+			framework.AddOrUpdateLabelOnNode(clientset, nodeOne.Name, "gpu", "nvidia")
+			framework.ExpectNodeHasLabel(clientset, nodeOne.Name, "gpu", "nvidia")
+
+			By(fmt.Sprintf("Trying to apply two label on %s.", nodeTwo.Name))
+			framework.AddOrUpdateLabelOnNode(clientset, nodeTwo.Name, "gpu", "amd")
+			framework.ExpectNodeHasLabel(clientset, nodeTwo.Name, "gpu", "amd")
+			framework.AddOrUpdateLabelOnNode(clientset, nodeTwo.Name, "disktype", "ssd")
+			framework.ExpectNodeHasLabel(clientset, nodeTwo.Name, "disktype", "ssd")
+
+			By(fmt.Sprintf("Trying to launch the pod, with anti-affinity constraints on nodes %s", nodeOne.Name))
+			createTestPod(f, testpod)
+
+			By(fmt.Sprintf("Validate if the pod is running on %s satisfying soft constraints as it has anti-affinity contraint's to other two nodes", nodeTwo.Name))
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(Equal(nodeTwo.Name))
+
+			By(fmt.Sprintf("Remove the label from %s", nodeOne.Name))
+			framework.RemoveLabelOffNode(clientset, nodeOne.Name, "gpu")
+			err = framework.VerifyLabelsRemoved(clientset, nodeOne.Name, []string{"gpu"})
+			Expect(err).NotTo(HaveOccurred())
+
+			By(fmt.Sprintf("Remove the label from %s", nodeTwo.Name))
+			framework.RemoveLabelOffNode(clientset, nodeTwo.Name, "gpu")
+			err = framework.VerifyLabelsRemoved(clientset, nodeTwo.Name, []string{"gpu"})
+			Expect(err).NotTo(HaveOccurred())
+
+			framework.RemoveLabelOffNode(clientset, nodeTwo.Name, "disktype")
+			err = framework.VerifyLabelsRemoved(clientset, nodeTwo.Name, []string{"disktype"})
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Delete the pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
 		})
 	})
 })

@@ -17,8 +17,6 @@ limitations under the License.
 package test
 
 import (
-	"strings"
-
 	"github.com/kubernetes-sigs/poseidon/test/e2e/framework"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -79,18 +77,4 @@ func initTestPod(f *framework.Framework, conf testPodConfig) *v1.Pod {
 		pod.Spec.Containers[0].Resources = *conf.Resources
 	}
 	return pod
-}
-
-func IsMasterNode(nodeName string) bool {
-	// We are trying to capture "master(-...)?$" regexp.
-	// However, using regexp.MatchString() results even in more than 35%
-	// of all space allocations in ControllerManager spent in this function.
-	// That's why we are trying to be a bit smarter.
-	if strings.HasSuffix(nodeName, "master") {
-		return true
-	}
-	if len(nodeName) >= 10 {
-		return strings.HasSuffix(nodeName[:len(nodeName)-3], "master-")
-	}
-	return false
 }

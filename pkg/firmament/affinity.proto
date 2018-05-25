@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package firmament;
+
+import "node_affinity.proto";
+import "pod_affinity.proto";
+import "pod_anti_affinity.proto";
+
+message Affinity {
+
+    NodeAffinity node_affinity = 1;
+    
+    PodAffinity pod_affinity = 2;
+
+    PodAntiAffinity pod_anti_affinity = 3;
+}
+
+

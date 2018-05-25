@@ -31,9 +31,13 @@ var _ = math.Inf
 type SchedulingDelta_ChangeType int32
 
 const (
-	SchedulingDelta_NOOP    SchedulingDelta_ChangeType = 0
-	SchedulingDelta_PLACE   SchedulingDelta_ChangeType = 1
+	// NOOP indicates does not change the previsou scheduling state.
+	SchedulingDelta_NOOP SchedulingDelta_ChangeType = 0
+	// PLACE indicates schedule a task onto a node.
+	SchedulingDelta_PLACE SchedulingDelta_ChangeType = 1
+	// PREEMPT indicates a task preempt some tasks' resouces.
 	SchedulingDelta_PREEMPT SchedulingDelta_ChangeType = 2
+	// MIGRATE indicates migrate a task from one node the other node.
 	SchedulingDelta_MIGRATE SchedulingDelta_ChangeType = 3
 )
 
@@ -54,19 +58,21 @@ func (x SchedulingDelta_ChangeType) String() string {
 	return proto.EnumName(SchedulingDelta_ChangeType_name, int32(x))
 }
 func (SchedulingDelta_ChangeType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor10, []int{0, 0}
+	return fileDescriptor14, []int{0, 0}
 }
 
+// SchedulingDelta is a scheduling decision from previous state.
 type SchedulingDelta struct {
-	TaskId     uint64                     `protobuf:"varint,1,opt,name=task_id,json=taskId" json:"task_id,omitempty"`
-	ResourceId string                     `protobuf:"bytes,2,opt,name=resource_id,json=resourceId" json:"resource_id,omitempty"`
-	Type       SchedulingDelta_ChangeType `protobuf:"varint,3,opt,name=type,enum=firmament.SchedulingDelta_ChangeType" json:"type,omitempty"`
+	TaskId     uint64 `protobuf:"varint,1,opt,name=task_id,json=taskId" json:"task_id,omitempty"`
+	ResourceId string `protobuf:"bytes,2,opt,name=resource_id,json=resourceId" json:"resource_id,omitempty"`
+	// type is the scheduling decision type.
+	Type SchedulingDelta_ChangeType `protobuf:"varint,3,opt,name=type,enum=firmament.SchedulingDelta_ChangeType" json:"type,omitempty"`
 }
 
 func (m *SchedulingDelta) Reset()                    { *m = SchedulingDelta{} }
 func (m *SchedulingDelta) String() string            { return proto.CompactTextString(m) }
 func (*SchedulingDelta) ProtoMessage()               {}
-func (*SchedulingDelta) Descriptor() ([]byte, []int) { return fileDescriptor10, []int{0} }
+func (*SchedulingDelta) Descriptor() ([]byte, []int) { return fileDescriptor14, []int{0} }
 
 func (m *SchedulingDelta) GetTaskId() uint64 {
 	if m != nil {
@@ -94,9 +100,9 @@ func init() {
 	proto.RegisterEnum("firmament.SchedulingDelta_ChangeType", SchedulingDelta_ChangeType_name, SchedulingDelta_ChangeType_value)
 }
 
-func init() { proto.RegisterFile("scheduling_delta.proto", fileDescriptor10) }
+func init() { proto.RegisterFile("scheduling_delta.proto", fileDescriptor14) }
 
-var fileDescriptor10 = []byte{
+var fileDescriptor14 = []byte{
 	// 210 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x2b, 0x4e, 0xce, 0x48,
 	0x4d, 0x29, 0xcd, 0xc9, 0xcc, 0x4b, 0x8f, 0x4f, 0x49, 0xcd, 0x29, 0x49, 0xd4, 0x2b, 0x28, 0xca,

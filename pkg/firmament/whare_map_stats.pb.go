@@ -28,6 +28,7 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// WhareMapStats is the stats of WhareMap scheduling cost model, as described in the ISCA 2013 paper.
 type WhareMapStats struct {
 	NumIdle    uint64 `protobuf:"varint,1,opt,name=num_idle,json=numIdle" json:"num_idle,omitempty"`
 	NumDevils  uint64 `protobuf:"varint,2,opt,name=num_devils,json=numDevils" json:"num_devils,omitempty"`
@@ -39,7 +40,7 @@ type WhareMapStats struct {
 func (m *WhareMapStats) Reset()                    { *m = WhareMapStats{} }
 func (m *WhareMapStats) String() string            { return proto.CompactTextString(m) }
 func (*WhareMapStats) ProtoMessage()               {}
-func (*WhareMapStats) Descriptor() ([]byte, []int) { return fileDescriptor14, []int{0} }
+func (*WhareMapStats) Descriptor() ([]byte, []int) { return fileDescriptor18, []int{0} }
 
 func (m *WhareMapStats) GetNumIdle() uint64 {
 	if m != nil {
@@ -80,9 +81,9 @@ func init() {
 	proto.RegisterType((*WhareMapStats)(nil), "firmament.WhareMapStats")
 }
 
-func init() { proto.RegisterFile("whare_map_stats.proto", fileDescriptor14) }
+func init() { proto.RegisterFile("whare_map_stats.proto", fileDescriptor18) }
 
-var fileDescriptor14 = []byte{
+var fileDescriptor18 = []byte{
 	// 184 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x3c, 0x8e, 0xb1, 0xaa, 0xc2, 0x30,
 	0x14, 0x86, 0xe9, 0xbd, 0xbd, 0x57, 0x1b, 0x71, 0x09, 0x08, 0x11, 0x11, 0xc5, 0xc9, 0xc9, 0xc5,

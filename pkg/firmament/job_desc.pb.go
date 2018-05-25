@@ -62,7 +62,7 @@ var JobDescriptor_JobState_value = map[string]int32{
 func (x JobDescriptor_JobState) String() string {
 	return proto.EnumName(JobDescriptor_JobState_name, int32(x))
 }
-func (JobDescriptor_JobState) EnumDescriptor() ([]byte, []int) { return fileDescriptor2, []int{0, 0} }
+func (JobDescriptor_JobState) EnumDescriptor() ([]byte, []int) { return fileDescriptor3, []int{0, 0} }
 
 type JobDescriptor struct {
 	Uuid      string                 `protobuf:"bytes,1,opt,name=uuid" json:"uuid,omitempty"`
@@ -75,7 +75,7 @@ type JobDescriptor struct {
 func (m *JobDescriptor) Reset()                    { *m = JobDescriptor{} }
 func (m *JobDescriptor) String() string            { return proto.CompactTextString(m) }
 func (*JobDescriptor) ProtoMessage()               {}
-func (*JobDescriptor) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{0} }
+func (*JobDescriptor) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{0} }
 
 func (m *JobDescriptor) GetUuid() string {
 	if m != nil {
@@ -117,9 +117,9 @@ func init() {
 	proto.RegisterEnum("firmament.JobDescriptor_JobState", JobDescriptor_JobState_name, JobDescriptor_JobState_value)
 }
 
-func init() { proto.RegisterFile("job_desc.proto", fileDescriptor2) }
+func init() { proto.RegisterFile("job_desc.proto", fileDescriptor3) }
 
-var fileDescriptor2 = []byte{
+var fileDescriptor3 = []byte{
 	// 275 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x54, 0x90, 0x4f, 0x4f, 0x83, 0x40,
 	0x10, 0xc5, 0xe5, 0x6f, 0xcb, 0xd4, 0x56, 0xb2, 0x27, 0x34, 0x31, 0xc1, 0x9e, 0x38, 0x71, 0xa8,

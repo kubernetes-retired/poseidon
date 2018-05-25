@@ -20,7 +20,7 @@ import (
 	"sync"
 
 	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
-
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 )
@@ -106,6 +106,58 @@ func (this *PodIdentifier) UniqueName() string {
 	return this.Namespace + "/" + this.Name
 }
 
+//Node Affinity Struct
+type NodeSelectorRequirement struct {
+	Key      string
+	Operator string
+	Values   []string
+}
+
+type NodeSelector struct {
+	//Required. A list of node selector terms. The terms are ORed.
+	NodeSelectorTerms []NodeSelectorTerm
+}
+
+// A null or empty node selector term matches no objects.
+type NodeSelectorTerm struct {
+	MatchExpressions []NodeSelectorRequirement
+}
+type PreferredSchedulingTerm struct {
+	// Weight associated with matching the corresponding nodeSelectorTerm, in the range 1-100.
+	Weight int32
+	// A node selector term, associated with the corresponding weight.
+	Preference NodeSelectorTerm
+}
+type NodeAffinity struct {
+	HardScheduling *NodeSelector
+	SoftScheduling []PreferredSchedulingTerm
+}
+
+//--------Pod Affinity -----//
+// Pod affinity is a group of inter pod affinity scheduling rules.
+
+type PodAffinityTerm struct {
+	LabelSelector *metav1.LabelSelector
+	Namespaces    []string
+	TopologyKey   string
+}
+
+type WeightedPodAffinityTerm struct {
+	Weight          int32
+	PodAffinityTerm PodAffinityTerm
+}
+
+type PodAffinity struct {
+	HardScheduling []PodAffinityTerm
+	SoftScheduling []WeightedPodAffinityTerm
+}
+
+type Affinity struct {
+	NodeAffinity    *NodeAffinity
+	PodAffinity     *PodAffinity
+	PodAntiAffinity *PodAffinity
+}
+
 // Pod is an internal structure for a Kubernetes pod.
 type Pod struct {
 	Identifier   PodIdentifier
@@ -116,6 +168,7 @@ type Pod struct {
 	Annotations  map[string]string
 	NodeSelector map[string]string
 	OwnerRef     string
+	Affinity     *Affinity
 }
 
 // NodeWatcher is a Kubernetes node watcher.
