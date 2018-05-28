@@ -302,10 +302,10 @@ var _ = Describe("Poseidon", func() {
 		// with any other test that touches Nodes or Pods.
 		// It is so because we need to have precise control on what's running in the cluster.
 		// Test scenario:
-		// 1. Find the amount CPU resources on each node.
-		// 2. Create one pod with affinity to each node that uses 70% of the node CPU.
+		// 1. Find the amount CPU/Memory resources on each node.
+		// 2. Create one pod with affinity to each node that uses 70% of the node CPU/Memory.
 		// 3. Wait for the pods to be scheduled.
-		// 4. Create another pod with no affinity to any node that need 50% of the largest node CPU.
+		// 4. Create another pod with no affinity to any node that need 50% of the largest node CPU/Memory.
 		// 5. Make sure this additional pod is not scheduled.
 
 		//	    Testname: scheduler-resource-limits
@@ -314,7 +314,9 @@ var _ = Describe("Poseidon", func() {
 
 		It("should validates resource limits of pods that are allowed to run ", func() {
 			nodeMaxAllocatable := int64(0)
+			nodeMaxAllocatableMem := int64(0)
 			nodeToAllocatableMap := make(map[string]int64)
+			nodeToAllocatableMemMap := make(map[string]int64)
 			nodeList, err := clientset.CoreV1().Nodes().List(metav1.ListOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			for _, node := range nodeList.Items {
@@ -340,15 +342,25 @@ var _ = Describe("Poseidon", func() {
 				if nodeMaxAllocatable < allocatable.MilliValue() {
 					nodeMaxAllocatable = allocatable.MilliValue()
 				}
+
+				// Find allocatable amount of Memory.
+				allocatableMem, found := node.Status.Allocatable[v1.ResourceMemory]
+				Expect(found).To(Equal(true))
+				nodeToAllocatableMemMap[node.Name] = allocatableMem.Value()
+				if nodeMaxAllocatableMem < allocatableMem.Value() {
+					nodeMaxAllocatableMem = allocatableMem.Value()
+				}
 			}
 
 			pods, err := clientset.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{})
 			framework.ExpectNoError(err)
 			for _, pod := range pods.Items {
 				_, found := nodeToAllocatableMap[pod.Spec.NodeName]
-				if found && pod.Status.Phase != v1.PodSucceeded && pod.Status.Phase != v1.PodFailed {
-					framework.Logf("Pod %v requesting resource cpu=%vm on Node %v", pod.Name, getRequestedCPU(pod), pod.Spec.NodeName)
+				_, foundMem := nodeToAllocatableMemMap[pod.Spec.NodeName]
+				if found && foundMem && pod.Status.Phase != v1.PodSucceeded && pod.Status.Phase != v1.PodFailed {
+					framework.Logf("Pod %v requesting resource cpu=%vm memory=%vKi on Node %v", pod.Name, getRequestedCPU(pod), getRequestedMemory(pod), pod.Spec.NodeName)
 					nodeToAllocatableMap[pod.Spec.NodeName] -= getRequestedCPU(pod)
+					nodeToAllocatableMemMap[pod.Spec.NodeName] -= getRequestedMemory(pod)
 				}
 			}
 
@@ -362,10 +374,10 @@ var _ = Describe("Poseidon", func() {
 					Name: fmt.Sprintf("filler-pod-%d", rand.Uint32()),
 					Resources: &v1.ResourceRequirements{
 						Limits: v1.ResourceList{
-							v1.ResourceCPU: *resource.NewMilliQuantity(requestedCPU, "DecimalSI"),
+							v1.ResourceCPU: *resource.NewMilliQuantity(requestedCPU, resource.DecimalSI),
 						},
 						Requests: v1.ResourceList{
-							v1.ResourceCPU: *resource.NewMilliQuantity(requestedCPU, "DecimalSI"),
+							v1.ResourceCPU: *resource.NewMilliQuantity(requestedCPU, resource.DecimalSI),
 						},
 					},
 					// TODO: We need to set node level affinity.
@@ -386,6 +398,40 @@ var _ = Describe("Poseidon", func() {
 				}
 			}()
 
+			By("Starting Pods to consume most of the cluster Memory.")
+			// Create one pod per node that requires 70% of the node remaining Memory.
+			fillerPodsMem := []*v1.Pod{}
+			for nodeName, memory := range nodeToAllocatableMemMap {
+				requestedMem := memory * 7 / 10
+				framework.Logf("node [%s] memory [%v] request [%v]", nodeName, memory, requestedMem)
+				fillerPodsMem = append(fillerPodsMem, createTestPod(f, testPodConfig{
+					Name: fmt.Sprintf("filler-pod-m-%d", rand.Uint32()),
+					Resources: &v1.ResourceRequirements{
+						Limits: v1.ResourceList{
+							v1.ResourceMemory: *resource.NewQuantity(requestedMem, resource.BinarySI),
+						},
+						Requests: v1.ResourceList{
+							v1.ResourceMemory: *resource.NewQuantity(requestedMem, resource.BinarySI),
+						},
+					},
+					// TODO: We need to set node level affinity.
+					SchedulerName: "poseidon",
+				}))
+			}
+			// Wait for filler pods to be scheduled.
+			for _, pod := range fillerPodsMem {
+				framework.ExpectNoError(framework.WaitForPodRunningInNamespace(clientset, pod))
+			}
+
+			// Clean up filler pods after this test.
+			defer func() {
+				for _, pod := range fillerPodsMem {
+					framework.Logf("Time to clean up the pod [%s] now...", pod.Name)
+					err = clientset.CoreV1().Pods(ns).Delete(pod.Name, &metav1.DeleteOptions{})
+					Expect(err).NotTo(HaveOccurred())
+				}
+			}()
+
 			By("Creating another pod that requires unavailable amount of CPU.")
 			// Create another pod that requires 50% of the largest node CPU resources.
 			// This pod should remain pending as at least 70% of CPU of other nodes in
@@ -396,13 +442,12 @@ var _ = Describe("Poseidon", func() {
 				Labels: map[string]string{"name": "additional"},
 				Resources: &v1.ResourceRequirements{
 					Limits: v1.ResourceList{
-						v1.ResourceCPU: *resource.NewMilliQuantity(nodeMaxAllocatable*5/10, "DecimalSI"),
+						v1.ResourceCPU: *resource.NewMilliQuantity(nodeMaxAllocatable*5/10, resource.DecimalSI),
 					},
 				},
 				SchedulerName: "poseidon",
 			}
 			additionalPod := createTestPod(f, conf)
-			// Clean up additional pod after this test.
 			defer func() {
 				framework.Logf("Time to clean up the pod [%s] now...", additionalPod.Name)
 				err = clientset.CoreV1().Pods(ns).Delete(additionalPod.Name, &metav1.DeleteOptions{})
@@ -410,6 +455,32 @@ var _ = Describe("Poseidon", func() {
 			}()
 			// we wait only for 2 minuted to check if the pod can be scheduled here, since this pod will never be scheduled
 			err = framework.WaitTimeoutForPodRunningInNamespace(clientset, additionalPod.Name, additionalPod.Namespace, time.Minute*2)
+			Expect(err).To(HaveOccurred())
+
+			By("Creating another pod that requires unavailable amount of Memory.")
+			// Create another pod that requires 50% of the largest node Memory resources.
+			// This pod should remain pending as at least 70% of Memory of other nodes in
+			// the cluster are already consumed.
+			podNameMem := "additional-pod-m"
+			confMem := testPodConfig{
+				Name:   podNameMem,
+				Labels: map[string]string{"name": "additional-m"},
+				Resources: &v1.ResourceRequirements{
+					Limits: v1.ResourceList{
+						v1.ResourceMemory: *resource.NewQuantity(nodeMaxAllocatableMem*5/10, resource.BinarySI),
+					},
+				},
+				SchedulerName: "poseidon",
+			}
+			additionalPodMem := createTestPod(f, confMem)
+			// Clean up additional pod after this test.
+			defer func() {
+				framework.Logf("Time to clean up the pod [%s] now...", additionalPodMem.Name)
+				err = clientset.CoreV1().Pods(ns).Delete(additionalPodMem.Name, &metav1.DeleteOptions{})
+				Expect(err).NotTo(HaveOccurred())
+			}()
+			// we wait only for 2 minuted to check if the pod can be scheduled here, since this pod will never be scheduled
+			err = framework.WaitTimeoutForPodRunningInNamespace(clientset, additionalPodMem.Name, additionalPodMem.Namespace, time.Minute*2)
 			Expect(err).To(HaveOccurred())
 		})
 

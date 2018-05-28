@@ -43,6 +43,14 @@ func getRequestedCPU(pod v1.Pod) int64 {
 	return result
 }
 
+func getRequestedMemory(pod v1.Pod) int64 {
+	var result int64
+	for _, container := range pod.Spec.Containers {
+		result += container.Resources.Requests.Memory().Value()
+	}
+	return result
+}
+
 func createTestPod(f *framework.Framework, conf testPodConfig) *v1.Pod {
 	pod, err := f.ClientSet.CoreV1().Pods(f.Namespace.Name).Create(initTestPod(f, conf))
 	framework.ExpectNoError(err)
