@@ -89,10 +89,10 @@ func (nw *NodeWatcher) getReadyAndOutOfDiskConditions(node *v1.Node) (isReady bo
 	isOutOfDisk = false
 	for _, cond := range node.Status.Conditions {
 		switch cond.Type {
-		case "OutOfDisk":
-			isOutOfDisk = cond.Status == "True"
-		case "Ready":
-			isReady = cond.Status == "True"
+		case v1.NodeOutOfDisk:
+			isOutOfDisk = cond.Status == v1.ConditionTrue
+		case v1.NodeReady:
+			isReady = cond.Status == v1.ConditionTrue
 		}
 	}
 	return isReady, isOutOfDisk
@@ -100,11 +100,11 @@ func (nw *NodeWatcher) getReadyAndOutOfDiskConditions(node *v1.Node) (isReady bo
 
 func (nw *NodeWatcher) parseNode(node *v1.Node, phase NodePhase) *Node {
 	isReady, isOutOfDisk := nw.getReadyAndOutOfDiskConditions(node)
-	cpuCapQuantity := node.Status.Capacity["cpu"]
-	cpuAllocQuantity := node.Status.Allocatable["cpu"]
-	memCapQuantity := node.Status.Capacity["memory"]
+	cpuCapQuantity := node.Status.Capacity[v1.ResourceCPU]
+	cpuAllocQuantity := node.Status.Allocatable[v1.ResourceCPU]
+	memCapQuantity := node.Status.Capacity[v1.ResourceMemory]
 	memCap, _ := memCapQuantity.AsInt64()
-	memAllocQuantity := node.Status.Allocatable["memory"]
+	memAllocQuantity := node.Status.Allocatable[v1.ResourceMemory]
 	memAlloc, _ := memAllocQuantity.AsInt64()
 	return &Node{
 		Hostname:         node.Name,
