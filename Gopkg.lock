@@ -232,6 +232,42 @@
   version = "v1.0.2"
 
 [[projects]]
+  name = "github.com/prometheus/client_golang"
+  packages = ["."]
+  revision = "c5b7fccd204277076155f10851dad72b76a49317"
+  version = "v0.8.0"
+
+[[projects]]
+  name = "github.com/matttproud/golang_protobuf_extensions"
+  packages = ["."]
+  revision = "c12348ce28de40eed0136aa2b644d0ee0650e56c"
+  version = "v1.0.1"
+
+[[projects]]
+  name = "github.com/prometheus/client_model"
+  packages = ["."]
+  revision = "409ab69f7ffb80ae3db658d5a56f485285ec7450"
+  version = "model-0.0.2"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/beorn7/perks"
+  packages = ["."]
+  revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/prometheus/common"
+  packages = ["."]
+  revision = "7600349dcfe1abd18d72d3a1770870d9800a7801"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/prometheus/procfs"
+  packages = ["."]
+  revision = "fe93d378a6b03758a2c1b65e86cf630bf78681c0"
+
+[[projects]]
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   revision = "374053ea96cb300f8671b8d3b07edeeb06e203b4"
