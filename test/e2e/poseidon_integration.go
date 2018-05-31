@@ -283,14 +283,13 @@ var _ = Describe("Poseidon", func() {
 				Expect(job.Status.Active).To(Equal(parallelism))
 
 				By("Job was in Running state... Time to delete the Job now...")
-				err = f.WaitForJobDelete(job.Name)
+				err = f.WaitForJobDelete(job)
 				Expect(err).NotTo(HaveOccurred())
 				By("Check for Job deletion")
 				_, err = clientset.BatchV1().Jobs(ns).Get(name, metav1.GetOptions{})
 				if err != nil {
 					Expect(errors.IsNotFound(err)).To(Equal(true))
 				}
-				Expect("Success").To(Equal("Success"))
 			})
 		})
 	})

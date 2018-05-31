@@ -79,16 +79,41 @@ func deploymentComplete(deployment *extensions.Deployment, newStatus *extensions
 
 // WaitForDeploymentDelete waits for the Deployment to be removed
 func (f *Framework) WaitForDeploymentDelete(d *extensions.Deployment) error {
-	err := wait.Poll(Poll, JobTimeout, func() (bool, error) {
+	replicas := int32(0)
+	rhl := int32(0)
+	d.Spec.Replicas = &replicas
+	d.Spec.RevisionHistoryLimit = &rhl
+	d.Spec.Paused = true
+	err := wait.Poll(10*time.Millisecond, 1*time.Minute, func() (bool, error) {
+		_, err := f.ClientSet.ExtensionsV1beta1().Deployments(d.Namespace).Update(d)
+		if err == nil {
+			return true, nil
+		}
+		// Retry only on update conflict.
+		if errors.IsConflict(err) {
+			return false, nil
+		}
+		return false, err
+	})
+	if err != nil {
+		return err
+	}
+	replicaSets, err := f.listReplicaSets(d)
+	if err != nil {
+		return err
+	}
+	for _, rs := range replicaSets {
+		if err := f.ClientSet.ExtensionsV1beta1().ReplicaSets(rs.Namespace).Delete(rs.Name, &metav1.DeleteOptions{}); err != nil {
+			return err
+		}
+	}
+	err = wait.Poll(Poll, JobTimeout, func() (bool, error) {
 		err := f.ClientSet.ExtensionsV1beta1().Deployments(d.Namespace).Delete(d.Name, &metav1.DeleteOptions{})
 		if err != nil {
 			return false, err
 		}
 		return true, nil
 	})
-	if err == wait.ErrWaitTimeout {
-		err = fmt.Errorf("Deployment %q not deleted", d.Name)
-	}
 	return err
 }
 
@@ -149,4 +174,36 @@ func (f *Framework) DeleteService(nsName string, serviceName string) error {
 		return err
 	}
 	return nil
+}
+
+// ListReplicaSets returns a slice of RSes the given deployment targets.
+// Note that this does NOT attempt to reconcile ControllerRef (adopt/orphan),
+// because only the controller itself should do that.
+// However, it does filter out anything whose ControllerRef doesn't match.
+func (f *Framework) listReplicaSets(deployment *extensions.Deployment) ([]*extensions.ReplicaSet, error) {
+	namespace := deployment.Namespace
+	selector, err := metav1.LabelSelectorAsSelector(deployment.Spec.Selector)
+	if err != nil {
+		return nil, err
+	}
+	options := metav1.ListOptions{LabelSelector: selector.String()}
+	rsList, err := f.ClientSet.ExtensionsV1beta1().ReplicaSets(namespace).List(options)
+	if err != nil {
+		return nil, err
+	}
+	var ret []*extensions.ReplicaSet
+	for i := range rsList.Items {
+		ret = append(ret, &rsList.Items[i])
+	}
+	if err != nil {
+		return nil, err
+	}
+	// Only include those whose ControllerRef matches the Deployment.
+	owned := make([]*extensions.ReplicaSet, 0, len(ret))
+	for _, rs := range ret {
+		if metav1.IsControlledBy(rs, deployment) {
+			owned = append(owned, rs)
+		}
+	}
+	return owned, nil
 }

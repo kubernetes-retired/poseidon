@@ -20,9 +20,9 @@ import (
 	"fmt"
 
 	extensions "k8s.io/api/extensions/v1beta1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
-	//clientset "k8s.io/client-go/kubernetes"
 )
 
 // WaitForReadyReplicaSet waits until the replicaset has all of its replicas ready.
@@ -58,7 +58,20 @@ func (f *Framework) WaitForReplicaSetTargetSpecReplicas(replicaSet *extensions.R
 
 // WaitForReplicaSetDelete waits for the ReplicateSet to be removed
 func (f *Framework) WaitForReplicaSetDelete(replicaSet *extensions.ReplicaSet) error {
+	replicas := int32(0)
+	replicaSet.Spec.Replicas = &replicas
 	err := wait.Poll(Poll, pollShortTimeout, func() (bool, error) {
+		_, err := f.ClientSet.ExtensionsV1beta1().ReplicaSets(replicaSet.Namespace).Update(replicaSet)
+		if err == nil {
+			return true, nil
+		}
+		// Retry only on update conflict.
+		if errors.IsConflict(err) {
+			return false, nil
+		}
+		return false, err
+	})
+	err = wait.Poll(Poll, pollShortTimeout, func() (bool, error) {
 		err := f.ClientSet.ExtensionsV1beta1().ReplicaSets(replicaSet.Namespace).Delete(replicaSet.Name, &metav1.DeleteOptions{})
 		if err != nil {
 			return false, err

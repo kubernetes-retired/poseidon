@@ -21,9 +21,12 @@ import (
 	"time"
 
 	batch "k8s.io/api/batch/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientset "k8s.io/client-go/kubernetes"
 )
@@ -67,16 +70,37 @@ func (f *Framework) WaitForAllJobPodsRunning(jobName string, parallelism int32) 
 }
 
 // WaitForJobDelete waits for job to be removed
-func (f *Framework) WaitForJobDelete(jobName string) error {
-	err := wait.Poll(Poll, JobTimeout, func() (bool, error) {
-		err := f.ClientSet.BatchV1().Jobs(f.Namespace.Name).Delete(jobName, &metav1.DeleteOptions{})
+func (f *Framework) WaitForJobDelete(job *batchv1.Job) error {
+	// at this point only dead pods are left, that should be removed
+	selector, _ := metav1.LabelSelectorAsSelector(job.Spec.Selector)
+	options := metav1.ListOptions{LabelSelector: selector.String()}
+	podList, err := f.ClientSet.CoreV1().Pods(job.Namespace).List(options)
+	if err != nil {
+		return err
+	}
+
+	err = wait.Poll(Poll, JobTimeout, func() (bool, error) {
+		err := f.ClientSet.BatchV1().Jobs(f.Namespace.Name).Delete(job.Name, &metav1.DeleteOptions{})
 		if err != nil {
 			return false, err
 		}
 		return true, nil
 	})
 	if err == wait.ErrWaitTimeout {
-		err = fmt.Errorf("job %q not deleted", jobName)
+		return fmt.Errorf("job %q not deleted", job.Name)
+	}
+
+	errList := []error{}
+	for _, pod := range podList.Items {
+		if err := f.ClientSet.CoreV1().Pods(job.Namespace).Delete(pod.Name, &metav1.DeleteOptions{}); err != nil {
+			// ignores the error when the pod isn't found
+			if !errors.IsNotFound(err) {
+				errList = append(errList, err)
+			}
+		}
+	}
+	if len(errList) > 0 {
+		return utilerrors.NewAggregate(errList)
 	}
 	return err
 }
