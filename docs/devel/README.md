@@ -203,7 +203,7 @@ If your running k8s cluster that is started by local-up-cluster.sh, you should `
 And copy ```KUBECONFIG```(such as ```/var/run/kubernetes/admin.kubeconfig```) to ```$HOME/.kube/config``` before running test/e2e-poseidon-local.sh.
 
 ```
-$ $GOPATH/src/github.com/kubernetes-sigs/poseidon/test/e2e
+$ cd $GOPATH/src/github.com/kubernetes-sigs/poseidon
 $ test/e2e-poseidon-local.sh
 ```
 
