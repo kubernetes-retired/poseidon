@@ -80,4 +80,6 @@ message ResourceDescriptor {
   uint64 trace_machine_id = 21;
   // Resource labels
   repeated Label labels = 32;
+  // Max pods allowed per node
+  uint64 max_pods = 33;
 }

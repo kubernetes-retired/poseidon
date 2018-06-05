@@ -71,6 +71,7 @@ type Node struct {
 	CPUAllocatable   int64
 	MemCapacityKb    int64
 	MemAllocatableKb int64
+	PodAllocatable   int64
 	Labels           map[string]string
 	Annotations      map[string]string
 }
