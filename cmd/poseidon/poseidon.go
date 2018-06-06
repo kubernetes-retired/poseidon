@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/kubernetes-sigs/poseidon/pkg/config"
-	"github.com/kubernetes-sigs/poseidon/pkg/debugutil"
 	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 	"github.com/kubernetes-sigs/poseidon/pkg/k8sclient"
 	"github.com/kubernetes-sigs/poseidon/pkg/metrics"
@@ -29,6 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 
 	"github.com/golang/glog"
+	"github.com/kubernetes-sigs/poseidon/pkg/poseidonhttp"
 )
 
 func schedule(fc firmament.FirmamentSchedulerClient) {
@@ -101,14 +101,11 @@ func main() {
 		panic(err)
 	}
 	defer conn.Close()
-	if config.GetEnablePprof() {
-		glog.Infof("pprof is enabled under %s", config.GetPprofAddress()+debugutil.HTTPPrefixPProf)
-		go debugutil.EnablePprof(config.GetPprofAddress())
-	}
 	// Check if firmament grpc service is available and then proceed
 	WaitForFirmamentService(fc)
 	go schedule(fc)
 	go stats.StartgRPCStatsServer(config.GetStatsServerAddress(), config.GetFirmamentAddress())
+	go poseidonhttp.Serve(&fc)
 	kubeMajorVer, kubeMinorVer := config.GetKubeVersion()
 	k8sclient.New(config.GetSchedulerName(), config.GetKubeConfig(), kubeMajorVer, kubeMinorVer, config.GetFirmamentAddress())
 }

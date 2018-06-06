@@ -71,7 +71,7 @@ var registerMetrics sync.Once
 func Register() {
 	// Register the metrics.
 	registerMetrics.Do(func() {
-		prometheus.MustRegister(SchedulingSubmitmLatency) //
+		prometheus.MustRegister(SchedulingSubmitmLatency)
 		prometheus.MustRegister(BindingLatency)
 		prometheus.MustRegister(SchedulingPremptionEvaluationDuration)
 		prometheus.MustRegister(PreemptionVictims)

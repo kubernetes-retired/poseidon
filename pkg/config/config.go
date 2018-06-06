@@ -39,6 +39,7 @@ type poseidonConfig struct {
 	ConfigPath         string `json:"configPath,omitempty"`
 	EnablePprof        bool   `json:"enablePprof,omitempty"`
 	PprofAddress       string `json:"pprofAddress,omitempty"`
+	MetricsBindAddress string `json:"port,omitempty"`
 }
 
 // GetSchedulerName returns the SchedulerName from config
@@ -105,6 +106,16 @@ func GetPprofAddress() string {
 	return config.PprofAddress
 }
 
+// GetMetricsBindAddress returns the port serving healthz and metrics
+func GetMetricsBindAddress() string {
+	return config.MetricsBindAddress
+}
+
+// GetConfig returns the address of the whole config
+func GetConfig() *poseidonConfig {
+	return &config
+}
+
 // ReadFromConfigFile to read from yaml,json,toml etc poseidonConfig file
 // Note:
 //  The poseidonConfig values will be overwritten if flag for the same key are present
@@ -137,6 +148,7 @@ func ReadFromCommandLineFlags() {
 		"The path to the config file (i.e poseidon_cfg) without filename or extension, supported extensions/formats are Yaml, Json")
 	flag.BoolVar(&config.EnablePprof, "enablePprof", false, "Enable runtime profiling data via HTTP server. Address is at client URL + \"/debug/pprof/\"")
 	flag.StringVar(&config.PprofAddress, "pprofAddress", "0.0.0.0:8989", "Address on which to collect runtime profiling data,default to set for all interfaces ")
+	pflag.StringVar(&config.MetricsBindAddress, "metricsBindAddress", "0.0.0.0:8989", "Address on which to collect prometheus metrics, default to set for all interfaces")
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
 

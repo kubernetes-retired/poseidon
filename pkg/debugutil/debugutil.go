@@ -71,17 +71,3 @@ func RuntimeStack() {
 		glog.Infof("=== received SIGQUIT ===\n*** goroutine dump...\n%s\n*** end\n", buf)
 	}
 }
-
-// EnablePprof registers pprof handlers and runtimeStack
-func EnablePprof(pprofAddress string) {
-	mux := http.NewServeMux()
-	for p, h := range PProfHandlers() {
-		mux.Handle(p, h)
-	}
-	server := &http.Server{
-		Addr:    pprofAddress,
-		Handler: mux,
-	}
-	go RuntimeStack()
-	go glog.Fatal(server.ListenAndServe())
-}
