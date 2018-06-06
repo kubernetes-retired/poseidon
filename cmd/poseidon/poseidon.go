@@ -23,6 +23,7 @@ import (
 	"github.com/kubernetes-sigs/poseidon/pkg/debugutil"
 	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 	"github.com/kubernetes-sigs/poseidon/pkg/k8sclient"
+	"github.com/kubernetes-sigs/poseidon/pkg/metrics"
 	"github.com/kubernetes-sigs/poseidon/pkg/stats"
 
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -49,19 +50,24 @@ func schedule(fc firmament.FirmamentSchedulerClient) {
 				if !ok {
 					glog.Fatalf("Placed task %d on resource %s without node pairing", delta.GetTaskId(), delta.GetResourceId())
 				}
+				// TODO(jiaxuanzhou): Metric the latency of binding one node when client provided to get the desc of the task(pod)
+				// metrics.BindingLatency.Observe(metrics.SinceInMicroseconds(time.Time(task.SubmitTime)))
 				k8sclient.BindPodToNode(podIdentifier.Name, podIdentifier.Namespace, nodeName)
 			case firmament.SchedulingDelta_PREEMPT, firmament.SchedulingDelta_MIGRATE:
 				k8sclient.PodMux.RLock()
+				preemptionStartTime := time.Now()
 				podIdentifier, ok := k8sclient.TaskIDToPod[delta.GetTaskId()]
 				k8sclient.PodMux.RUnlock()
 				if !ok {
 					glog.Fatalf("Preempted task %d without pod pairing", delta.GetTaskId())
 				}
+				metrics.PreemptionAttempts.Inc()
 				// XXX(ionel): HACK! Kubernetes does not yet have support for preemption.
 				// However, preemption can be achieved by deleting the preempted pod
 				// and relying on the controller mechanism (e.g., job, replica set)
 				// to submit another instance of this pod.
 				k8sclient.DeletePod(podIdentifier.Name, podIdentifier.Namespace)
+				metrics.SchedulingPremptionEvaluationDuration.Observe(metrics.SinceInMicroseconds(preemptionStartTime))
 			case firmament.SchedulingDelta_NOOP:
 			default:
 				glog.Fatalf("Unexpected SchedulingDelta type %v", delta.GetType())
@@ -74,7 +80,7 @@ func schedule(fc firmament.FirmamentSchedulerClient) {
 
 // WaitForFirmamentService blocks till the Firmament service is available
 func WaitForFirmamentService(fc firmament.FirmamentSchedulerClient) {
-
+	// TODO(jiaxuanzhou): Need to metric the wait latency of firmament service?
 	serviceReq := new(firmament.HealthCheckRequest)
 	err := wait.PollImmediate(2*time.Second, 10*time.Minute, func() (bool, error) {
 		ok, _ := firmament.Check(fc, serviceReq)
