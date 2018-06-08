@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
+	"github.com/kubernetes-sigs/poseidon/pkg/metrics"
 
 	"github.com/golang/glog"
 	"github.com/jinzhu/copier"
@@ -270,6 +271,7 @@ func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 				SoftScheduling: pw.getWgtPodAffinityTermforPodAntiAffinity(pod),
 			},
 		},
+		CreateTimeStamp: pod.CreationTimestamp,
 	}
 }
 
@@ -374,6 +376,7 @@ func (pw *PodWatcher) podWorker() {
 						JobDescriptor:  jd,
 					}
 					PodMux.Unlock()
+					metrics.SchedulingSubmitmLatency.Observe(metrics.SinceInMicroseconds(time.Time(pod.CreateTimeStamp.Time)))
 					firmament.TaskSubmitted(pw.fc, taskDescription)
 				case PodSucceeded:
 					glog.V(2).Info("PodSucceeded ", pod.Identifier)
@@ -392,6 +395,7 @@ func (pw *PodWatcher) podWorker() {
 					if !ok {
 						glog.Fatalf("Pod %s does not exist", pod.Identifier)
 					}
+					// TODO(jiaxuanzhou) need to metric the task remove latency ?
 					firmament.TaskRemoved(pw.fc, &firmament.TaskUID{TaskUid: td.Uid})
 					PodMux.Lock()
 					delete(PodToTD, pod.Identifier)

@@ -7,9 +7,10 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//pkg/config:go_default_library",
-        "//pkg/debugutil:go_default_library",
         "//pkg/firmament:go_default_library",
         "//pkg/k8sclient:go_default_library",
+        "//pkg/metrics:go_default_library",
+        "//pkg/poseidonhttp:go_default_library",
         "//pkg/stats:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/wait:go_default_library",

@@ -160,15 +160,16 @@ type Affinity struct {
 
 // Pod is an internal structure for a Kubernetes pod.
 type Pod struct {
-	Identifier   PodIdentifier
-	State        PodPhase
-	CPURequest   int64
-	MemRequestKb int64
-	Labels       map[string]string
-	Annotations  map[string]string
-	NodeSelector map[string]string
-	OwnerRef     string
-	Affinity     *Affinity
+	Identifier      PodIdentifier
+	State           PodPhase
+	CPURequest      int64
+	MemRequestKb    int64
+	Labels          map[string]string
+	Annotations     map[string]string
+	NodeSelector    map[string]string
+	OwnerRef        string
+	Affinity        *Affinity
+	CreateTimeStamp metav1.Time
 }
 
 // NodeWatcher is a Kubernetes node watcher.
