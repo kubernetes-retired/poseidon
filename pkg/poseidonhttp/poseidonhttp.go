@@ -17,6 +17,8 @@ limitations under the License.
 package poseidonhttp
 
 import (
+	"context"
+	"encoding/json"
 	"net/http"
 
 	"github.com/golang/glog"
@@ -29,7 +31,7 @@ import (
 
 const (
 	pathMetrics = "/metrics"
-	PathHealth  = "/health"
+	PathHealth  = "/healthz"
 )
 
 // generateMetricsHandler generates metrics handlers.
@@ -40,11 +42,67 @@ func generateMetricsHandler() map[string]http.Handler {
 	return m
 }
 
-// TODO(jiaxuanzhou): generateHealthzHandler() map[string]http.Handler
-// func generateHealthzHandler() map[string]http.Handler()
+// generateHealthzHandler generates healthz handlers.
+func generateHealthzHandler(fc firmament.FirmamentSchedulerClient) map[string]http.Handler {
+	m := make(map[string]http.Handler)
+	m[PathHealth] = newHealthzHandler(func() Health { return checkHealth(fc) })
+	return m
+}
+
+// newHealthHandler handles '/healthz' requests.
+func newHealthzHandler(hfunc func() Health) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			w.Header().Set("Allow", http.MethodGet)
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		h := hfunc()
+		d, _ := json.Marshal(h)
+		if h.Health != "true" {
+			http.Error(w, string(d), http.StatusServiceUnavailable)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write(d)
+	}
+}
+
+type Health struct {
+	Health string `json:"health"`
+}
+
+// checkHealth checks the status of firmament service and generate the status of poseidon
+func checkHealth(fc firmament.FirmamentSchedulerClient) Health {
+	h := Health{Health: "false"}
+	res, err := fc.Check(context.Background(), &firmament.HealthCheckRequest{})
+	if err != nil {
+		glog.Errorf("checkHealth: health check err: %v", err)
+		return h
+	}
+
+	if res.GetStatus() == firmament.ServingStatus_SERVING {
+		h.Health = "true"
+	}
+	return h
+}
+
+// buildAddrMap adds handler map to addrMap
+func buildAddrMap(addr string,
+	handlerMap map[string]http.Handler,
+	addrMap map[string][]map[string]http.Handler) {
+	_, ok := addrMap[addr]
+	if ok {
+		addrMap[addr] = append(addrMap[addr], handlerMap)
+	} else {
+		hList := []map[string]http.Handler{}
+		hList = append(hList, handlerMap)
+		addrMap[addr] = hList
+	}
+}
 
 // Serve starts the http service for metrics/healthz/pprof
-func Serve(fc *firmament.FirmamentSchedulerClient) {
+func Serve(fc firmament.FirmamentSchedulerClient) {
 	cfg := config.GetConfig()
 	// addrMap is a map to store the port addrs, key is the port name and value is the ip:port
 	addrMap := make(map[string][]map[string]http.Handler)
@@ -53,16 +111,10 @@ func Serve(fc *firmament.FirmamentSchedulerClient) {
 	if cfg.EnablePprof {
 		glog.Infof("pprof is enabled under %s", config.GetPprofAddress()+debugutil.HTTPPrefixPProf)
 		go debugutil.RuntimeStack()
-		_, ok := addrMap[cfg.PprofAddress]
-		if ok {
-			addrMap[cfg.MetricsBindAddress] = append(addrMap[cfg.MetricsBindAddress], debugutil.PProfHandlers())
-		} else {
-			handlerMap := []map[string]http.Handler{}
-			handlerMap = append(handlerMap, debugutil.PProfHandlers())
-			addrMap[cfg.PprofAddress] = handlerMap
-		}
+		buildAddrMap(cfg.PprofAddress, debugutil.PProfHandlers(), addrMap)
 	}
-	// TODO: add healthz handler map to addrMap
+	// add healthz handler map to addrMap
+	buildAddrMap(cfg.HealthCheckAddress, generateHealthzHandler(fc), addrMap)
 
 	// start http services
 	for addr, handlersList := range addrMap {
