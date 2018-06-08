@@ -14,8 +14,8 @@
 
 
 #!/bin/bash
-cd ../
+cd ../cmd/poseidon
 CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-w'
-cp poseidon deploy/
-cd deploy/
+cp poseidon ../../deploy/
+cd ../../deploy/
 sudo docker build -t "poseidon:dev" .
