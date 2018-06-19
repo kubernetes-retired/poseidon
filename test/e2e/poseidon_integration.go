@@ -485,11 +485,11 @@ var _ = Describe("Poseidon", func() {
 
 		// Test Nodes does not have any label, hence it should be impossible to schedule Pod with
 		// nonempty Selector set.
-		/*
-			    Testname: scheduler-node-selector-not-matching
-			    Description: Ensure that scheduler respects the NodeSelector field of
-				PodSpec during scheduling (when it does not match any node).
-		*/
+		//
+		//	    Testname: scheduler-node-selector-not-matching
+		//	    Description: Ensure that scheduler respects the NodeSelector field of
+		//		PodSpec during scheduling (when it does not match any node).
+		//
 		It("validates that NodeSelector is respected if not matching ", func() {
 			By("Trying to schedule Pod with nonempty NodeSelector.")
 			podName := "restricted-pod"
@@ -513,11 +513,11 @@ var _ = Describe("Poseidon", func() {
 			Expect(err).To(HaveOccurred())
 		})
 
-		/*
-			    Testname: scheduler-node-selector-matching
-			    Description: Ensure that scheduler respects the NodeSelector field
-				of PodSpec during scheduling (when it matches).
-		*/
+		//
+		//	    Testname: scheduler-node-selector-matching
+		//	    Description: Ensure that scheduler respects the NodeSelector field
+		//		of PodSpec during scheduling (when it matches).
+		//
 		It("validates that NodeSelector is respected if matching ", func() {
 			// Randomly pick a node
 			nodeName := getNodeThatCanRunPodWithoutToleration(f)
@@ -1036,6 +1036,496 @@ var _ = Describe("Poseidon", func() {
 			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
 			Expect(err).NotTo(HaveOccurred())
 
+		})
+	})
+
+	Describe("Poseidon [Pod Affinity and Anti-Affinity]", func() {
+		var setupPodOnesNodeName, setupPodTwosNodeName string
+
+		setupPodOneName := "setup-pod-one"
+		setupPodTwoName := "setup-pod-two"
+		setupPodOne := testPodConfig{
+			Name: setupPodOneName,
+			Labels: map[string]string{
+				"security": "S1",
+			},
+			SchedulerName: "poseidon",
+		}
+
+		setupPodTwo := testPodConfig{
+			Name: setupPodTwoName,
+			Labels: map[string]string{
+				"security": "S2",
+			},
+			SchedulerName: "poseidon",
+		}
+
+		It("validates scheduler respect's a pod-affinity with hard constraint", func() {
+			labelPodName := "pod-affinity-hard"
+			testpod := testPodConfig{
+				Name: labelPodName,
+				Affinity: &v1.Affinity{
+					PodAffinity: &v1.PodAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
+							{
+								LabelSelector: &metav1.LabelSelector{
+									MatchExpressions: []metav1.LabelSelectorRequirement{
+										{
+											Key:      "security",
+											Operator: metav1.LabelSelectorOpIn,
+											Values: []string{
+												"S1",
+											},
+										},
+									},
+								},
+								TopologyKey: "kubernetes.io/hostname",
+							},
+						},
+					},
+				},
+				SchedulerName: "poseidon",
+			}
+
+			By("Trying to launch the setup pod one with label security S1 to test pod affinity/anti-affinity")
+			createTestPod(f, setupPodOne)
+
+			By("validate if setup pod one is running and get the node of the setup pod")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, setupPodOneName))
+			setupLabelPod, err := clientset.CoreV1().Pods(ns).Get(setupPodOneName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			setupPodOnesNodeName = setupLabelPod.Spec.NodeName
+
+			By("Deploy the pod with pod affinity hard constraint")
+			createTestPod(f, testpod)
+
+			By("validate if test pod is running on the right node")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(Equal(setupPodOnesNodeName))
+
+			By("Delete the test pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPod.Name, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("validates scheduler respect's a pod-anti-affinity with hard constraint", func() {
+			labelPodName := "pod-anti-affinity-hard"
+			testpod := testPodConfig{
+				Name: labelPodName,
+				Affinity: &v1.Affinity{
+					PodAntiAffinity: &v1.PodAntiAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
+							{
+								LabelSelector: &metav1.LabelSelector{
+									MatchExpressions: []metav1.LabelSelectorRequirement{
+										{
+											Key:      "security",
+											Operator: metav1.LabelSelectorOpIn,
+											Values: []string{
+												"S1",
+											},
+										},
+									},
+								},
+								TopologyKey: "kubernetes.io/hostname",
+							},
+						},
+					},
+				},
+				SchedulerName: "poseidon",
+			}
+
+			// Note: We don't need to create the setup pod one for this test case
+			// it already running and we use the same
+
+			By("Deploy the pod with pod anti-affinity hard constraint")
+			createTestPod(f, testpod)
+
+			By("validate if test pod is running on the right node")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).NotTo(Equal(setupPodOnesNodeName))
+
+			By("Delete the test pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPod.Name, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("validates scheduler respect's a pod-affinity with soft constraint", func() {
+			labelPodName := "pod-affinity-soft"
+			testpod := testPodConfig{
+				Name: labelPodName,
+				Affinity: &v1.Affinity{
+					PodAffinity: &v1.PodAffinity{
+						PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{
+							{
+								Weight: 100,
+								PodAffinityTerm: v1.PodAffinityTerm{
+									LabelSelector: &metav1.LabelSelector{
+										MatchExpressions: []metav1.LabelSelectorRequirement{
+											{
+												Key:      "security",
+												Operator: metav1.LabelSelectorOpIn,
+												Values: []string{
+													"S1",
+												},
+											},
+										},
+									},
+									TopologyKey: "kubernetes.io/hostname",
+								},
+							},
+						},
+					},
+				},
+				SchedulerName: "poseidon",
+			}
+
+			// Note: We don't need to create the setup pod for this test case
+			// it already running and we use the same
+
+			By("Deploy the pod with pod-affinity soft constraint")
+			createTestPod(f, testpod)
+
+			By("validate if test pod is running on the right node")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(Equal(setupPodOnesNodeName))
+
+			By("Delete the test pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPod.Name, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("validates scheduler respect's a pod-anti-affinity with soft constraint", func() {
+			labelPodName := "pod-anti-affinity-soft"
+			testpod := testPodConfig{
+				Name: labelPodName,
+				Affinity: &v1.Affinity{
+					PodAntiAffinity: &v1.PodAntiAffinity{
+						PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{
+							{
+								Weight: 100,
+								PodAffinityTerm: v1.PodAffinityTerm{
+									LabelSelector: &metav1.LabelSelector{
+										MatchExpressions: []metav1.LabelSelectorRequirement{
+											{
+												Key:      "security",
+												Operator: metav1.LabelSelectorOpIn,
+												Values: []string{
+													"S1",
+												},
+											},
+										},
+									},
+									TopologyKey: "kubernetes.io/hostname",
+								},
+							},
+						},
+					},
+				},
+				SchedulerName: "poseidon",
+			}
+
+			// Note: We don't need to create the setup pod one for this test case
+			// it already running and we use the same
+
+			By("Deploy the pod with pod-anti-affinity soft constraint")
+			createTestPod(f, testpod)
+
+			By("validate if test pod is running on the right node")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).NotTo(Equal(setupPodOnesNodeName))
+
+			By("Delete the test pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPod.Name, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("validates scheduler respect's a pod-affinity with both hard and soft constraint", func() {
+			labelPodName := "pod-affinity-hard-soft"
+			testpod := testPodConfig{
+				Name: labelPodName,
+				Affinity: &v1.Affinity{
+					PodAffinity: &v1.PodAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
+							{
+								LabelSelector: &metav1.LabelSelector{
+									MatchExpressions: []metav1.LabelSelectorRequirement{
+										{
+											Key:      "security",
+											Operator: metav1.LabelSelectorOpIn,
+											Values: []string{
+												"S1",
+											},
+										},
+									},
+								},
+								TopologyKey: "kubernetes.io/hostname",
+							},
+						},
+						PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{
+							{
+								Weight: 100,
+								PodAffinityTerm: v1.PodAffinityTerm{
+									LabelSelector: &metav1.LabelSelector{
+										MatchExpressions: []metav1.LabelSelectorRequirement{
+											{
+												Key:      "security",
+												Operator: metav1.LabelSelectorOpIn,
+												Values: []string{
+													"S2",
+												},
+											},
+										},
+									},
+									TopologyKey: "kubernetes.io/hostname",
+								},
+							},
+						},
+					},
+				},
+				SchedulerName: "poseidon",
+			}
+
+			By("Trying to launch the setup pod two with label security S2 to test pod affinity/anti-affinity")
+			createTestPod(f, setupPodTwo)
+
+			By("validate if setup pod two is running and get the node of the setup pod two")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, setupPodTwoName))
+			setupLabelPod, err := clientset.CoreV1().Pods(ns).Get(setupPodTwoName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			setupPodTwosNodeName = setupLabelPod.Spec.NodeName
+
+			// Note: We don't need to create the setup pod one for this test case
+			// it already running and we use the same
+			By("Deploy the pod with pod-affinity hard and soft constraint")
+			createTestPod(f, testpod)
+
+			By("validate if test pod is running on the right node")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(Equal(setupPodOnesNodeName))
+
+			By("Delete the test pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPod.Name, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("validates scheduler respect's a pod-anti-affinity with both hard and soft constraint", func() {
+			labelPodName := "pod-anti-affinity-hard-soft"
+			testpod := testPodConfig{
+				Name: labelPodName,
+				Affinity: &v1.Affinity{
+					PodAntiAffinity: &v1.PodAntiAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
+							{
+								LabelSelector: &metav1.LabelSelector{
+									MatchExpressions: []metav1.LabelSelectorRequirement{
+										{
+											Key:      "security",
+											Operator: metav1.LabelSelectorOpIn,
+											Values: []string{
+												"S1",
+											},
+										},
+									},
+								},
+								TopologyKey: "kubernetes.io/hostname",
+							},
+						},
+						PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{
+							{
+								Weight: 100,
+								PodAffinityTerm: v1.PodAffinityTerm{
+									LabelSelector: &metav1.LabelSelector{
+										MatchExpressions: []metav1.LabelSelectorRequirement{
+											{
+												Key:      "security",
+												Operator: metav1.LabelSelectorOpIn,
+												Values: []string{
+													"S2",
+												},
+											},
+										},
+									},
+									TopologyKey: "kubernetes.io/hostname",
+								},
+							},
+						},
+					},
+				},
+				SchedulerName: "poseidon",
+			}
+
+			// Note: We don't need to create the setup pod one and setup pod two for this test case
+			// it already running and we use the same
+
+			By("Deploy the pod with pod-anti-affinity hard and soft constraint")
+			createTestPod(f, testpod)
+
+			By("validate if test pod is running on the right node")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).ShouldNot(SatisfyAll(Equal(setupPodOnesNodeName), Equal(setupPodTwosNodeName)))
+
+			By("Delete the test pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPod.Name, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("validates scheduler respect's a pod-affinity with hard constraint and anti-affinity soft constraint", func() {
+			labelPodName := "pod-affinity-hard-anti-affinity-soft"
+			testpod := testPodConfig{
+				Name: labelPodName,
+				Affinity: &v1.Affinity{
+					PodAffinity: &v1.PodAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
+							{
+								LabelSelector: &metav1.LabelSelector{
+									MatchExpressions: []metav1.LabelSelectorRequirement{
+										{
+											Key:      "security",
+											Operator: metav1.LabelSelectorOpIn,
+											Values: []string{
+												"S1",
+											},
+										},
+									},
+								},
+								TopologyKey: "kubernetes.io/hostname",
+							},
+						},
+					},
+					PodAntiAffinity: &v1.PodAntiAffinity{
+						PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{
+							{
+								Weight: 100,
+								PodAffinityTerm: v1.PodAffinityTerm{
+									LabelSelector: &metav1.LabelSelector{
+										MatchExpressions: []metav1.LabelSelectorRequirement{
+											{
+												Key:      "security",
+												Operator: metav1.LabelSelectorOpIn,
+												Values: []string{
+													"S2",
+												},
+											},
+										},
+									},
+									TopologyKey: "kubernetes.io/hostname",
+								},
+							},
+						},
+					},
+				},
+				SchedulerName: "poseidon",
+			}
+
+			// Note: We don't need to create the setup pod one and setup pod two for this test case
+			// it already running and we use the same
+
+			By("Deploy the pod with pod-affinity hard and anti-affinity soft constraint")
+			createTestPod(f, testpod)
+
+			By("validate if test pod is running on the right node")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(Equal(setupPodOnesNodeName))
+
+			By("Delete the test pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPod.Name, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("validates scheduler respect's a pod-anti-affinity with hard constraint and affinity soft constraint", func() {
+			labelPodName := "pod-anti-affinity-hard-affinity-soft"
+			testpod := testPodConfig{
+				Name: labelPodName,
+				Affinity: &v1.Affinity{
+					PodAntiAffinity: &v1.PodAntiAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
+							{
+								LabelSelector: &metav1.LabelSelector{
+									MatchExpressions: []metav1.LabelSelectorRequirement{
+										{
+											Key:      "security",
+											Operator: metav1.LabelSelectorOpIn,
+											Values: []string{
+												"S1",
+											},
+										},
+									},
+								},
+								TopologyKey: "kubernetes.io/hostname",
+							},
+						},
+					},
+					PodAffinity: &v1.PodAffinity{
+						PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{
+							{
+								Weight: 100,
+								PodAffinityTerm: v1.PodAffinityTerm{
+									LabelSelector: &metav1.LabelSelector{
+										MatchExpressions: []metav1.LabelSelectorRequirement{
+											{
+												Key:      "security",
+												Operator: metav1.LabelSelectorOpIn,
+												Values: []string{
+													"S2",
+												},
+											},
+										},
+									},
+									TopologyKey: "kubernetes.io/hostname",
+								},
+							},
+						},
+					},
+				},
+				SchedulerName: "poseidon",
+			}
+
+			// Note: We don't need to create the setup pod one and setup pod two for this test case
+			// it already running and we use the same
+
+			By("Deploy the pod with pod-affinity hard and anti-affinity soft constraint")
+			createTestPod(f, testpod)
+
+			By("validate if test pod is running on the right node")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(Equal(setupPodTwosNodeName))
+
+			By("Delete the test pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPod.Name, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
 		})
 	})
 })
