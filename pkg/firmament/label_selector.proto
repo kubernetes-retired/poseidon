@@ -27,6 +27,8 @@ message LabelSelector {
     NOT_IN_SET = 1;
     EXISTS_KEY = 2;
     NOT_EXISTS_KEY = 3;
+    GREATER_THAN = 4;
+    LESSER_THAN = 5;
   }
 
   SelectorType type = 1;
