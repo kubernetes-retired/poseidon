@@ -482,9 +482,10 @@ func (pw *PodWatcher) updateTask(pod *Pod, td *firmament.TaskDescriptor) {
 
 func (pw *PodWatcher) addTaskToJob(pod *Pod, jd *firmament.JobDescriptor) *firmament.TaskDescriptor {
 	task := &firmament.TaskDescriptor{
-		Name:  pod.Identifier.UniqueName(),
-		State: firmament.TaskDescriptor_CREATED,
-		JobId: jd.Uuid,
+		Name:      pod.Identifier.UniqueName(),
+		Namespace: pod.Identifier.Namespace,
+		State:     firmament.TaskDescriptor_CREATED,
+		JobId:     jd.Uuid,
 		ResourceRequest: &firmament.ResourceVector{
 			// TODO(ionel): Update types so no cast is required.
 			CpuCores: float32(pod.CPURequest),

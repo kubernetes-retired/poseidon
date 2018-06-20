@@ -104,4 +104,6 @@ message TaskDescriptor {
   repeated LabelSelector label_selectors = 33;
   //Affinity
   Affinity affinity = 34;
+  //NameSpace
+  string namespace = 35;
 }
