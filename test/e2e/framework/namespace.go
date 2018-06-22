@@ -62,14 +62,14 @@ func (f *Framework) deleteNamespaceIfExist(nsName string) error {
 	} else {
 		//delete the namespace as it exist
 		Logf("Deleting %v namespace as it exists", nsName)
-		if err = f.deleteNamespace(nsName); err != nil {
+		if err = f.DeleteNamespace(nsName); err != nil {
 			return fmt.Errorf("unable to delete %v namespace, error: %v occurred", nsName, err)
 		}
 	}
 	return nil
 }
 
-func (f *Framework) deleteNamespace(nsName string) error {
+func (f *Framework) DeleteNamespace(nsName string) error {
 
 	if err := f.ClientSet.CoreV1().Namespaces().Delete(nsName, nil); err != nil {
 		return err

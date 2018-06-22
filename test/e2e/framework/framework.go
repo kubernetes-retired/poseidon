@@ -164,7 +164,7 @@ func (f *Framework) AfterEach() {
 	f.FetchLogsFromFirmament(f.TestingNS)
 	f.FetchLogsFromPoseidon(f.TestingNS)
 	Logf("Delete namespace called")
-	err = f.deleteNamespace(f.TestingNS)
+	err = f.DeleteNamespace(f.TestingNS)
 	Expect(err).NotTo(HaveOccurred())
 
 	err = f.DeleteDeploymentIfExist(f.TestingNS, poseidonDeploymentName)

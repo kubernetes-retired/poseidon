@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/golang/glog"
 	"github.com/kubernetes-sigs/poseidon/test/e2e/framework"
@@ -32,7 +34,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"time"
 )
 
 var _ = Describe("Poseidon", func() {
@@ -483,6 +484,91 @@ var _ = Describe("Poseidon", func() {
 			Expect(err).To(HaveOccurred())
 		})
 
+		// Test whether the kubelet flag max_pods works
+		// Currently the test uses the node's default max_pods value, i.e., we don't manually set the kubelet flag max_pods;
+		// And only test on one of the nodes.
+		It("validates MaxPods limit number of pods that are allowed to run [Slow]", func() {
+
+			nodeList, err := clientset.CoreV1().Nodes().List(metav1.ListOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			maxPodNamespace := "max-pods-test"
+			_, err = clientset.CoreV1().Namespaces().Create(&v1.Namespace{
+				ObjectMeta: metav1.ObjectMeta{Name: maxPodNamespace},
+			})
+			if err != nil {
+				glog.Errorf("unable to create namespace %s, error: %v occurred", maxPodNamespace, err)
+			}
+			for idx, node := range nodeList.Items {
+				framework.Logf("Node: %v", node.Name)
+				podAlloc, found := node.Status.Allocatable[v1.ResourcePods]
+				Expect(found).To(Equal(true))
+				podList, err := clientset.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				podCount := podList.Size()
+
+				name := "max-pods-" + strconv.Itoa(idx)
+				var replicas int32
+				replicas = int32(podAlloc.Value())
+				if podCount < 1 {
+					replicas += 5
+				}
+				_, err = clientset.ExtensionsV1beta1().Deployments(maxPodNamespace).Create(&v1beta1.Deployment{
+					ObjectMeta: metav1.ObjectMeta{
+						Labels: map[string]string{"app": "nginx"},
+						Name:   name,
+					},
+					Spec: v1beta1.DeploymentSpec{
+						Selector: &metav1.LabelSelector{
+							MatchLabels: map[string]string{"app": "nginx", "name": "test-max-pods"},
+						},
+						Replicas: &replicas,
+						Template: v1.PodTemplateSpec{
+							ObjectMeta: metav1.ObjectMeta{
+								Labels: map[string]string{"name": "test-max-pods", "app": "nginx", "schedulerName": "poseidon"},
+								Name:   name,
+							},
+							Spec: v1.PodSpec{
+								SchedulerName: "poseidon",
+								Containers: []v1.Container{
+									{
+										Name:            fmt.Sprintf("container-%s", name),
+										Image:           "nginx:latest",
+										ImagePullPolicy: "IfNotPresent",
+									},
+								},
+							},
+						},
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+				// time for pods to be Running
+				time.Sleep(3 * time.Minute)
+				podList, err = clientset.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				var podRunningCount, podPendingCount, podFailedCount int64 = 0, 0, 0
+				for _, pod := range podList.Items {
+					if pod.Status.Phase == v1.PodRunning {
+						podRunningCount++
+					} else if pod.Status.Phase == v1.PodPending {
+						podPendingCount++
+					} else if pod.Status.Phase == v1.PodFailed {
+						podFailedCount++
+					}
+				}
+				Expect(podRunningCount == podAlloc.Value()).To(Equal(true))
+				glog.Errorf("Pods: %d Running, %d Pening, %d Failed", podRunningCount, podPendingCount, podFailedCount)
+
+				framework.Logf("Time to clean up the ns [%s] now...", maxPodNamespace)
+				if err = f.DeleteNamespace(maxPodNamespace); err != nil {
+					glog.Errorf("unable to delete %v namespace, error: %v occurred", maxPodNamespace, err)
+				}
+				// time for Terminating pods to disappear
+				// TODO: deal with the deletion better. Tried deleting the deployment but didn't work well.
+				time.Sleep(1 * time.Minute)
+				// Test one node for now since the test takes much time.
+				break
+			}
+		})
 		// Test Nodes does not have any label, hence it should be impossible to schedule Pod with
 		// nonempty Selector set.
 		/*
