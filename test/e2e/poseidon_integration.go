@@ -91,7 +91,7 @@ var _ = Describe("Poseidon", func() {
 				pod, err = clientset.CoreV1().Pods(ns).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				glog.Info("pod status =", string(pod.Status.Phase))
-				Expect(string(pod.Status.Phase)).To(Equal("Running"))
+				Expect(string(pod.Status.Phase)).To(Equal(v1.PodRunning))
 
 				By("Pod was in Running state... Time to delete the pod now...")
 				err = clientset.CoreV1().Pods(ns).Delete(name, &metav1.DeleteOptions{})
