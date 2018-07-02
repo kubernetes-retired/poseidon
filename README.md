@@ -9,7 +9,7 @@ Firmament models workloads on a cluster as flow networks and runs min-cost flow 
 
 Due to the inherent rescheduling capabilities, the new scheduler enables a globally optimal scheduling for a given policy that keeps on refining the dynamic placements of the workload.
 
-As we all know that as part of the Kubernetes multiple schedulers support, each new pod is typically scheduled by the default scheduler, but Kubernetes can be instructed to use another scheduler by specifying the name of another custom scheduler (Poseidon in our case) at the time of pod deployment. In this case, the default scheduler will ignore that Pod and allow Poseidon scheduler to schedule the Pod on a relevant node. We plugin Poseidon as an add-on scheduler to K8s, by using the 'schedulerName' as Poseidon in the pod template this will by-pass the default-scheduler. We plugin Poseidon as an add-on scheduler to K8s, by using the 'schedulerName' as Poseidon in the pod template this will by-pass the default-scheduler.
+As we all know that as part of the Kubernetes multiple schedulers support, each new pod is typically scheduled by the default scheduler, but Kubernetes can be instructed to use another scheduler by specifying the name of another custom scheduler (Poseidon in our case) at the time of pod deployment. In this case, the default scheduler will ignore that Pod and allow Poseidon scheduler to schedule the Pod on a relevant node. We plugin Poseidon as an add-on scheduler to K8s, by using the 'schedulerName' as Poseidon in the pod template this will by-pass the default-scheduler.
 
 # Key Advantages
 
