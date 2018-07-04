@@ -58,7 +58,11 @@ func newHealthzHandler(hfunc func() Health) http.HandlerFunc {
 			return
 		}
 		h := hfunc()
-		d, _ := json.Marshal(h)
+		d, err := json.Marshal(h)
+		if err != nil {
+			glog.Errorf("Marshal failed, err: %v", err)
+			return
+		}
 		if h.Health != "true" {
 			http.Error(w, string(d), http.StatusServiceUnavailable)
 			return
