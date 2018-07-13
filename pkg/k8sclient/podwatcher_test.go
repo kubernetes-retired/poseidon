@@ -80,7 +80,7 @@ func BuildPod(namespace, podName string,
 	phase v1.PodPhase,
 	requestCPU, requestMem string,
 	deletionTime *metav1.Time,
-	ownerRef string, affinity *v1.Affinity) *v1.Pod {
+	ownerRef string, affinity *v1.Affinity, toleration []v1.Toleration) *v1.Pod {
 
 	return &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -148,6 +148,15 @@ func BuildPod(namespace, podName string,
 							TopologyKey: affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].TopologyKey,
 						},
 					},
+				},
+			},
+			Tolerations: []v1.Toleration{
+				{
+					Key:               toleration[0].Key,
+					Operator:          toleration[0].Operator,
+					Value:             toleration[0].Value,
+					Effect:            toleration[0].Effect,
+					TolerationSeconds: toleration[0].TolerationSeconds,
 				},
 			},
 		},
@@ -254,13 +263,21 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 			},
 		},
 	}
+	tolerations := []v1.Toleration{
+		{
+			Key:      "key",
+			Operator: "Equal",
+			Value:    "value",
+			Effect:   "NoSchedule",
+		},
+	}
 
 	var testData = []struct {
 		pod      *v1.Pod
 		expected *Pod
 	}{
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod1", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
+			pod: BuildPod("Poseidon-Namespace", "Pod1", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
 			expected: &Pod{
 				State: PodPending,
 				Identifier: PodIdentifier{
@@ -319,10 +336,18 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 						},
 					},
 				},
+				Tolerations: []Toleration{
+					{
+						Key:      "key",
+						Operator: "Equal",
+						Value:    "value",
+						Effect:   "NoSchedule",
+					},
+				},
 			},
 		},
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod2", empty, GetPodPhase("Running"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
+			pod: BuildPod("Poseidon-Namespace", "Pod2", empty, GetPodPhase("Running"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
 			expected: &Pod{
 				State: PodRunning,
 				Identifier: PodIdentifier{
@@ -381,10 +406,18 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 						},
 					},
 				},
+				Tolerations: []Toleration{
+					{
+						Key:      "key",
+						Operator: "Equal",
+						Value:    "value",
+						Effect:   "NoSchedule",
+					},
+				},
 			},
 		},
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod3", empty, GetPodPhase("Succeeded"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
+			pod: BuildPod("Poseidon-Namespace", "Pod3", empty, GetPodPhase("Succeeded"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
 			expected: &Pod{
 				State: PodSucceeded,
 				Identifier: PodIdentifier{
@@ -443,10 +476,18 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 						},
 					},
 				},
+				Tolerations: []Toleration{
+					{
+						Key:      "key",
+						Operator: "Equal",
+						Value:    "value",
+						Effect:   "NoSchedule",
+					},
+				},
 			},
 		},
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod4", empty, GetPodPhase("Failed"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
+			pod: BuildPod("Poseidon-Namespace", "Pod4", empty, GetPodPhase("Failed"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
 			expected: &Pod{
 				State: PodFailed,
 				Identifier: PodIdentifier{
@@ -503,6 +544,14 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 								TopologyKey: "node",
 							},
 						},
+					},
+				},
+				Tolerations: []Toleration{
+					{
+						Key:      "key",
+						Operator: "Equal",
+						Value:    "value",
+						Effect:   "NoSchedule",
 					},
 				},
 			},
@@ -591,24 +640,32 @@ func TestPodWatcher_podWorker(t *testing.T) {
 			},
 		},
 	}
+	tolerations := []v1.Toleration{
+		{
+			Key:      "key",
+			Operator: "Equal",
+			Value:    "value",
+			Effect:   "NoSchedule",
+		},
+	}
 
 	var testData = []struct {
 		pod *v1.Pod
 	}{
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod1", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
+			pod: BuildPod("Poseidon-Namespace", "Pod1", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
 		},
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod2", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
+			pod: BuildPod("Poseidon-Namespace", "Pod2", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
 		},
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod3", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
+			pod: BuildPod("Poseidon-Namespace", "Pod3", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
 		},
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod4", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
+			pod: BuildPod("Poseidon-Namespace", "Pod4", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
 		},
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod5", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity),
+			pod: BuildPod("Poseidon-Namespace", "Pod5", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
 		},
 	}
 

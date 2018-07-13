@@ -230,6 +230,14 @@ func (pw *PodWatcher) getWgtPodAffinityTermforPodAntiAffinity(pod *v1.Pod) []Wei
 	return wgtPodAffTerm
 }
 
+func (pw *PodWatcher) getTolerations(pod *v1.Pod) []Toleration {
+	var tolerations []Toleration
+
+	copier.Copy(&tolerations, pod.Spec.Tolerations)
+
+	return tolerations
+}
+
 func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 	cpuReq, memReq := pw.getCPUMemRequest(pod)
 	podPhase := PodUnknown
@@ -272,6 +280,7 @@ func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 			},
 		},
 		CreateTimeStamp: pod.CreationTimestamp,
+		Tolerations:     pw.getTolerations(pod),
 	}
 }
 
@@ -499,6 +508,17 @@ func (pw *PodWatcher) addTaskToJob(pod *Pod, jd *firmament.JobDescriptor) *firma
 			&firmament.Label{
 				Key:   label,
 				Value: value,
+			})
+	}
+
+	//Add tolerations
+	for _, tolerations := range pod.Tolerations {
+		task.Toleration = append(task.Toleration,
+			&firmament.Toleration{
+				Key:      tolerations.Key,
+				Value:    tolerations.Value,
+				Operator: tolerations.Operator,
+				Effect:   tolerations.Effect,
 			})
 	}
 	// Get the network requirement from pods label, and set it in ResourceRequest of the TaskDescriptor

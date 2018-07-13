@@ -36,9 +36,11 @@ It is generated from these files:
 	resource_topology_node_desc.proto
 	resource_vector.proto
 	scheduling_delta.proto
+	taints.proto
 	task_desc.proto
 	task_final_report.proto
 	task_stats.proto
+	tolerations.proto
 	whare_map_stats.proto
 
 It has these top-level messages:
@@ -89,9 +91,11 @@ It has these top-level messages:
 	ResourceTopologyNodeDescriptor
 	ResourceVector
 	SchedulingDelta
+	Taint
 	TaskDescriptor
 	TaskFinalReport
 	TaskStats
+	Toleration
 	WhareMapStats
 */
 package firmament

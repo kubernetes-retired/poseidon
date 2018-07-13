@@ -1528,6 +1528,218 @@ var _ = Describe("Poseidon", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})
+
+	Describe("Poseidon [Taints and Tolerations hard and soft constraint]", func() {
+		var nodeOne, nodeTwo v1.Node
+
+		It("validates scheduler respect's a taints and tolerations constraint ie a pod having no tolerations can't be scheduled onto a node with nonempty taints.", func() {
+			labelPodName := "with-no-tolerations"
+			testpod := testPodConfig{
+				Name:          labelPodName,
+				SchedulerName: "poseidon",
+			}
+
+			By("Trying to get a schedulable node")
+			schedulableNodes := framework.ListSchedulableNodes(clientset)
+			if len(schedulableNodes) < 2 {
+				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of two node and only %d nodes avaliable", len(schedulableNodes)))
+			}
+			nodeOne = schedulableNodes[0]
+			nodeTwo = schedulableNodes[1]
+
+			By(fmt.Sprintf("Trying to apply a taint on %s", nodeOne.Name))
+			taint := v1.Taint{
+				Key:    "dedicated",
+				Value:  "user1",
+				Effect: "NoSchedule",
+			}
+			framework.AddOrUpdateTaintOnNode(clientset, nodeOne.Name, taint)
+			framework.ExpectNodeHasTaint(clientset, nodeOne.Name, &taint)
+
+			By(fmt.Sprintf("Trying to launch the pod, with taints on nodes %s as it has intolerable taints on other nodes", nodeTwo.Name))
+			createTestPod(f, testpod)
+
+			By(fmt.Sprintf("Validate if the pod is running on %s ", nodeTwo.Name))
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(Equal(nodeTwo.Name))
+
+			By(fmt.Sprintf("Remove the taint from %s", nodeOne.Name))
+			framework.RemoveTaintOffNode(clientset, nodeOne.Name, taint)
+			framework.VerifyThatTaintIsGone(clientset, nodeOne.Name, &taint)
+
+			By("Delete the pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+
+		It("a pod has a toleration that keys and values match the taint on the node, but (non-empty) effect doesn't match, can't be scheduled onto the node", func() {
+			labelPodName := "with-no-match-effect"
+			testpod := testPodConfig{
+				Name: labelPodName,
+				Tolerations: []v1.Toleration{
+					{
+						Key:      "foo",
+						Operator: "Equal",
+						Value:    "bar",
+						Effect:   "PreferNoSchedule",
+					},
+				},
+				SchedulerName: "poseidon",
+			}
+
+			By("Trying to get a schedulable node")
+			schedulableNodes := framework.ListSchedulableNodes(clientset)
+			if len(schedulableNodes) < 2 {
+				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of two node and only %d nodes avaliable", len(schedulableNodes)))
+			}
+			nodeOne = schedulableNodes[0]
+			nodeTwo = schedulableNodes[1]
+
+			By(fmt.Sprintf("Trying to apply a taint on %s", nodeOne.Name))
+			taint := v1.Taint{
+				Key:    "foo",
+				Value:  "bar",
+				Effect: "NoSchedule",
+			}
+			framework.AddOrUpdateTaintOnNode(clientset, nodeOne.Name, taint)
+			framework.ExpectNodeHasTaint(clientset, nodeOne.Name, &taint)
+
+			By(fmt.Sprintf("Trying to launch the pod, with taints on nodes %s as it has intolerable taints on other nodes", nodeTwo.Name))
+			createTestPod(f, testpod)
+
+			By(fmt.Sprintf("Validate if the pod is running on %s ", nodeTwo.Name))
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(Equal(nodeTwo.Name))
+
+			By(fmt.Sprintf("Remove the taint from %s", nodeOne.Name))
+			framework.RemoveTaintOffNode(clientset, nodeOne.Name, taint)
+			framework.VerifyThatTaintIsGone(clientset, nodeOne.Name, &taint)
+
+			By("Delete the pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+
+		It("a node with taints tolerated by the pod, gets a higher score or is more preferred than those node with intolerable taints", func() {
+			labelPodName := "with-prefernoschedule"
+			testpod := testPodConfig{
+				Name: labelPodName,
+				Tolerations: []v1.Toleration{
+					{
+						Key:      "foo",
+						Operator: "Equal",
+						Value:    "bar",
+						Effect:   "PreferNoSchedule",
+					},
+				},
+
+				SchedulerName: "poseidon",
+			}
+
+			By("Trying to get a schedulable node")
+			schedulableNodes := framework.ListSchedulableNodes(clientset)
+			if len(schedulableNodes) < 2 {
+				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of two node and only %d nodes avaliable", len(schedulableNodes)))
+			}
+			nodeOne = schedulableNodes[0]
+			nodeTwo = schedulableNodes[1]
+			By(fmt.Sprintf("Trying to apply a taint on %s", nodeOne.Name))
+			taint := v1.Taint{
+				Key:    "foo",
+				Value:  "bar",
+				Effect: "PreferNoSchedule",
+			}
+			framework.AddOrUpdateTaintOnNode(clientset, nodeOne.Name, taint)
+			framework.ExpectNodeHasTaint(clientset, nodeOne.Name, &taint)
+
+			By(fmt.Sprintf("Trying to apply a taint on %s", nodeTwo.Name))
+			taint = v1.Taint{
+				Key:    "foo",
+				Value:  "blah",
+				Effect: "PreferNoSchedule",
+			}
+			framework.AddOrUpdateTaintOnNode(clientset, nodeTwo.Name, taint)
+			framework.ExpectNodeHasTaint(clientset, nodeTwo.Name, &taint)
+
+			By(fmt.Sprintf("Trying to launch the pod, with taints on nodes %s %s ", nodeOne.Name, nodeTwo.Name))
+			createTestPod(f, testpod)
+
+			By(fmt.Sprintf("Validate if the pod is running on %s ", nodeOne.Name))
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(Equal(nodeOne.Name))
+
+			By(fmt.Sprintf("Remove the taint from %s", nodeOne.Name))
+			framework.RemoveTaintOffNode(clientset, nodeOne.Name, taint)
+			framework.VerifyThatTaintIsGone(clientset, nodeOne.Name, &taint)
+
+			By(fmt.Sprintf("Remove the taint from %s", nodeTwo.Name))
+			framework.RemoveTaintOffNode(clientset, nodeTwo.Name, taint)
+			framework.VerifyThatTaintIsGone(clientset, nodeTwo.Name, &taint)
+
+			By("Delete the pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+
+		It("a pod without tolerations land on a node without taints", func() {
+			labelPodName := "with-no-taints-no-tolerations"
+			testpod := testPodConfig{
+				Name:          labelPodName,
+				SchedulerName: "poseidon",
+			}
+
+			By("Trying to get a schedulable node")
+			schedulableNodes := framework.ListSchedulableNodes(clientset)
+			if len(schedulableNodes) < 2 {
+				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of two node and only %d nodes avaliable", len(schedulableNodes)))
+			}
+			nodeOne = schedulableNodes[0]
+			nodeTwo = schedulableNodes[1]
+			By(fmt.Sprintf("Trying to apply a taint on %s", nodeTwo.Name))
+			taint := v1.Taint{
+				Key:    "cpu-type",
+				Value:  "arm64",
+				Effect: "PreferNoSchedule",
+			}
+			framework.AddOrUpdateTaintOnNode(clientset, nodeOne.Name, taint)
+			framework.ExpectNodeHasTaint(clientset, nodeOne.Name, &taint)
+
+			By(fmt.Sprintf("Trying to launch the pod, with taints on nodes %s ", nodeTwo.Name))
+			createTestPod(f, testpod)
+
+			By(fmt.Sprintf("Validate if the pod is running on %s as it has no taint", nodeOne.Name))
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(Equal(nodeOne.Name))
+
+			By(fmt.Sprintf("Remove the taint from %s", nodeTwo.Name))
+			framework.RemoveTaintOffNode(clientset, nodeTwo.Name, taint)
+			framework.VerifyThatTaintIsGone(clientset, nodeTwo.Name, &taint)
+
+			By("Delete the pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+	})
 })
 
 func getNodeThatCanRunPodWithoutToleration(f *framework.Framework) string {
