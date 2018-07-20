@@ -31,6 +31,11 @@ import (
 	"github.com/golang/glog"
 )
 
+const (
+	FirmamentHealthCheckInterval = 2 * time.Second
+	FirmamentHealthCheckTimeout  = 10 * time.Minute
+)
+
 func schedule(fc firmament.FirmamentSchedulerClient) {
 	for {
 		deltas := firmament.Schedule(fc)
@@ -82,8 +87,11 @@ func schedule(fc firmament.FirmamentSchedulerClient) {
 func WaitForFirmamentService(fc firmament.FirmamentSchedulerClient) {
 	// TODO(jiaxuanzhou): Need to metric the wait latency of firmament service?
 	serviceReq := new(firmament.HealthCheckRequest)
-	err := wait.PollImmediate(2*time.Second, 10*time.Minute, func() (bool, error) {
-		ok, _ := firmament.Check(fc, serviceReq)
+	err := wait.PollImmediate(FirmamentHealthCheckInterval, FirmamentHealthCheckTimeout, func() (bool, error) {
+		ok, err := firmament.Check(fc, serviceReq)
+		if err != nil {
+			panic(err)
+		}
 		if !ok {
 			return false, nil
 		}
@@ -95,7 +103,8 @@ func WaitForFirmamentService(fc firmament.FirmamentSchedulerClient) {
 }
 
 func main() {
-	glog.Info("Starting Poseidon...", config.GetFirmamentAddress())
+
+	glog.Infof("Starting Poseidon with firmament address %s.", config.GetFirmamentAddress())
 	fc, conn, err := firmament.New(config.GetFirmamentAddress())
 	if err != nil {
 		panic(err)

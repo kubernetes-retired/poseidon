@@ -141,7 +141,7 @@ func (f *Framework) BeforeEach() {
 	f.Namespace, err = f.createNamespace(f.ClientSet)
 	Expect(err).NotTo(HaveOccurred())
 
-	Logf("After name space creation %v", f.Namespace)
+	Logf("After namespace creation %v", f.Namespace)
 
 	err = f.CreateFirmament()
 	Expect(err).NotTo(HaveOccurred())
