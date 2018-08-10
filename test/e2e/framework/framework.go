@@ -332,7 +332,7 @@ func (f *Framework) createFirmamentDeployment() (*v1beta1.Deployment, error) {
 					Containers: []v1.Container{
 						{
 							Name:    "firmament-scheduler",
-							Image:   "huaweifirmament/firmament:taint_e2e",
+							Image:   "huaweifirmament/firmament:latest",
 							Command: []string{"/firmament/build/src/firmament_scheduler", "--flagfile=/firmament/config/firmament_scheduler_cpu_mem.cfg"},
 							Ports:   []v1.ContainerPort{{ContainerPort: 9090}},
 						},
