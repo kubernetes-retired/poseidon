@@ -59,9 +59,15 @@ To view details related to coordinated release process between Firmament & Posei
     * Node level Affinity and Anti-Affinity implementation.
   * **Release 0.3** – Target Date: 15th June 2018:
     * Pod level Affinity and Anti-Affinity implementation using multi-round scheduling based affinity and anti-affinity.
-  * **Release 0.4** – Tentative Target Date: 29th June 2018:
+  * **Release 0.4** – Tentative Target Date: 15th August 2018:
     * Taints & Tolerations.
+    * Support for Pod anti-affinity symmetry.
+    * Throughput Performance Optimizations.
   * **Release 0.5** onwards:
+    * Support for Max. Pods per Node.
+    * Co-Existence with Default Scheduler.
+    *	Optimizations for reducing the no. of arcs by limiting the number of eligible nodes in a cluster.
+    * CPU/Mem combination optimizations.
     * Transitioning to Metrics server API – Our current work for upstreaming new Heapster sink is not a possibility as Heapster is getting deprecated.
     * Continuous running scheduling loop versus scheduling intervals mechanism.
     * Provide High Availability/Failover for in-memory Firmament/Poseidon processes.
