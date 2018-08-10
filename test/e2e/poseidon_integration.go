@@ -1519,7 +1519,12 @@ var _ = Describe("Poseidon", func() {
 			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
 			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
 			framework.ExpectNoError(err)
-			Expect(labelPod.Spec.NodeName).To(Equal(setupPodTwosNodeName))
+
+			if setupPodTwosNodeName == setupPodOnesNodeName {
+				Expect(labelPod.Spec.NodeName).NotTo(Equal(setupPodTwosNodeName))
+			} else {
+				Expect(labelPod.Spec.NodeName).To(Equal(setupPodTwosNodeName))
+			}
 
 			By("Delete the test pod")
 			err = clientset.CoreV1().Pods(ns).Delete(labelPod.Name, &metav1.DeleteOptions{})
@@ -1529,11 +1534,304 @@ var _ = Describe("Poseidon", func() {
 		})
 	})
 
+	Describe("Poseidon [Pod Affinity and Anti-Affinity symmetry case]", func() {
+
+		It("Hard constraint symmetry behavior should consider pod anti-affinity requirement of already running pod", func() {
+			setupPodName := "setup-podantisymmetry"
+			setupPod := testPodConfig{
+				Name: setupPodName,
+				Labels: map[string]string{
+					"nkey": "nvalue",
+				},
+				Affinity: &v1.Affinity{
+					PodAntiAffinity: &v1.PodAntiAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
+							{
+								LabelSelector: &metav1.LabelSelector{
+									MatchExpressions: []metav1.LabelSelectorRequirement{
+										{
+											Key:      "security",
+											Operator: metav1.LabelSelectorOpIn,
+											Values: []string{
+												"S1",
+											},
+										},
+									},
+								},
+								TopologyKey: "kubernetes.io/hostname",
+							},
+						},
+					},
+				},
+				SchedulerName: "poseidon",
+			}
+
+			By("Trying to launch the setup pod one with anti-affinity requirement with security,S1 as key and value respectively")
+			createTestPod(f, setupPod)
+
+			By("validate if setup pod one is running and get the node of the setup pod")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, setupPodName))
+			setupLabelPod, err := clientset.CoreV1().Pods(ns).Get(setupPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			setupPodOnesNodeName := setupLabelPod.Spec.NodeName
+
+			antiSymPodName := "podantisymmetry"
+			antiSymPodPod := testPodConfig{
+				Name: antiSymPodName,
+				Labels: map[string]string{
+					"security": "S1",
+				},
+				SchedulerName: "poseidon",
+			}
+
+			By("Deploy the pod which conflicts with the pod anti-affinity hard requirement of setup pod")
+			createTestPod(f, antiSymPodPod)
+
+			By("validate if pod is running on the right node")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, antiSymPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(antiSymPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).NotTo(Equal(setupPodOnesNodeName))
+
+			By("Delete the anti symmetry pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPod.Name, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPod.Name, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Delete the setup test pod")
+			err = clientset.CoreV1().Pods(ns).Delete(setupPodName, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(setupPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+
+		It("Soft constraint symmetry behavior should consider pod affinity hard constraint of already running pod", func() {
+			setupPodName := "setup-podaffinity-one"
+			setupPod := testPodConfig{
+				Name: setupPodName,
+				Labels: map[string]string{
+					"nkey": "nvalue",
+				},
+				Affinity: &v1.Affinity{
+					PodAffinity: &v1.PodAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
+							{
+								LabelSelector: &metav1.LabelSelector{
+									MatchExpressions: []metav1.LabelSelectorRequirement{
+										{
+											Key:      "security",
+											Operator: metav1.LabelSelectorOpIn,
+											Values: []string{
+												"S1",
+											},
+										},
+									},
+								},
+								TopologyKey: "kubernetes.io/hostname",
+							},
+						},
+					},
+				},
+				SchedulerName: "poseidon",
+			}
+
+			By("Trying to launch the setup pod one with affinity requirement with security,S1 as key and value respectively")
+			createTestPod(f, setupPod)
+
+			By("validate if setup pod one is running and get the node of the setup pod")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, setupPodName))
+			setupLabelPod, err := clientset.CoreV1().Pods(ns).Get(setupPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			setupPodOnesNodeName := setupLabelPod.Spec.NodeName
+
+			symPodName := "podsymmetry"
+			symPodPod := testPodConfig{
+				Name: symPodName,
+				Labels: map[string]string{
+					"security": "S1",
+				},
+				SchedulerName: "poseidon",
+			}
+
+			By("Deploy a pod with the same label as the affinity pod with hard requirement")
+			createTestPod(f, symPodPod)
+
+			By("validate if pod is running on the right node")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, symPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(symPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(Equal(setupPodOnesNodeName))
+
+			By("Delete the symmetry pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPod.Name, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPod.Name, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Delete the setup test pod")
+			err = clientset.CoreV1().Pods(ns).Delete(setupPodName, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(setupPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+
+		It("Soft constraint symmetry behavior should consider pod affinity soft constraint of already running pod", func() {
+			setupPodName := "setup-podaffinity-two"
+			setupPod := testPodConfig{
+				Name: setupPodName,
+				Labels: map[string]string{
+					"nkey": "nvalue",
+				},
+				Affinity: &v1.Affinity{
+					PodAffinity: &v1.PodAffinity{
+						PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{
+							{
+								Weight: 100,
+								PodAffinityTerm: v1.PodAffinityTerm{
+									LabelSelector: &metav1.LabelSelector{
+										MatchExpressions: []metav1.LabelSelectorRequirement{
+											{
+												Key:      "security",
+												Operator: metav1.LabelSelectorOpIn,
+												Values: []string{
+													"S1",
+												},
+											},
+										},
+									},
+									TopologyKey: "kubernetes.io/hostname",
+								},
+							},
+						},
+					},
+				},
+				SchedulerName: "poseidon",
+			}
+
+			By("Trying to launch the setup pod one with affinity requirement with security,S1 as key and value respectively")
+			createTestPod(f, setupPod)
+
+			By("validate if setup pod one is running and get the node of the setup pod")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, setupPodName))
+			setupLabelPod, err := clientset.CoreV1().Pods(ns).Get(setupPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			setupPodOnesNodeName := setupLabelPod.Spec.NodeName
+
+			symPodName := "podsymmetry"
+			symPodPod := testPodConfig{
+				Name: symPodName,
+				Labels: map[string]string{
+					"security": "S1",
+				},
+				SchedulerName: "poseidon",
+			}
+
+			By("Deploy a pod with the same label as the affinity pod with soft requirement")
+			createTestPod(f, symPodPod)
+
+			By("validate if pod is running on the right node")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, symPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(symPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).To(Equal(setupPodOnesNodeName))
+
+			By("Delete the symmetry pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPod.Name, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPod.Name, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Delete the setup test pod")
+			err = clientset.CoreV1().Pods(ns).Delete(setupPodName, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(setupPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+
+		It("Soft constraint symmetry behavior should consider pod anti-affinity soft constraint of already running pod", func() {
+			setupPodName := "setup-pod-antiaffinity"
+			setupPod := testPodConfig{
+				Name: setupPodName,
+				Labels: map[string]string{
+					"nkey": "nvalue",
+				},
+				Affinity: &v1.Affinity{
+					PodAntiAffinity: &v1.PodAntiAffinity{
+						PreferredDuringSchedulingIgnoredDuringExecution: []v1.WeightedPodAffinityTerm{
+							{
+								Weight: 100,
+								PodAffinityTerm: v1.PodAffinityTerm{
+									LabelSelector: &metav1.LabelSelector{
+										MatchExpressions: []metav1.LabelSelectorRequirement{
+											{
+												Key:      "security",
+												Operator: metav1.LabelSelectorOpIn,
+												Values: []string{
+													"S1",
+												},
+											},
+										},
+									},
+									TopologyKey: "kubernetes.io/hostname",
+								},
+							},
+						},
+					},
+				},
+				SchedulerName: "poseidon",
+			}
+
+			By("Trying to launch the setup pod one with affinity requirement with security,S1 as key and value respectively")
+			createTestPod(f, setupPod)
+
+			By("validate if setup pod one is running and get the node of the setup pod")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, setupPodName))
+			setupLabelPod, err := clientset.CoreV1().Pods(ns).Get(setupPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			setupPodOnesNodeName := setupLabelPod.Spec.NodeName
+
+			symPodName := "podantisymmetry"
+			symPodPod := testPodConfig{
+				Name: symPodName,
+				Labels: map[string]string{
+					"security": "S1",
+				},
+				SchedulerName: "poseidon",
+			}
+
+			By("Deploy a pod with the same label as the anti affinity pod with soft requirement")
+			createTestPod(f, symPodPod)
+
+			By("validate if pod is running on the right node")
+			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, symPodName))
+			labelPod, err := clientset.CoreV1().Pods(ns).Get(symPodName, metav1.GetOptions{})
+			framework.ExpectNoError(err)
+			Expect(labelPod.Spec.NodeName).NotTo(Equal(setupPodOnesNodeName))
+
+			By("Delete the symmetry pod")
+			err = clientset.CoreV1().Pods(ns).Delete(labelPod.Name, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(labelPod.Name, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Delete the setup test pod")
+			err = clientset.CoreV1().Pods(ns).Delete(setupPodName, &metav1.DeleteOptions{})
+			Expect(err).NotTo(HaveOccurred())
+			err = f.WaitForPodNotFound(setupPodName, 2*time.Minute)
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+	})
+
 	Describe("Poseidon [Taints and Tolerations hard and soft constraint]", func() {
 		var nodeOne, nodeTwo v1.Node
 
 		It("validates scheduler respect's a taints and tolerations constraint ie a pod having no tolerations can't be scheduled onto a node with nonempty taints.", func() {
-			labelPodName := "with-no-tolerations"
+			labelPodName := "nginx-with-no-tolerations"
 			testpod := testPodConfig{
 				Name:          labelPodName,
 				SchedulerName: "poseidon",
@@ -1553,6 +1851,19 @@ var _ = Describe("Poseidon", func() {
 				Value:  "user1",
 				Effect: "NoSchedule",
 			}
+
+			defer func() {
+				By(fmt.Sprintf("Remove the taint from %s", nodeOne.Name))
+				framework.RemoveTaintOffNode(clientset, nodeOne.Name, taint)
+				framework.VerifyThatTaintIsGone(clientset, nodeOne.Name, &taint)
+				By("Delete the pod")
+				err := clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+				Expect(err).NotTo(HaveOccurred())
+
+			}()
+
 			framework.AddOrUpdateTaintOnNode(clientset, nodeOne.Name, taint)
 			framework.ExpectNodeHasTaint(clientset, nodeOne.Name, &taint)
 
@@ -1563,22 +1874,12 @@ var _ = Describe("Poseidon", func() {
 			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
 			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
 			framework.ExpectNoError(err)
-			Expect(labelPod.Spec.NodeName).To(Equal(nodeTwo.Name))
-
-			By(fmt.Sprintf("Remove the taint from %s", nodeOne.Name))
-			framework.RemoveTaintOffNode(clientset, nodeOne.Name, taint)
-			framework.VerifyThatTaintIsGone(clientset, nodeOne.Name, &taint)
-
-			By("Delete the pod")
-			err = clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
-			Expect(err).NotTo(HaveOccurred())
-			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
-			Expect(err).NotTo(HaveOccurred())
+			Expect(labelPod.Spec.NodeName).NotTo(Equal(nodeOne.Name))
 
 		})
 
 		It("a pod has a toleration that keys and values match the taint on the node, but (non-empty) effect doesn't match, can't be scheduled onto the node", func() {
-			labelPodName := "with-no-match-effect"
+			labelPodName := "nginx-with-no-match-effect"
 			testpod := testPodConfig{
 				Name: labelPodName,
 				Tolerations: []v1.Toleration{
@@ -1606,6 +1907,17 @@ var _ = Describe("Poseidon", func() {
 				Value:  "bar",
 				Effect: "NoSchedule",
 			}
+			defer func() {
+				By(fmt.Sprintf("Remove the taint from %s", nodeOne.Name))
+				framework.RemoveTaintOffNode(clientset, nodeOne.Name, taint)
+				framework.VerifyThatTaintIsGone(clientset, nodeOne.Name, &taint)
+				By("Delete the pod")
+				err := clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+				Expect(err).NotTo(HaveOccurred())
+
+			}()
 			framework.AddOrUpdateTaintOnNode(clientset, nodeOne.Name, taint)
 			framework.ExpectNodeHasTaint(clientset, nodeOne.Name, &taint)
 
@@ -1616,22 +1928,11 @@ var _ = Describe("Poseidon", func() {
 			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
 			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
 			framework.ExpectNoError(err)
-			Expect(labelPod.Spec.NodeName).To(Equal(nodeTwo.Name))
-
-			By(fmt.Sprintf("Remove the taint from %s", nodeOne.Name))
-			framework.RemoveTaintOffNode(clientset, nodeOne.Name, taint)
-			framework.VerifyThatTaintIsGone(clientset, nodeOne.Name, &taint)
-
-			By("Delete the pod")
-			err = clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
-			Expect(err).NotTo(HaveOccurred())
-			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
-			Expect(err).NotTo(HaveOccurred())
-
+			Expect(labelPod.Spec.NodeName).NotTo(Equal(nodeOne.Name))
 		})
 
 		It("a node with taints tolerated by the pod, gets a higher score or is more preferred than those node with intolerable taints", func() {
-			labelPodName := "with-prefernoschedule"
+			labelPodName := "nginx-with-prefernoschedule"
 			testpod := testPodConfig{
 				Name: labelPodName,
 				Tolerations: []v1.Toleration{
@@ -1653,23 +1954,41 @@ var _ = Describe("Poseidon", func() {
 			}
 			nodeOne = schedulableNodes[0]
 			nodeTwo = schedulableNodes[1]
-			By(fmt.Sprintf("Trying to apply a taint on %s", nodeOne.Name))
+
 			taint := v1.Taint{
 				Key:    "foo",
 				Value:  "bar",
 				Effect: "PreferNoSchedule",
 			}
-			framework.AddOrUpdateTaintOnNode(clientset, nodeOne.Name, taint)
-			framework.ExpectNodeHasTaint(clientset, nodeOne.Name, &taint)
 
-			By(fmt.Sprintf("Trying to apply a taint on %s", nodeTwo.Name))
-			taint = v1.Taint{
+			taint1 := v1.Taint{
 				Key:    "foo",
 				Value:  "blah",
 				Effect: "PreferNoSchedule",
 			}
-			framework.AddOrUpdateTaintOnNode(clientset, nodeTwo.Name, taint)
-			framework.ExpectNodeHasTaint(clientset, nodeTwo.Name, &taint)
+
+			defer func() {
+				By(fmt.Sprintf("Remove the taint from %s", nodeOne.Name))
+				framework.RemoveTaintOffNode(clientset, nodeOne.Name, taint)
+				framework.VerifyThatTaintIsGone(clientset, nodeOne.Name, &taint)
+				By(fmt.Sprintf("Remove the taint from %s", nodeTwo.Name))
+				framework.RemoveTaintOffNode(clientset, nodeTwo.Name, taint1)
+				framework.VerifyThatTaintIsGone(clientset, nodeTwo.Name, &taint1)
+				By("Delete the pod")
+				err := clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+				Expect(err).NotTo(HaveOccurred())
+
+			}()
+
+			By(fmt.Sprintf("Trying to apply a taint on %s", nodeOne.Name))
+			framework.AddOrUpdateTaintOnNode(clientset, nodeOne.Name, taint)
+			framework.ExpectNodeHasTaint(clientset, nodeOne.Name, &taint)
+
+			By(fmt.Sprintf("Trying to apply a taint on %s", nodeTwo.Name))
+			framework.AddOrUpdateTaintOnNode(clientset, nodeTwo.Name, taint1)
+			framework.ExpectNodeHasTaint(clientset, nodeTwo.Name, &taint1)
 
 			By(fmt.Sprintf("Trying to launch the pod, with taints on nodes %s %s ", nodeOne.Name, nodeTwo.Name))
 			createTestPod(f, testpod)
@@ -1678,26 +1997,12 @@ var _ = Describe("Poseidon", func() {
 			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
 			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
 			framework.ExpectNoError(err)
-			Expect(labelPod.Spec.NodeName).To(Equal(nodeOne.Name))
-
-			By(fmt.Sprintf("Remove the taint from %s", nodeOne.Name))
-			framework.RemoveTaintOffNode(clientset, nodeOne.Name, taint)
-			framework.VerifyThatTaintIsGone(clientset, nodeOne.Name, &taint)
-
-			By(fmt.Sprintf("Remove the taint from %s", nodeTwo.Name))
-			framework.RemoveTaintOffNode(clientset, nodeTwo.Name, taint)
-			framework.VerifyThatTaintIsGone(clientset, nodeTwo.Name, &taint)
-
-			By("Delete the pod")
-			err = clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
-			Expect(err).NotTo(HaveOccurred())
-			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
-			Expect(err).NotTo(HaveOccurred())
+			Expect(labelPod.Spec.NodeName).NotTo(Equal(nodeTwo.Name))
 
 		})
 
 		It("a pod without tolerations land on a node without taints", func() {
-			labelPodName := "with-no-taints-no-tolerations"
+			labelPodName := "nginx-with-no-taints-no-tolerations"
 			testpod := testPodConfig{
 				Name:          labelPodName,
 				SchedulerName: "poseidon",
@@ -1710,7 +2015,7 @@ var _ = Describe("Poseidon", func() {
 			}
 			nodeOne = schedulableNodes[0]
 			nodeTwo = schedulableNodes[1]
-			By(fmt.Sprintf("Trying to apply a taint on %s", nodeTwo.Name))
+			By(fmt.Sprintf("Trying to apply a taint on %s", nodeOne.Name))
 			taint := v1.Taint{
 				Key:    "cpu-type",
 				Value:  "arm64",
@@ -1719,6 +2024,18 @@ var _ = Describe("Poseidon", func() {
 			framework.AddOrUpdateTaintOnNode(clientset, nodeOne.Name, taint)
 			framework.ExpectNodeHasTaint(clientset, nodeOne.Name, &taint)
 
+			defer func() {
+				By(fmt.Sprintf("Remove the taint from %s", nodeOne.Name))
+				framework.RemoveTaintOffNode(clientset, nodeOne.Name, taint)
+				framework.VerifyThatTaintIsGone(clientset, nodeOne.Name, &taint)
+				By("Delete the pod")
+				err := clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
+				Expect(err).NotTo(HaveOccurred())
+
+			}()
+
 			By(fmt.Sprintf("Trying to launch the pod, with taints on nodes %s ", nodeTwo.Name))
 			createTestPod(f, testpod)
 
@@ -1726,19 +2043,10 @@ var _ = Describe("Poseidon", func() {
 			framework.ExpectNoError(framework.WaitForPodNotPending(clientset, ns, labelPodName))
 			labelPod, err := clientset.CoreV1().Pods(ns).Get(labelPodName, metav1.GetOptions{})
 			framework.ExpectNoError(err)
-			Expect(labelPod.Spec.NodeName).To(Equal(nodeOne.Name))
-
-			By(fmt.Sprintf("Remove the taint from %s", nodeTwo.Name))
-			framework.RemoveTaintOffNode(clientset, nodeTwo.Name, taint)
-			framework.VerifyThatTaintIsGone(clientset, nodeTwo.Name, &taint)
-
-			By("Delete the pod")
-			err = clientset.CoreV1().Pods(ns).Delete(labelPodName, &metav1.DeleteOptions{})
-			Expect(err).NotTo(HaveOccurred())
-			err = f.WaitForPodNotFound(labelPodName, 2*time.Minute)
-			Expect(err).NotTo(HaveOccurred())
+			Expect(labelPod.Spec.NodeName).NotTo(Equal(nodeOne.Name))
 
 		})
+
 	})
 })
 

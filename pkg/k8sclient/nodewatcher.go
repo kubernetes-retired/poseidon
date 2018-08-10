@@ -243,7 +243,9 @@ func (nw *NodeWatcher) nodeWorker() {
 					rtnd := nw.createResourceTopologyForNode(node)
 					_, ok := NodeToRTND[node.Hostname]
 					if ok {
-						glog.Fatalf("Node %s already exists", node.Hostname)
+						glog.Infof("Node %s already exists", node.Hostname)
+						NodeMux.Unlock()
+						continue
 					}
 					NodeToRTND[node.Hostname] = rtnd
 					ResIDToNode[rtnd.GetResourceDesc().GetUuid()] = node.Hostname
@@ -260,6 +262,7 @@ func (nw *NodeWatcher) nodeWorker() {
 					resID := rtnd.GetResourceDesc().GetUuid()
 					firmament.NodeRemoved(nw.fc, &firmament.ResourceUID{ResourceUid: resID})
 					NodeMux.Lock()
+					nw.cleanResourceStateForNode(rtnd)
 					delete(NodeToRTND, node.Hostname)
 					delete(ResIDToNode, resID)
 					NodeMux.Unlock()

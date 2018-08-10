@@ -25,23 +25,29 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/golang/glog"
+	config2 "github.com/kubernetes-sigs/poseidon/pkg/config"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"time"
 )
 
 var clientSet kubernetes.Interface
 
 // BindPodToNode call Kubernetes API to place a pod on a node.
-func BindPodToNode(podName string, namespace string, nodeName string) {
-	err := clientSet.CoreV1().Pods(namespace).Bind(&v1.Binding{
-		TypeMeta: meta_v1.TypeMeta{},
-		ObjectMeta: meta_v1.ObjectMeta{
-			Name: podName,
-		},
-		Target: v1.ObjectReference{
-			Namespace: namespace,
-			Name:      nodeName,
-		}})
-	if err != nil {
-		glog.Fatalf("Could not bind pod:%s to nodeName:%s, error: %v", podName, nodeName, err)
+func BindPodToNode() {
+	for {
+		bindInfo := <-BindChannel
+		err := clientSet.CoreV1().Pods(bindInfo.Namespace).Bind(&v1.Binding{
+			TypeMeta: meta_v1.TypeMeta{},
+			ObjectMeta: meta_v1.ObjectMeta{
+				Name: bindInfo.Name,
+			},
+			Target: v1.ObjectReference{
+				Namespace: bindInfo.Namespace,
+				Name:      bindInfo.Nodename,
+			}})
+		if err != nil {
+			glog.Errorf("Could not bind pod:%s to nodeName:%s, error: %v", bindInfo.Name, bindInfo.Nodename, err)
+		}
 	}
 }
 
@@ -63,10 +69,16 @@ func GetClientConfig(kubeconfig string) (*rest.Config, error) {
 
 // New initializes a firmament and Kubernetes client and starts watching Pod and Node.
 func New(schedulerName string, kubeConfig string, kubeVersionMajor, kubeVersionMinor int, firmamentAddress string) {
+
 	config, err := GetClientConfig(kubeConfig)
 	if err != nil {
 		glog.Fatalf("Failed to load client config: %v", err)
 	}
+	//
+
+	config.QPS = config2.GetQPS()
+	config.Burst = config2.GetBurst()
+
 	clientSet, err = kubernetes.NewForConfig(config)
 	if err != nil {
 		glog.Fatalf("Failed to create connection: %v", err)
@@ -83,4 +95,19 @@ func New(schedulerName string, kubeConfig string, kubeVersionMajor, kubeVersionM
 
 	// We block here.
 	<-stopCh
+}
+
+func init() {
+	BindChannel = make(chan BindInfo, 1000)
+}
+
+// Run starts a pod watcher.
+func BindPodWorkers(stopCh <-chan struct{}, nWorkers int) {
+
+	for i := 0; i < nWorkers; i++ {
+		go wait.Until(BindPodToNode, time.Second, stopCh)
+	}
+
+	<-stopCh
+	glog.Info("Stopping RunBindPods")
 }

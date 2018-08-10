@@ -724,8 +724,8 @@ func TestPodWatcher_podWorker(t *testing.T) {
 		//case 3
 		testObj.firmamentClient.EXPECT().TaskSubmitted(gomock.Any(), gomock.Any()).Return(
 			&firmament.TaskSubmittedResponse{Type: firmament.TaskReplyType_TASK_SUBMITTED_OK}, nil),
-		testObj.firmamentClient.EXPECT().TaskSubmitted(gomock.Any(), gomock.Any()).Return(
-			&firmament.TaskSubmittedResponse{Type: firmament.TaskReplyType_TASK_SUBMITTED_OK}, nil),
+		testObj.firmamentClient.EXPECT().TaskUpdated(gomock.Any(), gomock.Any()).Return(
+			&firmament.TaskUpdatedResponse{Type: firmament.TaskReplyType_TASK_UPDATED_OK}, nil),
 
 		//case 4
 		testObj.firmamentClient.EXPECT().TaskSubmitted(gomock.Any(), gomock.Any()).Return(

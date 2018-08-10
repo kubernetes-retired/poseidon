@@ -34,5 +34,6 @@ go_library(
         "//vendor/k8s.io/client-go/tools/clientcmd:go_default_library",
         "//vendor/k8s.io/kubernetes/pkg/client/conditions:go_default_library",
         "//vendor/k8s.io/kubernetes/pkg/controller:go_default_library",
+        "//vendor/k8s.io/kubernetes/pkg/util/taints:go_default_library",
     ],
 )

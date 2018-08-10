@@ -13,6 +13,7 @@ go_library(
     importpath = "github.com/kubernetes-sigs/poseidon/pkg/k8sclient",
     visibility = ["//visibility:public"],
     deps = [
+        "//pkg/config:go_default_library",
         "//pkg/firmament:go_default_library",
         "//pkg/metrics:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
