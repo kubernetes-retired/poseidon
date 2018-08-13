@@ -127,7 +127,7 @@ func NodeAdded(client FirmamentSchedulerClient, rtnd *ResourceTopologyNodeDescri
 	}
 	switch nAddedResp.Type {
 	case NodeReplyType_NODE_ALREADY_EXISTS:
-		glog.Fatalf("Tried to add existing node %s", rtnd.ResourceDesc.Uuid)
+		glog.Infof("Tried to add existing node %s", rtnd.ResourceDesc.Uuid)
 	case NodeReplyType_NODE_ADDED_OK:
 	default:
 		panic(fmt.Sprintf("Unexpected NodeAdded response %v for node %v", nAddedResp, rtnd.ResourceDesc.Uuid))

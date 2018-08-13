@@ -35,6 +35,8 @@ import (
 	"github.com/golang/glog"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/client/conditions"
+	"k8s.io/kubernetes/pkg/controller"
+	taintutils "k8s.io/kubernetes/pkg/util/taints"
 )
 
 const (
@@ -466,4 +468,74 @@ func ListSchedulableNodes(c clientset.Interface) []v1.Node {
 		Logf("got node %v", node.Name)
 	}
 	return schedulableNodeList
+}
+
+func AddOrUpdateTaintOnNode(c clientset.Interface, nodeName string, taint v1.Taint) {
+	ExpectNoError(controller.AddOrUpdateTaintOnNode(c, nodeName, &taint))
+}
+
+// TaintExists checks if the given taint exists in list of taints. Returns true if exists false otherwise.
+func TaintExists(taints []v1.Taint, taintToFind *v1.Taint) bool {
+	for _, taint := range taints {
+		if taint.MatchTaint(taintToFind) {
+			return true
+		}
+	}
+	return false
+}
+
+func NodeHasTaint(c clientset.Interface, nodeName string, taint *v1.Taint) (bool, error) {
+
+	// wait for namespace to delete or timeout.
+	err := wait.PollImmediate(5*time.Second, 5*time.Minute, func() (bool, error) {
+		node, err := c.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{})
+		if err != nil {
+			return false, err
+		}
+		nodeTaints := node.Spec.Taints
+
+		if len(nodeTaints) == 0 || !taintutils.TaintExists(nodeTaints, taint) {
+			return false, nil
+		}
+		return true, nil
+	})
+
+	if apierrs.IsTimeout(err) || apierrs.IsNotFound(err) {
+		return false, err
+	}
+	return true, nil
+}
+
+func ExpectNodeHasTaint(c clientset.Interface, nodeName string, taint *v1.Taint) {
+	By("verifying the node has the taint " + taint.ToString())
+	if has, err := NodeHasTaint(c, nodeName, taint); !has {
+		ExpectNoError(err)
+		Failf("Failed to find taint %s on node %s", taint.ToString(), nodeName)
+	}
+}
+
+func RemoveTaintOffNode(c clientset.Interface, nodeName string, taint v1.Taint) {
+	ExpectNoError(controller.RemoveTaintOffNode(c, nodeName, nil, &taint))
+	VerifyThatTaintIsGone(c, nodeName, &taint)
+}
+
+func VerifyThatTaintIsGone(c clientset.Interface, nodeName string, taint *v1.Taint) {
+	By("verifying the node doesn't have the taint " + taint.ToString())
+
+	err := wait.PollImmediate(5*time.Second, 5*time.Minute, func() (bool, error) {
+		nodeUpdated, err := c.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{})
+		if err != nil {
+			return false, err
+		}
+		if taintutils.TaintExists(nodeUpdated.Spec.Taints, taint) {
+			return false, nil
+		}
+		return true, nil
+	})
+
+	if apierrs.IsTimeout(err) || apierrs.IsNotFound(err) {
+		Logf("%v taint not removed from the node %v", taint, nodeName)
+		return
+	}
+	Logf("%v taint completely removed from the node %v", taint, nodeName)
 }

@@ -14,11 +14,9 @@ go_library(
         "histogram.go",
         "http.go",
         "metric.go",
-        "observer.go",
         "process_collector.go",
         "registry.go",
         "summary.go",
-        "timer.go",
         "untyped.go",
         "value.go",
         "vec.go",
@@ -33,21 +31,4 @@ go_library(
         "//vendor/github.com/prometheus/common/model:go_default_library",
         "//vendor/github.com/prometheus/procfs:go_default_library",
     ],
-)
-
-filegroup(
-    name = "package-srcs",
-    srcs = glob(["**"]),
-    tags = ["automanaged"],
-    visibility = ["//visibility:private"],
-)
-
-filegroup(
-    name = "all-srcs",
-    srcs = [
-        ":package-srcs",
-        "//vendor/github.com/prometheus/client_golang/prometheus/promhttp:all-srcs",
-    ],
-    tags = ["automanaged"],
-    visibility = ["//visibility:public"],
 )

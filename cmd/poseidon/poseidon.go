@@ -21,7 +21,7 @@ import (
 
 	"github.com/kubernetes-sigs/poseidon/pkg/config"
 	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
-	"github.com/kubernetes-sigs/poseidon/pkg/k8sclient"
+	k8sclient "github.com/kubernetes-sigs/poseidon/pkg/k8sclient"
 	"github.com/kubernetes-sigs/poseidon/pkg/metrics"
 	"github.com/kubernetes-sigs/poseidon/pkg/poseidonhttp"
 	"github.com/kubernetes-sigs/poseidon/pkg/stats"
@@ -37,8 +37,13 @@ const (
 )
 
 func schedule(fc firmament.FirmamentSchedulerClient) {
+
+	stopCh := make(chan struct{})
+	// start the bond od wokers
+	go k8sclient.BindPodWorkers(stopCh, config.GetBurst())
 	for {
 		deltas := firmament.Schedule(fc)
+
 		glog.Infof("Scheduler returned %d deltas", len(deltas.GetDeltas()))
 		for _, delta := range deltas.GetDeltas() {
 			switch delta.GetType() {
@@ -57,7 +62,7 @@ func schedule(fc firmament.FirmamentSchedulerClient) {
 				}
 				// TODO(jiaxuanzhou): Metric the latency of binding one node when client provided to get the desc of the task(pod)
 				// metrics.BindingLatency.Observe(metrics.SinceInMicroseconds(time.Time(task.SubmitTime)))
-				k8sclient.BindPodToNode(podIdentifier.Name, podIdentifier.Namespace, nodeName)
+				k8sclient.BindChannel <- k8sclient.BindInfo{Name: podIdentifier.Name, Namespace: podIdentifier.Namespace, Nodename: nodeName}
 			case firmament.SchedulingDelta_PREEMPT, firmament.SchedulingDelta_MIGRATE:
 				k8sclient.PodMux.RLock()
 				preemptionStartTime := time.Now()

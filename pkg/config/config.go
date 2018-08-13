@@ -29,18 +29,20 @@ import (
 var config poseidonConfig
 
 type poseidonConfig struct {
-	SchedulerName      string `json:"schedulerName,omitempty"`
-	FirmamentAddress   string `json:"firmamentAddress,omitempty"`
-	KubeConfig         string `json:"kubeConfig,omitempty"`
-	KubeVersion        string `json:"kubeVersion,omitempty"`
-	StatsServerAddress string `json:"statsServerAddress,omitempty"`
-	SchedulingInterval int    `json:"schedulingInterval,omitempty"`
-	FirmamentPort      string `json:"firmamentPort,omitempty"`
-	ConfigPath         string `json:"configPath,omitempty"`
-	EnablePprof        bool   `json:"enablePprof,omitempty"`
-	PprofAddress       string `json:"pprofAddress,omitempty"`
-	MetricsBindAddress string `json:"metricsBindAddress,omitempty"`
-	HealthCheckAddress string `json:"healthCheckAddress,omitempty"`
+	SchedulerName      string  `json:"schedulerName,omitempty"`
+	FirmamentAddress   string  `json:"firmamentAddress,omitempty"`
+	KubeConfig         string  `json:"kubeConfig,omitempty"`
+	KubeVersion        string  `json:"kubeVersion,omitempty"`
+	StatsServerAddress string  `json:"statsServerAddress,omitempty"`
+	SchedulingInterval int     `json:"schedulingInterval,omitempty"`
+	FirmamentPort      string  `json:"firmamentPort,omitempty"`
+	ConfigPath         string  `json:"configPath,omitempty"`
+	EnablePprof        bool    `json:"enablePprof,omitempty"`
+	PprofAddress       string  `json:"pprofAddress,omitempty"`
+	MetricsBindAddress string  `json:"metricsBindAddress,omitempty"`
+	HealthCheckAddress string  `json:"healthCheckAddress,omitempty"`
+	K8sBurst           int     `json:"k8sBurst,omitempty"`
+	K8sQPS             float32 `json:"k8sQPS,omitempty"`
 }
 
 // GetSchedulerName returns the SchedulerName from config
@@ -136,6 +138,16 @@ func ReadFromConfigFile() {
 	glog.Info("ReadFromConfigFile", config)
 }
 
+// GetQPS returns the QPS from config file
+func GetQPS() float32 {
+	return config.K8sQPS
+}
+
+// GetBurst returns the burst from config file
+func GetBurst() int {
+	return config.K8sBurst
+}
+
 // ReadFromCommandLineFlags reads command line flags and these will override poseidonConfig file flags.
 func ReadFromCommandLineFlags() {
 	pflag.StringVar(&config.SchedulerName, "schedulerName", "poseidon", "The scheduler name with which pods are labeled")
@@ -151,6 +163,9 @@ func ReadFromCommandLineFlags() {
 	flag.StringVar(&config.PprofAddress, "pprofAddress", "0.0.0.0:8989", "Address on which to collect runtime profiling data,default to set for all interfaces ")
 	pflag.StringVar(&config.MetricsBindAddress, "metricsBindAddress", "0.0.0.0:8989", "Address on which to collect prometheus metrics, default to set for all interfaces")
 	pflag.StringVar(&config.HealthCheckAddress, "healthCheckAddress", "0.0.0.0:8989", "Address on which to check the health status of poseidon")
+	pflag.Float32Var(&config.K8sQPS, "k8sQPS", 1000, "k8s Client QPS to configure")
+	pflag.IntVar(&config.K8sBurst, "k8sBurst", 500, "k8s clinet burst rate to configure")
+
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
 

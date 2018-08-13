@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
@@ -24,24 +24,4 @@ go_library(
         "//vendor/github.com/prometheus/procfs/nfs:go_default_library",
         "//vendor/github.com/prometheus/procfs/xfs:go_default_library",
     ],
-)
-
-go_test(
-    name = "go_default_test",
-    srcs = [
-        "buddyinfo_test.go",
-        "fs_test.go",
-        "ipvs_test.go",
-        "mdstat_test.go",
-        "mountstats_test.go",
-        "net_dev_test.go",
-        "proc_io_test.go",
-        "proc_limits_test.go",
-        "proc_ns_test.go",
-        "proc_stat_test.go",
-        "proc_test.go",
-        "stat_test.go",
-        "xfrm_test.go",
-    ],
-    embed = [":go_default_library"],
 )

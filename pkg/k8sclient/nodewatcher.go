@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/jinzhu/copier"
 	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -98,6 +99,12 @@ func (nw *NodeWatcher) getReadyAndOutOfDiskConditions(node *v1.Node) (isReady bo
 	return isReady, isOutOfDisk
 }
 
+func (nw *NodeWatcher) getTaints(node *v1.Node) []Taint {
+	var taints []Taint
+	copier.Copy(&taints, node.Spec.Taints)
+	return taints
+}
+
 func (nw *NodeWatcher) parseNode(node *v1.Node, phase NodePhase) *Node {
 	isReady, isOutOfDisk := nw.getReadyAndOutOfDiskConditions(node)
 	cpuCapQuantity := node.Status.Capacity[v1.ResourceCPU]
@@ -106,6 +113,7 @@ func (nw *NodeWatcher) parseNode(node *v1.Node, phase NodePhase) *Node {
 	memCap, _ := memCapQuantity.AsInt64()
 	memAllocQuantity := node.Status.Allocatable[v1.ResourceMemory]
 	memAlloc, _ := memAllocQuantity.AsInt64()
+
 	return &Node{
 		Hostname:         node.Name,
 		Phase:            phase,
@@ -117,6 +125,7 @@ func (nw *NodeWatcher) parseNode(node *v1.Node, phase NodePhase) *Node {
 		MemAllocatableKb: memAlloc / bytesToKb,
 		Labels:           node.Labels,
 		Annotations:      node.Annotations,
+		Taints:           nw.getTaints(node),
 	}
 }
 
@@ -168,6 +177,9 @@ func (nw *NodeWatcher) enqueueNodeUpdate(key, oldObj, newObj interface{}) {
 		nodeUpdated = true
 	}
 	if !reflect.DeepEqual(oldNode.Annotations, newNode.Annotations) {
+		nodeUpdated = true
+	}
+	if !reflect.DeepEqual(oldNode.Spec.Taints, newNode.Spec.Taints) {
 		nodeUpdated = true
 	}
 	if nodeUpdated {
@@ -231,7 +243,9 @@ func (nw *NodeWatcher) nodeWorker() {
 					rtnd := nw.createResourceTopologyForNode(node)
 					_, ok := NodeToRTND[node.Hostname]
 					if ok {
-						glog.Fatalf("Node %s already exists", node.Hostname)
+						glog.Infof("Node %s already exists", node.Hostname)
+						NodeMux.Unlock()
+						continue
 					}
 					NodeToRTND[node.Hostname] = rtnd
 					ResIDToNode[rtnd.GetResourceDesc().GetUuid()] = node.Hostname
@@ -248,6 +262,7 @@ func (nw *NodeWatcher) nodeWorker() {
 					resID := rtnd.GetResourceDesc().GetUuid()
 					firmament.NodeRemoved(nw.fc, &firmament.ResourceUID{ResourceUid: resID})
 					NodeMux.Lock()
+					nw.cleanResourceStateForNode(rtnd)
 					delete(NodeToRTND, node.Hostname)
 					delete(ResIDToNode, resID)
 					NodeMux.Unlock()
@@ -314,6 +329,16 @@ func (nw *NodeWatcher) createResourceTopologyForNode(node *Node) *firmament.Reso
 				Value: value,
 			})
 	}
+
+	for _, taint := range node.Taints {
+		rtnd.ResourceDesc.Taints = append(rtnd.ResourceDesc.Taints,
+			&firmament.Taint{
+				Key:    taint.Key,
+				Value:  taint.Value,
+				Effect: taint.Effect,
+			})
+	}
+
 	// TODO(ionel): In the future, we want to get real node topology.
 	// We currently only create a PU per machine because Heapster doesn't
 	// provide per PU/core statistics.
@@ -330,9 +355,11 @@ func (nw *NodeWatcher) createResourceTopologyForNode(node *Node) *firmament.Reso
 				RamCap:   uint64(node.MemCapacityKb),
 				CpuCores: float32(node.CPUCapacity),
 			},
+			Taints: rtnd.ResourceDesc.Taints,
 		},
 		ParentId: resUUID,
 	}
+
 	rtnd.Children = append(rtnd.Children, puRtnd)
 	ResIDToNode[puUUID] = node.Hostname
 
@@ -346,11 +373,21 @@ func (nw *NodeWatcher) generateResourceID(seed string) string {
 // updateResourceDescriptor to update the labels to resource descriptor
 func (nw *NodeWatcher) updateResourceDescriptor(node *Node, rtnd *firmament.ResourceTopologyNodeDescriptor) {
 	rtnd.ResourceDesc.Labels = nil
+	rtnd.ResourceDesc.Taints = nil
 	for label, value := range node.Labels {
 		rtnd.ResourceDesc.Labels = append(rtnd.ResourceDesc.Labels,
 			&firmament.Label{
 				Key:   label,
 				Value: value,
+			})
+	}
+
+	for _, taint := range node.Taints {
+		rtnd.ResourceDesc.Taints = append(rtnd.ResourceDesc.Taints,
+			&firmament.Taint{
+				Key:    taint.Key,
+				Value:  taint.Value,
+				Effect: taint.Effect,
 			})
 	}
 }

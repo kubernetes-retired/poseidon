@@ -26,6 +26,7 @@
 
 required = [
   "github.com/onsi/ginkgo/ginkgo",
+  "github.com/docker/distribution",
 ]
 
 [[constraint]]
@@ -36,6 +37,34 @@ required = [
   branch = "master"
   name = "github.com/google/uuid"
 
+[[override]]
+  name = "k8s.io/apimachinery"
+  version = "kubernetes-1.11.0"
+
+[[override]]
+  name = "k8s.io/client-go"
+  version = "8.0.0"
+
+[[override]]
+  name = "k8s.io/api"
+  version = "kubernetes-1.11.0"
+
+[[override]]
+  name = "k8s.io/kubernetes"
+  version = "v1.11.0"
+
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/golang/protobuf"
+  version = "v1.1.0"
+
+[[override]]
+  name = "github.com/docker/distribution"
+  revision = "245ca4659e09e9745f3cc1217bf56e946509220c"
+
+[[override]]
+  name = "github.com/json-iterator/go"
+  version = "1.1.4"
