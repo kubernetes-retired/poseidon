@@ -17,6 +17,7 @@ limitations under the License.
 package k8sclient
 
 import (
+	"bytes"
 	"github.com/golang/mock/gomock"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -29,6 +30,7 @@ import (
 	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/cache"
+	"log"
 )
 
 type TestPodWatchObj struct {
@@ -80,7 +82,7 @@ func BuildPod(namespace, podName string,
 	phase v1.PodPhase,
 	requestCPU, requestMem string,
 	deletionTime *metav1.Time,
-	ownerRef string, affinity *v1.Affinity, toleration []v1.Toleration) *v1.Pod {
+	ownerRef string) *v1.Pod {
 
 	return &v1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -108,9 +110,9 @@ func BuildPod(namespace, podName string,
 							{
 								MatchExpressions: []v1.NodeSelectorRequirement{
 									{
-										Key:      affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions[0].Key,
-										Operator: affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions[0].Operator,
-										Values:   affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms[0].MatchExpressions[0].Values,
+										Key:      "mem-type",
+										Operator: v1.NodeSelectorOpNotIn,
+										Values:   []string{"DDR", "DDR2"},
 									},
 								},
 							},
@@ -123,13 +125,13 @@ func BuildPod(namespace, podName string,
 							LabelSelector: &metav1.LabelSelector{
 								MatchExpressions: []metav1.LabelSelectorRequirement{
 									{
-										Key:      affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchExpressions[0].Key,
-										Operator: affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchExpressions[0].Operator,
-										Values:   affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchExpressions[0].Values,
+										Key:      "service",
+										Operator: metav1.LabelSelectorOpIn,
+										Values:   []string{"securityscan", "value2"},
 									},
 								},
 							},
-							TopologyKey: affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].TopologyKey,
+							TopologyKey: "region",
 						},
 					},
 				},
@@ -139,24 +141,23 @@ func BuildPod(namespace, podName string,
 							LabelSelector: &metav1.LabelSelector{
 								MatchExpressions: []metav1.LabelSelectorRequirement{
 									{
-										Key:      affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchExpressions[0].Key,
-										Operator: affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchExpressions[0].Operator,
-										Values:   affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].LabelSelector.MatchExpressions[0].Values,
+										Key:      "service",
+										Operator: metav1.LabelSelectorOpIn,
+										Values:   []string{"antivirusscan", "value2"},
 									},
 								},
 							},
-							TopologyKey: affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution[0].TopologyKey,
+							TopologyKey: "node",
 						},
 					},
 				},
 			},
 			Tolerations: []v1.Toleration{
 				{
-					Key:               toleration[0].Key,
-					Operator:          toleration[0].Operator,
-					Value:             toleration[0].Value,
-					Effect:            toleration[0].Effect,
-					TolerationSeconds: toleration[0].TolerationSeconds,
+					Key:      "key",
+					Operator: "Equal",
+					Value:    "value",
+					Effect:   "NoSchedule",
 				},
 			},
 		},
@@ -214,70 +215,13 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 	keychan := make(chan interface{})
 	itemschan := make(chan []interface{})
 	fakeOwnerRef := "abcdfe12345"
-	affinity := &v1.Affinity{
-		NodeAffinity: &v1.NodeAffinity{
-			RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
-				NodeSelectorTerms: []v1.NodeSelectorTerm{
-					{
-						MatchExpressions: []v1.NodeSelectorRequirement{
-							{
-								Key:      "mem-type",
-								Operator: v1.NodeSelectorOpNotIn,
-								Values:   []string{"DDR", "DDR2"},
-							},
-						},
-					},
-				},
-			},
-		},
-		PodAffinity: &v1.PodAffinity{
-			RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
-				{
-					LabelSelector: &metav1.LabelSelector{
-						MatchExpressions: []metav1.LabelSelectorRequirement{
-							{
-								Key:      "service",
-								Operator: metav1.LabelSelectorOpIn,
-								Values:   []string{"securityscan", "value2"},
-							},
-						},
-					},
-					TopologyKey: "region",
-				},
-			},
-		},
-		PodAntiAffinity: &v1.PodAntiAffinity{
-			RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
-				{
-					LabelSelector: &metav1.LabelSelector{
-						MatchExpressions: []metav1.LabelSelectorRequirement{
-							{
-								Key:      "service",
-								Operator: metav1.LabelSelectorOpIn,
-								Values:   []string{"antivirusscan", "value2"},
-							},
-						},
-					},
-					TopologyKey: "node",
-				},
-			},
-		},
-	}
-	tolerations := []v1.Toleration{
-		{
-			Key:      "key",
-			Operator: "Equal",
-			Value:    "value",
-			Effect:   "NoSchedule",
-		},
-	}
 
 	var testData = []struct {
 		pod      *v1.Pod
 		expected *Pod
 	}{
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod1", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
+			pod: BuildPod("Poseidon-Namespace", "Pod1", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef),
 			expected: &Pod{
 				State: PodPending,
 				Identifier: PodIdentifier{
@@ -347,7 +291,7 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 			},
 		},
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod2", empty, GetPodPhase("Running"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
+			pod: BuildPod("Poseidon-Namespace", "Pod2", empty, GetPodPhase("Running"), "2", "1024", &fakeNow, fakeOwnerRef),
 			expected: &Pod{
 				State: PodRunning,
 				Identifier: PodIdentifier{
@@ -417,7 +361,7 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 			},
 		},
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod3", empty, GetPodPhase("Succeeded"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
+			pod: BuildPod("Poseidon-Namespace", "Pod3", empty, GetPodPhase("Succeeded"), "2", "1024", &fakeNow, fakeOwnerRef),
 			expected: &Pod{
 				State: PodSucceeded,
 				Identifier: PodIdentifier{
@@ -487,7 +431,7 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 			},
 		},
 		{
-			pod: BuildPod("Poseidon-Namespace", "Pod4", empty, GetPodPhase("Failed"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
+			pod: BuildPod("Poseidon-Namespace", "Pod4", empty, GetPodPhase("Failed"), "2", "1024", &fakeNow, fakeOwnerRef),
 			expected: &Pod{
 				State: PodFailed,
 				Identifier: PodIdentifier{
@@ -586,157 +530,181 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 	}
 }
 
-func TestPodWatcher_podWorker(t *testing.T) {
+func TestPodWatcher_CaseOne_podWorker(t *testing.T) {
 
 	var empty map[string]string
 	fakeNow := metav1.Now()
 	fakeOwnerRef := "abcdfe12345"
-	affinity := &v1.Affinity{
-		NodeAffinity: &v1.NodeAffinity{
-			RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
-				NodeSelectorTerms: []v1.NodeSelectorTerm{
-					{
-						MatchExpressions: []v1.NodeSelectorRequirement{
-							{
-								Key:      "mem-type",
-								Operator: v1.NodeSelectorOpNotIn,
-								Values:   []string{"DDR", "DDR2"},
-							},
-						},
-					},
-				},
-			},
-		},
-		PodAffinity: &v1.PodAffinity{
-			RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
-				{
-					LabelSelector: &metav1.LabelSelector{
-						MatchExpressions: []metav1.LabelSelectorRequirement{
-							{
-								Key:      "service",
-								Operator: metav1.LabelSelectorOpIn,
-								Values:   []string{"securityscan", "value2"},
-							},
-						},
-					},
-					TopologyKey: "region",
-				},
-			},
-		},
-		PodAntiAffinity: &v1.PodAntiAffinity{
-			RequiredDuringSchedulingIgnoredDuringExecution: []v1.PodAffinityTerm{
-				{
-					LabelSelector: &metav1.LabelSelector{
-						MatchExpressions: []metav1.LabelSelectorRequirement{
-							{
-								Key:      "service",
-								Operator: metav1.LabelSelectorOpIn,
-								Values:   []string{"antivirusscan", "value2"},
-							},
-						},
-					},
-					TopologyKey: "node",
-				},
-			},
-		},
-	}
-	tolerations := []v1.Toleration{
-		{
-			Key:      "key",
-			Operator: "Equal",
-			Value:    "value",
-			Effect:   "NoSchedule",
-		},
-	}
 
-	var testData = []struct {
+	var testData = struct {
 		pod *v1.Pod
 	}{
-		{
-			pod: BuildPod("Poseidon-Namespace", "Pod1", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
-		},
-		{
-			pod: BuildPod("Poseidon-Namespace", "Pod2", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
-		},
-		{
-			pod: BuildPod("Poseidon-Namespace", "Pod3", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
-		},
-		{
-			pod: BuildPod("Poseidon-Namespace", "Pod4", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
-		},
-		{
-			pod: BuildPod("Poseidon-Namespace", "Pod5", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef, affinity, tolerations),
-		},
+		pod: BuildPod("Poseidon-Namespace", "Pod1", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef),
 	}
 
 	testObj := initializePodObj(t)
 	defer testObj.mockCtrl.Finish()
 	podWatch := NewPodWatcher(testObj.kubeVerMajor, testObj.kubeVerMinor, testObj.schedulerName, testObj.kubeClient, testObj.firmamentClient)
-	for index, podData := range testData {
-		switch index {
-		case 0:
-			//TaskSubmitted case
-			key := GetKey(podData.pod, t)
-			podWatch.enqueuePodAddition(key, podData.pod)
-		case 1:
-			//TaskRemoved case
-			key := GetKey(podData.pod, t)
-			podWatch.enqueuePodAddition(key, podData.pod)
-			podData.pod = ChangePodPhase(testData[index].pod, "Failed")
-			podWatch.enqueuePodDeletion(key, podData.pod)
-		case 2:
-			//TaskCompleted case
-			key := GetKey(podData.pod, t)
-			podWatch.enqueuePodAddition(key, podData.pod)
-			newPod := ChangePodPhase(testData[index].pod, "Succeeded")
-			podWatch.enqueuePodUpdate(key, podData.pod, newPod)
-		case 3:
-			//TaskSubmitted case
-			key := GetKey(podData.pod, t)
-			podWatch.enqueuePodAddition(key, podData.pod)
-			newPod := ChangePodCPUAndMemRequest(testData[index].pod, "3", "3072")
-			podWatch.enqueuePodUpdate(key, podData.pod, newPod)
-		case 4:
-			//TaskFailed case
-			key := GetKey(podData.pod, t)
-			podWatch.enqueuePodAddition(key, podData.pod)
-			newPod := ChangePodPhase(testData[index].pod, "Failed")
-			podWatch.enqueuePodUpdate(key, podData.pod, newPod)
-		}
-	}
+
+	key := GetKey(testData.pod, t)
+	podWatch.enqueuePodAddition(key, testData.pod)
 	gomock.InOrder(
-		//case 0
 		testObj.firmamentClient.EXPECT().TaskSubmitted(gomock.Any(), gomock.Any()).Return(
 			&firmament.TaskSubmittedResponse{Type: firmament.TaskReplyType_TASK_SUBMITTED_OK}, nil),
+	)
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
 
-		//case 1
+	go podWatch.podWorker()
+	newTimer := time.NewTimer(time.Second * 1)
+	t.Log(buf.String())
+	<-newTimer.C
+}
+
+// Checks the task submit and task removal case
+func TestPodWatcher_CaseTwo_podWorker(t *testing.T) {
+
+	var empty map[string]string
+	fakeNow := metav1.Now()
+	fakeOwnerRef := "abcdfe12345"
+
+	var testData = struct {
+		pod *v1.Pod
+	}{
+		pod: BuildPod("Poseidon-Namespace", "Pod2", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef),
+	}
+
+	testObj := initializePodObj(t)
+	defer testObj.mockCtrl.Finish()
+	podWatch := NewPodWatcher(testObj.kubeVerMajor, testObj.kubeVerMinor, testObj.schedulerName, testObj.kubeClient, testObj.firmamentClient)
+
+	key := GetKey(testData.pod, t)
+	podWatch.enqueuePodAddition(key, testData.pod)
+	testData.pod = ChangePodPhase(testData.pod, "Failed")
+	podWatch.enqueuePodDeletion(key, testData.pod)
+
+	gomock.InOrder(
 		testObj.firmamentClient.EXPECT().TaskSubmitted(gomock.Any(), gomock.Any()).Return(
 			&firmament.TaskSubmittedResponse{Type: firmament.TaskReplyType_TASK_SUBMITTED_OK}, nil),
 		testObj.firmamentClient.EXPECT().TaskRemoved(gomock.Any(), gomock.Any()).Return(
 			&firmament.TaskRemovedResponse{Type: firmament.TaskReplyType_TASK_REMOVED_OK}, nil),
+	)
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
 
-		//case 2
+	go podWatch.podWorker()
+	newTimer := time.NewTimer(time.Second * 1)
+	t.Log(buf.String())
+	<-newTimer.C
+}
+
+// Checks the task submit and task complete case
+func TestPodWatcher_CaseThree_podWorker(t *testing.T) {
+
+	var empty map[string]string
+	fakeNow := metav1.Now()
+	fakeOwnerRef := "abcdfe12345"
+
+	var testData = struct {
+		pod *v1.Pod
+	}{
+		pod: BuildPod("Poseidon-Namespace", "Pod3", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef),
+	}
+
+	testObj := initializePodObj(t)
+	defer testObj.mockCtrl.Finish()
+	podWatch := NewPodWatcher(testObj.kubeVerMajor, testObj.kubeVerMinor, testObj.schedulerName, testObj.kubeClient, testObj.firmamentClient)
+
+	key := GetKey(testData.pod, t)
+	podWatch.enqueuePodAddition(key, testData.pod)
+	newPod := ChangePodPhase(testData.pod, "Succeeded")
+	podWatch.enqueuePodUpdate(key, testData.pod, newPod)
+
+	gomock.InOrder(
 		testObj.firmamentClient.EXPECT().TaskSubmitted(gomock.Any(), gomock.Any()).Return(
 			&firmament.TaskSubmittedResponse{Type: firmament.TaskReplyType_TASK_SUBMITTED_OK}, nil),
 		testObj.firmamentClient.EXPECT().TaskCompleted(gomock.Any(), gomock.Any()).Return(
 			&firmament.TaskCompletedResponse{Type: firmament.TaskReplyType_TASK_COMPLETED_OK}, nil),
+	)
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
 
-		//case 3
+	go podWatch.podWorker()
+	newTimer := time.NewTimer(time.Second * 1)
+	t.Log(buf.String())
+	<-newTimer.C
+}
+
+// Checks the task submit and task update case
+func TestPodWatcher_CaseFour_podWorker(t *testing.T) {
+
+	var empty map[string]string
+	fakeNow := metav1.Now()
+	fakeOwnerRef := "abcdfe12345"
+
+	var testData = struct {
+		pod *v1.Pod
+	}{
+		pod: BuildPod("Poseidon-Namespace", "Pod4", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef),
+	}
+
+	testObj := initializePodObj(t)
+	defer testObj.mockCtrl.Finish()
+	podWatch := NewPodWatcher(testObj.kubeVerMajor, testObj.kubeVerMinor, testObj.schedulerName, testObj.kubeClient, testObj.firmamentClient)
+
+	key := GetKey(testData.pod, t)
+	podWatch.enqueuePodAddition(key, testData.pod)
+	newPod := ChangePodCPUAndMemRequest(testData.pod, "3", "3072")
+	podWatch.enqueuePodUpdate(key, testData.pod, newPod)
+
+	gomock.InOrder(
 		testObj.firmamentClient.EXPECT().TaskSubmitted(gomock.Any(), gomock.Any()).Return(
 			&firmament.TaskSubmittedResponse{Type: firmament.TaskReplyType_TASK_SUBMITTED_OK}, nil),
 		testObj.firmamentClient.EXPECT().TaskUpdated(gomock.Any(), gomock.Any()).Return(
 			&firmament.TaskUpdatedResponse{Type: firmament.TaskReplyType_TASK_UPDATED_OK}, nil),
+	)
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
 
-		//case 4
+	go podWatch.podWorker()
+	newTimer := time.NewTimer(time.Second * 1)
+	t.Log(buf.String())
+	<-newTimer.C
+}
+
+// Checks the task submit and task failed case
+func TestPodWatcher_CaseFive_podWorker(t *testing.T) {
+
+	var empty map[string]string
+	fakeNow := metav1.Now()
+	fakeOwnerRef := "abcdfe12345"
+
+	var testData = struct {
+		pod *v1.Pod
+	}{
+		pod: BuildPod("Poseidon-Namespace", "Pod5", empty, GetPodPhase("Pending"), "2", "1024", &fakeNow, fakeOwnerRef),
+	}
+
+	testObj := initializePodObj(t)
+	defer testObj.mockCtrl.Finish()
+	podWatch := NewPodWatcher(testObj.kubeVerMajor, testObj.kubeVerMinor, testObj.schedulerName, testObj.kubeClient, testObj.firmamentClient)
+
+	key := GetKey(testData.pod, t)
+	podWatch.enqueuePodAddition(key, testData.pod)
+	newPod := ChangePodPhase(testData.pod, "Failed")
+	podWatch.enqueuePodUpdate(key, testData.pod, newPod)
+
+	gomock.InOrder(
 		testObj.firmamentClient.EXPECT().TaskSubmitted(gomock.Any(), gomock.Any()).Return(
 			&firmament.TaskSubmittedResponse{Type: firmament.TaskReplyType_TASK_SUBMITTED_OK}, nil),
 		testObj.firmamentClient.EXPECT().TaskFailed(gomock.Any(), gomock.Any()).Return(
 			&firmament.TaskFailedResponse{Type: firmament.TaskReplyType_TASK_FAILED_OK}, nil),
-
-		//testObj.firmamentClient.EXPECT().TaskUpdated(gomock.Any(), gomock.Any()).Return(
-		//	&firmament.TaskUpdatedResponse{Type: firmament.TaskReplyType_TASK_UPDATED_OK}, nil),
 	)
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+
 	go podWatch.podWorker()
-	newTimer := time.NewTimer(time.Second * 2)
+	newTimer := time.NewTimer(time.Second * 1)
+	t.Log(buf.String())
 	<-newTimer.C
 }
