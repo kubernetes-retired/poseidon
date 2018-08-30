@@ -113,6 +113,10 @@ func (nw *NodeWatcher) parseNode(node *v1.Node, phase NodePhase) *Node {
 	memCap, _ := memCapQuantity.AsInt64()
 	memAllocQuantity := node.Status.Allocatable[v1.ResourceMemory]
 	memAlloc, _ := memAllocQuantity.AsInt64()
+	ephemeralCapQty := node.Status.Capacity[v1.ResourceEphemeralStorage]
+	ephemeralCap, _ := ephemeralCapQty.AsInt64()
+	ephemeralAllocQty := node.Status.Allocatable[v1.ResourceEphemeralStorage]
+	ephemeralAlloc, _ := ephemeralAllocQty.AsInt64()
 
 	return &Node{
 		Hostname:         node.Name,
@@ -123,6 +127,8 @@ func (nw *NodeWatcher) parseNode(node *v1.Node, phase NodePhase) *Node {
 		CPUAllocatable:   cpuAllocQuantity.MilliValue(),
 		MemCapacityKb:    memCap / bytesToKb,
 		MemAllocatableKb: memAlloc / bytesToKb,
+		EphemeralCapKb:   ephemeralCap / bytesToKb,
+		EphemeralAllocKb: ephemeralAlloc / bytesToKb,
 		Labels:           node.Labels,
 		Annotations:      node.Annotations,
 		Taints:           nw.getTaints(node),
@@ -314,8 +320,9 @@ func (nw *NodeWatcher) createResourceTopologyForNode(node *Node) *firmament.Reso
 			State:        firmament.ResourceDescriptor_RESOURCE_IDLE,
 			FriendlyName: node.Hostname,
 			ResourceCapacity: &firmament.ResourceVector{
-				RamCap:   uint64(node.MemCapacityKb),
-				CpuCores: float32(node.CPUCapacity),
+				RamCap:       uint64(node.MemCapacityKb),
+				CpuCores:     float32(node.CPUCapacity),
+				EphemeralCap: uint64(node.EphemeralCapKb),
 			},
 		},
 	}
@@ -352,8 +359,9 @@ func (nw *NodeWatcher) createResourceTopologyForNode(node *Node) *firmament.Reso
 			FriendlyName: friendlyName,
 			Labels:       rtnd.ResourceDesc.Labels,
 			ResourceCapacity: &firmament.ResourceVector{
-				RamCap:   uint64(node.MemCapacityKb),
-				CpuCores: float32(node.CPUCapacity),
+				RamCap:       uint64(node.MemCapacityKb),
+				CpuCores:     float32(node.CPUCapacity),
+				EphemeralCap: uint64(node.EphemeralCapKb),
 			},
 			Taints: rtnd.ResourceDesc.Taints,
 		},
@@ -362,7 +370,6 @@ func (nw *NodeWatcher) createResourceTopologyForNode(node *Node) *firmament.Reso
 
 	rtnd.Children = append(rtnd.Children, puRtnd)
 	ResIDToNode[puUUID] = node.Hostname
-
 	return rtnd
 }
 
