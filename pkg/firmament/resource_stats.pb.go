@@ -19,45 +19,76 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 type ResourceStats struct {
 	// resource_id is used to uniquely identify a resource.
-	ResourceId string `protobuf:"bytes,1,opt,name=resource_id,json=resourceId" json:"resource_id,omitempty"`
-	Timestamp  uint64 `protobuf:"varint,2,opt,name=timestamp" json:"timestamp,omitempty"`
+	ResourceId string `protobuf:"bytes,1,opt,name=resource_id,json=resourceId,proto3" json:"resource_id,omitempty"`
+	Timestamp  uint64 `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	// cpus_stats stores the stats of each CPU.
 	// The first entry is the cpu usage of cpu0 and so on.
-	CpusStats []*CpuStats `protobuf:"bytes,3,rep,name=cpus_stats,json=cpusStats" json:"cpus_stats,omitempty"`
+	CpusStats []*CpuStats `protobuf:"bytes,3,rep,name=cpus_stats,json=cpusStats,proto3" json:"cpus_stats,omitempty"`
 	// Below are the Memory status (in KB) of node.
 	// mem_allocatable is the allocatable memory resource of node.
-	MemAllocatable int64 `protobuf:"varint,4,opt,name=mem_allocatable,json=memAllocatable" json:"mem_allocatable,omitempty"`
+	MemAllocatable int64 `protobuf:"varint,4,opt,name=mem_allocatable,json=memAllocatable,proto3" json:"mem_allocatable,omitempty"`
 	// mem_capacity is the capacity of memory of node.
-	MemCapacity int64 `protobuf:"varint,5,opt,name=mem_capacity,json=memCapacity" json:"mem_capacity,omitempty"`
+	MemCapacity int64 `protobuf:"varint,5,opt,name=mem_capacity,json=memCapacity,proto3" json:"mem_capacity,omitempty"`
 	// Memory stats (fraction of total).
 	// mem_reservation is the fraction of memory reserved.
-	MemReservation float64 `protobuf:"fixed64,6,opt,name=mem_reservation,json=memReservation" json:"mem_reservation,omitempty"`
+	MemReservation float64 `protobuf:"fixed64,6,opt,name=mem_reservation,json=memReservation,proto3" json:"mem_reservation,omitempty"`
 	// mem_utilization is the fraction of memory used.
-	MemUtilization float64 `protobuf:"fixed64,7,opt,name=mem_utilization,json=memUtilization" json:"mem_utilization,omitempty"`
+	MemUtilization float64 `protobuf:"fixed64,7,opt,name=mem_utilization,json=memUtilization,proto3" json:"mem_utilization,omitempty"`
 	// Disk stats in KB.
-	DiskBw int64 `protobuf:"varint,8,opt,name=disk_bw,json=diskBw" json:"disk_bw,omitempty"`
+	DiskBw int64 `protobuf:"varint,8,opt,name=disk_bw,json=diskBw,proto3" json:"disk_bw,omitempty"`
 	// Network stats in KB.
 	// net_rx_bw is received network packets in KB.
-	NetRxBw int64 `protobuf:"varint,9,opt,name=net_rx_bw,json=netRxBw" json:"net_rx_bw,omitempty"`
+	NetRxBw int64 `protobuf:"varint,9,opt,name=net_rx_bw,json=netRxBw,proto3" json:"net_rx_bw,omitempty"`
 	// net_tx_bw is transmit network packets in KB.
-	NetTxBw int64 `protobuf:"varint,10,opt,name=net_tx_bw,json=netTxBw" json:"net_tx_bw,omitempty"`
+	NetTxBw              int64    `protobuf:"varint,10,opt,name=net_tx_bw,json=netTxBw,proto3" json:"net_tx_bw,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ResourceStats) Reset()                    { *m = ResourceStats{} }
-func (m *ResourceStats) String() string            { return proto.CompactTextString(m) }
-func (*ResourceStats) ProtoMessage()               {}
-func (*ResourceStats) Descriptor() ([]byte, []int) { return fileDescriptor11, []int{0} }
+func (m *ResourceStats) Reset()         { *m = ResourceStats{} }
+func (m *ResourceStats) String() string { return proto.CompactTextString(m) }
+func (*ResourceStats) ProtoMessage()    {}
+func (*ResourceStats) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4e63005a7ba86f07, []int{0}
+}
+
+func (m *ResourceStats) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ResourceStats.Unmarshal(m, b)
+}
+func (m *ResourceStats) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ResourceStats.Marshal(b, m, deterministic)
+}
+func (m *ResourceStats) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ResourceStats.Merge(m, src)
+}
+func (m *ResourceStats) XXX_Size() int {
+	return xxx_messageInfo_ResourceStats.Size(m)
+}
+func (m *ResourceStats) XXX_DiscardUnknown() {
+	xxx_messageInfo_ResourceStats.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ResourceStats proto.InternalMessageInfo
 
 func (m *ResourceStats) GetResourceId() string {
 	if m != nil {
@@ -132,20 +163,43 @@ func (m *ResourceStats) GetNetTxBw() int64 {
 type CpuStats struct {
 	// CPU stats in millicores.
 	// cpu_allocatable is allocatable CPU millicores of node.
-	CpuAllocatable int64 `protobuf:"varint,1,opt,name=cpu_allocatable,json=cpuAllocatable" json:"cpu_allocatable,omitempty"`
+	CpuAllocatable int64 `protobuf:"varint,1,opt,name=cpu_allocatable,json=cpuAllocatable,proto3" json:"cpu_allocatable,omitempty"`
 	// cpu_capacity is the CPU capacity millicores of node.
-	CpuCapacity int64 `protobuf:"varint,2,opt,name=cpu_capacity,json=cpuCapacity" json:"cpu_capacity,omitempty"`
+	CpuCapacity int64 `protobuf:"varint,2,opt,name=cpu_capacity,json=cpuCapacity,proto3" json:"cpu_capacity,omitempty"`
 	// CPU stats (fraction of total).
 	// cpu_reservation is the fraction of cpu millicores reserved.
-	CpuReservation float64 `protobuf:"fixed64,3,opt,name=cpu_reservation,json=cpuReservation" json:"cpu_reservation,omitempty"`
+	CpuReservation float64 `protobuf:"fixed64,3,opt,name=cpu_reservation,json=cpuReservation,proto3" json:"cpu_reservation,omitempty"`
 	// cpu_utilization is the fraction of cpu millicores used.
-	CpuUtilization float64 `protobuf:"fixed64,4,opt,name=cpu_utilization,json=cpuUtilization" json:"cpu_utilization,omitempty"`
+	CpuUtilization       float64  `protobuf:"fixed64,4,opt,name=cpu_utilization,json=cpuUtilization,proto3" json:"cpu_utilization,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CpuStats) Reset()                    { *m = CpuStats{} }
-func (m *CpuStats) String() string            { return proto.CompactTextString(m) }
-func (*CpuStats) ProtoMessage()               {}
-func (*CpuStats) Descriptor() ([]byte, []int) { return fileDescriptor11, []int{1} }
+func (m *CpuStats) Reset()         { *m = CpuStats{} }
+func (m *CpuStats) String() string { return proto.CompactTextString(m) }
+func (*CpuStats) ProtoMessage()    {}
+func (*CpuStats) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4e63005a7ba86f07, []int{1}
+}
+
+func (m *CpuStats) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CpuStats.Unmarshal(m, b)
+}
+func (m *CpuStats) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CpuStats.Marshal(b, m, deterministic)
+}
+func (m *CpuStats) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CpuStats.Merge(m, src)
+}
+func (m *CpuStats) XXX_Size() int {
+	return xxx_messageInfo_CpuStats.Size(m)
+}
+func (m *CpuStats) XXX_DiscardUnknown() {
+	xxx_messageInfo_CpuStats.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CpuStats proto.InternalMessageInfo
 
 func (m *CpuStats) GetCpuAllocatable() int64 {
 	if m != nil {
@@ -180,9 +234,9 @@ func init() {
 	proto.RegisterType((*CpuStats)(nil), "firmament.CpuStats")
 }
 
-func init() { proto.RegisterFile("resource_stats.proto", fileDescriptor11) }
+func init() { proto.RegisterFile("resource_stats.proto", fileDescriptor_4e63005a7ba86f07) }
 
-var fileDescriptor11 = []byte{
+var fileDescriptor_4e63005a7ba86f07 = []byte{
 	// 330 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x5c, 0x92, 0x4f, 0x4e, 0xe3, 0x30,
 	0x1c, 0x85, 0xe5, 0xa6, 0xd3, 0x36, 0xee, 0xcc, 0x20, 0x19, 0x24, 0x2c, 0x84, 0x44, 0xe8, 0x86,

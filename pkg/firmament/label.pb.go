@@ -19,26 +19,57 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 // Labels are key/value pairs that are attached to firmament resousces.It can be used to organize and
 // to select subsets of objects.
 type Label struct {
-	Key   string `protobuf:"bytes,1,opt,name=key" json:"key,omitempty"`
-	Value string `protobuf:"bytes,2,opt,name=value" json:"value,omitempty"`
+	Key                  string   `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value                string   `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *Label) Reset()                    { *m = Label{} }
-func (m *Label) String() string            { return proto.CompactTextString(m) }
-func (*Label) ProtoMessage()               {}
-func (*Label) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{0} }
+func (m *Label) Reset()         { *m = Label{} }
+func (m *Label) String() string { return proto.CompactTextString(m) }
+func (*Label) ProtoMessage()    {}
+func (*Label) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6100d2b5ae808f16, []int{0}
+}
+
+func (m *Label) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Label.Unmarshal(m, b)
+}
+func (m *Label) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Label.Marshal(b, m, deterministic)
+}
+func (m *Label) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Label.Merge(m, src)
+}
+func (m *Label) XXX_Size() int {
+	return xxx_messageInfo_Label.Size(m)
+}
+func (m *Label) XXX_DiscardUnknown() {
+	xxx_messageInfo_Label.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Label proto.InternalMessageInfo
 
 func (m *Label) GetKey() string {
 	if m != nil {
@@ -58,9 +89,9 @@ func init() {
 	proto.RegisterType((*Label)(nil), "firmament.Label")
 }
 
-func init() { proto.RegisterFile("label.proto", fileDescriptor4) }
+func init() { proto.RegisterFile("label.proto", fileDescriptor_6100d2b5ae808f16) }
 
-var fileDescriptor4 = []byte{
+var fileDescriptor_6100d2b5ae808f16 = []byte{
 	// 90 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0xce, 0x49, 0x4c, 0x4a,
 	0xcd, 0xd1, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x4c, 0xcb, 0x2c, 0xca, 0x4d, 0xcc, 0x4d,

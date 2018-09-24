@@ -19,50 +19,81 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 // TaskStats is the stats(including CPU, Memory and Network) of a task.
 type TaskStats struct {
-	TaskId    uint64 `protobuf:"varint,1,opt,name=task_id,json=taskId" json:"task_id,omitempty"`
-	Hostname  string `protobuf:"bytes,2,opt,name=hostname" json:"hostname,omitempty"`
-	Timestamp uint64 `protobuf:"varint,3,opt,name=timestamp" json:"timestamp,omitempty"`
+	TaskId    uint64 `protobuf:"varint,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	Hostname  string `protobuf:"bytes,2,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	Timestamp uint64 `protobuf:"varint,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	// CPU stats in millicores.
-	CpuLimit   int64 `protobuf:"varint,4,opt,name=cpu_limit,json=cpuLimit" json:"cpu_limit,omitempty"`
-	CpuRequest int64 `protobuf:"varint,5,opt,name=cpu_request,json=cpuRequest" json:"cpu_request,omitempty"`
-	CpuUsage   int64 `protobuf:"varint,6,opt,name=cpu_usage,json=cpuUsage" json:"cpu_usage,omitempty"`
+	CpuLimit   int64 `protobuf:"varint,4,opt,name=cpu_limit,json=cpuLimit,proto3" json:"cpu_limit,omitempty"`
+	CpuRequest int64 `protobuf:"varint,5,opt,name=cpu_request,json=cpuRequest,proto3" json:"cpu_request,omitempty"`
+	CpuUsage   int64 `protobuf:"varint,6,opt,name=cpu_usage,json=cpuUsage,proto3" json:"cpu_usage,omitempty"`
 	// Memory stats in Kb.
-	MemLimit            int64   `protobuf:"varint,7,opt,name=mem_limit,json=memLimit" json:"mem_limit,omitempty"`
-	MemRequest          int64   `protobuf:"varint,8,opt,name=mem_request,json=memRequest" json:"mem_request,omitempty"`
-	MemUsage            int64   `protobuf:"varint,9,opt,name=mem_usage,json=memUsage" json:"mem_usage,omitempty"`
-	MemRss              int64   `protobuf:"varint,10,opt,name=mem_rss,json=memRss" json:"mem_rss,omitempty"`
-	MemCache            int64   `protobuf:"varint,11,opt,name=mem_cache,json=memCache" json:"mem_cache,omitempty"`
-	MemWorkingSet       int64   `protobuf:"varint,12,opt,name=mem_working_set,json=memWorkingSet" json:"mem_working_set,omitempty"`
-	MemPageFaults       int64   `protobuf:"varint,13,opt,name=mem_page_faults,json=memPageFaults" json:"mem_page_faults,omitempty"`
-	MemPageFaultsRate   float64 `protobuf:"fixed64,14,opt,name=mem_page_faults_rate,json=memPageFaultsRate" json:"mem_page_faults_rate,omitempty"`
-	MajorPageFaults     int64   `protobuf:"varint,15,opt,name=major_page_faults,json=majorPageFaults" json:"major_page_faults,omitempty"`
-	MajorPageFaultsRate float64 `protobuf:"fixed64,16,opt,name=major_page_faults_rate,json=majorPageFaultsRate" json:"major_page_faults_rate,omitempty"`
+	MemLimit            int64   `protobuf:"varint,7,opt,name=mem_limit,json=memLimit,proto3" json:"mem_limit,omitempty"`
+	MemRequest          int64   `protobuf:"varint,8,opt,name=mem_request,json=memRequest,proto3" json:"mem_request,omitempty"`
+	MemUsage            int64   `protobuf:"varint,9,opt,name=mem_usage,json=memUsage,proto3" json:"mem_usage,omitempty"`
+	MemRss              int64   `protobuf:"varint,10,opt,name=mem_rss,json=memRss,proto3" json:"mem_rss,omitempty"`
+	MemCache            int64   `protobuf:"varint,11,opt,name=mem_cache,json=memCache,proto3" json:"mem_cache,omitempty"`
+	MemWorkingSet       int64   `protobuf:"varint,12,opt,name=mem_working_set,json=memWorkingSet,proto3" json:"mem_working_set,omitempty"`
+	MemPageFaults       int64   `protobuf:"varint,13,opt,name=mem_page_faults,json=memPageFaults,proto3" json:"mem_page_faults,omitempty"`
+	MemPageFaultsRate   float64 `protobuf:"fixed64,14,opt,name=mem_page_faults_rate,json=memPageFaultsRate,proto3" json:"mem_page_faults_rate,omitempty"`
+	MajorPageFaults     int64   `protobuf:"varint,15,opt,name=major_page_faults,json=majorPageFaults,proto3" json:"major_page_faults,omitempty"`
+	MajorPageFaultsRate float64 `protobuf:"fixed64,16,opt,name=major_page_faults_rate,json=majorPageFaultsRate,proto3" json:"major_page_faults_rate,omitempty"`
 	// Network stats in Kb.
-	NetRx           int64   `protobuf:"varint,17,opt,name=net_rx,json=netRx" json:"net_rx,omitempty"`
-	NetRxErrors     int64   `protobuf:"varint,18,opt,name=net_rx_errors,json=netRxErrors" json:"net_rx_errors,omitempty"`
-	NetRxErrorsRate float64 `protobuf:"fixed64,19,opt,name=net_rx_errors_rate,json=netRxErrorsRate" json:"net_rx_errors_rate,omitempty"`
-	NetRxRate       float64 `protobuf:"fixed64,20,opt,name=net_rx_rate,json=netRxRate" json:"net_rx_rate,omitempty"`
-	NetTx           int64   `protobuf:"varint,21,opt,name=net_tx,json=netTx" json:"net_tx,omitempty"`
-	NetTxErrors     int64   `protobuf:"varint,22,opt,name=net_tx_errors,json=netTxErrors" json:"net_tx_errors,omitempty"`
-	NetTxErrorsRate float64 `protobuf:"fixed64,23,opt,name=net_tx_errors_rate,json=netTxErrorsRate" json:"net_tx_errors_rate,omitempty"`
-	NetTxRate       float64 `protobuf:"fixed64,24,opt,name=net_tx_rate,json=netTxRate" json:"net_tx_rate,omitempty"`
+	NetRx                int64    `protobuf:"varint,17,opt,name=net_rx,json=netRx,proto3" json:"net_rx,omitempty"`
+	NetRxErrors          int64    `protobuf:"varint,18,opt,name=net_rx_errors,json=netRxErrors,proto3" json:"net_rx_errors,omitempty"`
+	NetRxErrorsRate      float64  `protobuf:"fixed64,19,opt,name=net_rx_errors_rate,json=netRxErrorsRate,proto3" json:"net_rx_errors_rate,omitempty"`
+	NetRxRate            float64  `protobuf:"fixed64,20,opt,name=net_rx_rate,json=netRxRate,proto3" json:"net_rx_rate,omitempty"`
+	NetTx                int64    `protobuf:"varint,21,opt,name=net_tx,json=netTx,proto3" json:"net_tx,omitempty"`
+	NetTxErrors          int64    `protobuf:"varint,22,opt,name=net_tx_errors,json=netTxErrors,proto3" json:"net_tx_errors,omitempty"`
+	NetTxErrorsRate      float64  `protobuf:"fixed64,23,opt,name=net_tx_errors_rate,json=netTxErrorsRate,proto3" json:"net_tx_errors_rate,omitempty"`
+	NetTxRate            float64  `protobuf:"fixed64,24,opt,name=net_tx_rate,json=netTxRate,proto3" json:"net_tx_rate,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *TaskStats) Reset()                    { *m = TaskStats{} }
-func (m *TaskStats) String() string            { return proto.CompactTextString(m) }
-func (*TaskStats) ProtoMessage()               {}
-func (*TaskStats) Descriptor() ([]byte, []int) { return fileDescriptor18, []int{0} }
+func (m *TaskStats) Reset()         { *m = TaskStats{} }
+func (m *TaskStats) String() string { return proto.CompactTextString(m) }
+func (*TaskStats) ProtoMessage()    {}
+func (*TaskStats) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7f3ecbfd86ea0c9c, []int{0}
+}
+
+func (m *TaskStats) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TaskStats.Unmarshal(m, b)
+}
+func (m *TaskStats) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TaskStats.Marshal(b, m, deterministic)
+}
+func (m *TaskStats) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskStats.Merge(m, src)
+}
+func (m *TaskStats) XXX_Size() int {
+	return xxx_messageInfo_TaskStats.Size(m)
+}
+func (m *TaskStats) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskStats.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskStats proto.InternalMessageInfo
 
 func (m *TaskStats) GetTaskId() uint64 {
 	if m != nil {
@@ -236,9 +267,9 @@ func init() {
 	proto.RegisterType((*TaskStats)(nil), "firmament.TaskStats")
 }
 
-func init() { proto.RegisterFile("task_stats.proto", fileDescriptor18) }
+func init() { proto.RegisterFile("task_stats.proto", fileDescriptor_7f3ecbfd86ea0c9c) }
 
-var fileDescriptor18 = []byte{
+var fileDescriptor_7f3ecbfd86ea0c9c = []byte{
 	// 433 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x93, 0x5f, 0x6f, 0xd3, 0x30,
 	0x14, 0xc5, 0x15, 0xb6, 0xa5, 0xcd, 0x2d, 0xa5, 0xab, 0xf7, 0xa7, 0x16, 0x20, 0xa8, 0xf6, 0x80,
