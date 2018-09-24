@@ -20,6 +20,7 @@ import (
 	"sync"
 
 	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
@@ -245,3 +246,9 @@ type BindInfo struct {
 }
 
 var BindChannel chan BindInfo
+
+// PodToTD maps Kubernetes pod identifier(namespace + name) to firmament task descriptor.
+var ProcessedPodEvents map[PodIdentifier]*v1.Pod // map will have all the pods whose failure/unscheduled events are processed
+var ProcessedPodEventsLock *sync.Mutex
+var PodToK8sPod map[PodIdentifier]*v1.Pod
+var PodToK8sPodLock *sync.Mutex
