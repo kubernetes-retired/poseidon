@@ -87,6 +87,7 @@ type Node struct {
 	CPUAllocatable   int64
 	MemCapacityKb    int64
 	MemAllocatableKb int64
+	PodAllocatable   int64
 	Labels           map[string]string
 	Annotations      map[string]string
 	Taints           []Taint
@@ -245,3 +246,13 @@ type BindInfo struct {
 }
 
 var BindChannel chan BindInfo
+
+// PodWatcher is a Kubernetes pod watcher.
+type K8sPodWatcher struct {
+	//ID string
+	clientset  kubernetes.Interface
+	controller cache.Controller
+	fc         firmament.FirmamentSchedulerClient
+	K8sPods    map[string]*firmament.TaskInfo
+	sync.Mutex
+}

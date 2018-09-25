@@ -284,6 +284,24 @@ func (mr *MockFirmamentSchedulerClientMockRecorder) Check(ctx, in interface{}, o
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockFirmamentSchedulerClient)(nil).Check), varargs...)
 }
 
+// AddTaskInfo mocks base method
+func (m *MockFirmamentSchedulerClient) AddTaskInfo(ctx context.Context, in *TaskInfo, opts ...grpc.CallOption) (*TaskInfoResponse, error) {
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "AddTaskInfo", varargs...)
+	ret0, _ := ret[0].(*TaskInfoResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddTaskInfo indicates an expected call of AddTaskInfo
+func (mr *MockFirmamentSchedulerClientMockRecorder) AddTaskInfo(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTaskInfo", reflect.TypeOf((*MockFirmamentSchedulerClient)(nil).AddTaskInfo), varargs...)
+}
+
 // MockFirmamentSchedulerServer is a mock of FirmamentSchedulerServer interface
 type MockFirmamentSchedulerServer struct {
 	ctrl     *gomock.Controller
@@ -474,4 +492,17 @@ func (m *MockFirmamentSchedulerServer) Check(arg0 context.Context, arg1 *HealthC
 // Check indicates an expected call of Check
 func (mr *MockFirmamentSchedulerServerMockRecorder) Check(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockFirmamentSchedulerServer)(nil).Check), arg0, arg1)
+}
+
+// AddTaskInfo mocks base method
+func (m *MockFirmamentSchedulerServer) AddTaskInfo(arg0 context.Context, arg1 *TaskInfo) (*TaskInfoResponse, error) {
+	ret := m.ctrl.Call(m, "AddTaskInfo", arg0, arg1)
+	ret0, _ := ret[0].(*TaskInfoResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddTaskInfo indicates an expected call of AddTaskInfo
+func (mr *MockFirmamentSchedulerServerMockRecorder) AddTaskInfo(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTaskInfo", reflect.TypeOf((*MockFirmamentSchedulerServer)(nil).AddTaskInfo), arg0, arg1)
 }

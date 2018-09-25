@@ -83,4 +83,6 @@ message ResourceDescriptor {
   repeated Label labels = 32;
   //Taints
   repeated Taint taints = 33;
+  // Max pods allowed per node
+  uint64 max_pods = 34;
 }
