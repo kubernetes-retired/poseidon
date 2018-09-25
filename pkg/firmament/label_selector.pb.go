@@ -19,14 +19,22 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 type LabelSelector_SelectorType int32
 
@@ -47,6 +55,7 @@ var LabelSelector_SelectorType_name = map[int32]string{
 	4: "GREATER_THAN",
 	5: "LESSER_THAN",
 }
+
 var LabelSelector_SelectorType_value = map[string]int32{
 	"IN_SET":         0,
 	"NOT_IN_SET":     1,
@@ -59,23 +68,47 @@ var LabelSelector_SelectorType_value = map[string]int32{
 func (x LabelSelector_SelectorType) String() string {
 	return proto.EnumName(LabelSelector_SelectorType_name, int32(x))
 }
+
 func (LabelSelector_SelectorType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor5, []int{0, 0}
+	return fileDescriptor_2e817eb3c90cb08b, []int{0, 0}
 }
 
 // LabelSelector can be used by client/user to identify a set of objects if their Labels match the LabelSelector.
 // Set-based label requirements allow filtering keys according to a set of values. Four kinds of operators are supported:
 // in, notin, exists (only the key identifier) and notexist.
 type LabelSelector struct {
-	Type   LabelSelector_SelectorType `protobuf:"varint,1,opt,name=type,enum=firmament.LabelSelector_SelectorType" json:"type,omitempty"`
-	Key    string                     `protobuf:"bytes,2,opt,name=key" json:"key,omitempty"`
-	Values []string                   `protobuf:"bytes,3,rep,name=values" json:"values,omitempty"`
+	Type                 LabelSelector_SelectorType `protobuf:"varint,1,opt,name=type,proto3,enum=firmament.LabelSelector_SelectorType" json:"type,omitempty"`
+	Key                  string                     `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	Values               []string                   `protobuf:"bytes,3,rep,name=values,proto3" json:"values,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
+	XXX_unrecognized     []byte                     `json:"-"`
+	XXX_sizecache        int32                      `json:"-"`
 }
 
-func (m *LabelSelector) Reset()                    { *m = LabelSelector{} }
-func (m *LabelSelector) String() string            { return proto.CompactTextString(m) }
-func (*LabelSelector) ProtoMessage()               {}
-func (*LabelSelector) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{0} }
+func (m *LabelSelector) Reset()         { *m = LabelSelector{} }
+func (m *LabelSelector) String() string { return proto.CompactTextString(m) }
+func (*LabelSelector) ProtoMessage()    {}
+func (*LabelSelector) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2e817eb3c90cb08b, []int{0}
+}
+
+func (m *LabelSelector) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LabelSelector.Unmarshal(m, b)
+}
+func (m *LabelSelector) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LabelSelector.Marshal(b, m, deterministic)
+}
+func (m *LabelSelector) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LabelSelector.Merge(m, src)
+}
+func (m *LabelSelector) XXX_Size() int {
+	return xxx_messageInfo_LabelSelector.Size(m)
+}
+func (m *LabelSelector) XXX_DiscardUnknown() {
+	xxx_messageInfo_LabelSelector.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LabelSelector proto.InternalMessageInfo
 
 func (m *LabelSelector) GetType() LabelSelector_SelectorType {
 	if m != nil {
@@ -99,13 +132,13 @@ func (m *LabelSelector) GetValues() []string {
 }
 
 func init() {
-	proto.RegisterType((*LabelSelector)(nil), "firmament.LabelSelector")
 	proto.RegisterEnum("firmament.LabelSelector_SelectorType", LabelSelector_SelectorType_name, LabelSelector_SelectorType_value)
+	proto.RegisterType((*LabelSelector)(nil), "firmament.LabelSelector")
 }
 
-func init() { proto.RegisterFile("label_selector.proto", fileDescriptor5) }
+func init() { proto.RegisterFile("label_selector.proto", fileDescriptor_2e817eb3c90cb08b) }
 
-var fileDescriptor5 = []byte{
+var fileDescriptor_2e817eb3c90cb08b = []byte{
 	// 220 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xc9, 0x49, 0x4c, 0x4a,
 	0xcd, 0x89, 0x2f, 0x4e, 0xcd, 0x49, 0x4d, 0x2e, 0xc9, 0x2f, 0xd2, 0x2b, 0x28, 0xca, 0x2f, 0xc9,

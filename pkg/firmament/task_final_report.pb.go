@@ -19,31 +19,62 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 // TaskFinalReport describes the final state of a task in firmament scheduler.
 type TaskFinalReport struct {
-	TaskId       uint64  `protobuf:"varint,1,opt,name=task_id,json=taskId" json:"task_id,omitempty"`
-	StartTime    uint64  `protobuf:"varint,2,opt,name=start_time,json=startTime" json:"start_time,omitempty"`
-	FinishTime   uint64  `protobuf:"varint,3,opt,name=finish_time,json=finishTime" json:"finish_time,omitempty"`
-	Instructions uint64  `protobuf:"varint,4,opt,name=instructions" json:"instructions,omitempty"`
-	Cycles       uint64  `protobuf:"varint,5,opt,name=cycles" json:"cycles,omitempty"`
-	LlcRefs      uint64  `protobuf:"varint,6,opt,name=llc_refs,json=llcRefs" json:"llc_refs,omitempty"`
-	LlcMisses    uint64  `protobuf:"varint,7,opt,name=llc_misses,json=llcMisses" json:"llc_misses,omitempty"`
-	Runtime      float64 `protobuf:"fixed64,8,opt,name=runtime" json:"runtime,omitempty"`
+	TaskId               uint64   `protobuf:"varint,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	StartTime            uint64   `protobuf:"varint,2,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	FinishTime           uint64   `protobuf:"varint,3,opt,name=finish_time,json=finishTime,proto3" json:"finish_time,omitempty"`
+	Instructions         uint64   `protobuf:"varint,4,opt,name=instructions,proto3" json:"instructions,omitempty"`
+	Cycles               uint64   `protobuf:"varint,5,opt,name=cycles,proto3" json:"cycles,omitempty"`
+	LlcRefs              uint64   `protobuf:"varint,6,opt,name=llc_refs,json=llcRefs,proto3" json:"llc_refs,omitempty"`
+	LlcMisses            uint64   `protobuf:"varint,7,opt,name=llc_misses,json=llcMisses,proto3" json:"llc_misses,omitempty"`
+	Runtime              float64  `protobuf:"fixed64,8,opt,name=runtime,proto3" json:"runtime,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *TaskFinalReport) Reset()                    { *m = TaskFinalReport{} }
-func (m *TaskFinalReport) String() string            { return proto.CompactTextString(m) }
-func (*TaskFinalReport) ProtoMessage()               {}
-func (*TaskFinalReport) Descriptor() ([]byte, []int) { return fileDescriptor17, []int{0} }
+func (m *TaskFinalReport) Reset()         { *m = TaskFinalReport{} }
+func (m *TaskFinalReport) String() string { return proto.CompactTextString(m) }
+func (*TaskFinalReport) ProtoMessage()    {}
+func (*TaskFinalReport) Descriptor() ([]byte, []int) {
+	return fileDescriptor_3c14910be0bbf67e, []int{0}
+}
+
+func (m *TaskFinalReport) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TaskFinalReport.Unmarshal(m, b)
+}
+func (m *TaskFinalReport) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TaskFinalReport.Marshal(b, m, deterministic)
+}
+func (m *TaskFinalReport) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskFinalReport.Merge(m, src)
+}
+func (m *TaskFinalReport) XXX_Size() int {
+	return xxx_messageInfo_TaskFinalReport.Size(m)
+}
+func (m *TaskFinalReport) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskFinalReport.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskFinalReport proto.InternalMessageInfo
 
 func (m *TaskFinalReport) GetTaskId() uint64 {
 	if m != nil {
@@ -105,9 +136,9 @@ func init() {
 	proto.RegisterType((*TaskFinalReport)(nil), "firmament.TaskFinalReport")
 }
 
-func init() { proto.RegisterFile("task_final_report.proto", fileDescriptor17) }
+func init() { proto.RegisterFile("task_final_report.proto", fileDescriptor_3c14910be0bbf67e) }
 
-var fileDescriptor17 = []byte{
+var fileDescriptor_3c14910be0bbf67e = []byte{
 	// 225 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x54, 0x90, 0x31, 0x4b, 0x04, 0x31,
 	0x10, 0x85, 0x89, 0x9e, 0xbb, 0x77, 0xa3, 0x20, 0xa4, 0xf0, 0x62, 0x21, 0x1e, 0x57, 0x5d, 0x65,

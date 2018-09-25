@@ -19,35 +19,66 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 // ResourceVector stores all the resources which will be take in account during scheduling.
 type ResourceVector struct {
 	// cpu_cores is the cpu millicores of node..
-	CpuCores float32 `protobuf:"fixed32,1,opt,name=cpu_cores,json=cpuCores" json:"cpu_cores,omitempty"`
-	RamBw    uint64  `protobuf:"varint,2,opt,name=ram_bw,json=ramBw" json:"ram_bw,omitempty"`
+	CpuCores float32 `protobuf:"fixed32,1,opt,name=cpu_cores,json=cpuCores,proto3" json:"cpu_cores,omitempty"`
+	RamBw    uint64  `protobuf:"varint,2,opt,name=ram_bw,json=ramBw,proto3" json:"ram_bw,omitempty"`
 	// ram_cap is the memory capacity of node.
-	RamCap uint64 `protobuf:"varint,3,opt,name=ram_cap,json=ramCap" json:"ram_cap,omitempty"`
-	DiskBw uint64 `protobuf:"varint,4,opt,name=disk_bw,json=diskBw" json:"disk_bw,omitempty"`
+	RamCap uint64 `protobuf:"varint,3,opt,name=ram_cap,json=ramCap,proto3" json:"ram_cap,omitempty"`
+	DiskBw uint64 `protobuf:"varint,4,opt,name=disk_bw,json=diskBw,proto3" json:"disk_bw,omitempty"`
 	// disk_cap is the disk capacity of node.
-	DiskCap uint64 `protobuf:"varint,5,opt,name=disk_cap,json=diskCap" json:"disk_cap,omitempty"`
+	DiskCap uint64 `protobuf:"varint,5,opt,name=disk_cap,json=diskCap,proto3" json:"disk_cap,omitempty"`
 	// net_tx_bw is transmit network packets in KB.
-	NetTxBw uint64 `protobuf:"varint,6,opt,name=net_tx_bw,json=netTxBw" json:"net_tx_bw,omitempty"`
+	NetTxBw uint64 `protobuf:"varint,6,opt,name=net_tx_bw,json=netTxBw,proto3" json:"net_tx_bw,omitempty"`
 	// net_tx_bw is receive network packets in KB.
-	NetRxBw uint64 `protobuf:"varint,7,opt,name=net_rx_bw,json=netRxBw" json:"net_rx_bw,omitempty"`
+	NetRxBw              uint64   `protobuf:"varint,7,opt,name=net_rx_bw,json=netRxBw,proto3" json:"net_rx_bw,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ResourceVector) Reset()                    { *m = ResourceVector{} }
-func (m *ResourceVector) String() string            { return proto.CompactTextString(m) }
-func (*ResourceVector) ProtoMessage()               {}
-func (*ResourceVector) Descriptor() ([]byte, []int) { return fileDescriptor13, []int{0} }
+func (m *ResourceVector) Reset()         { *m = ResourceVector{} }
+func (m *ResourceVector) String() string { return proto.CompactTextString(m) }
+func (*ResourceVector) ProtoMessage()    {}
+func (*ResourceVector) Descriptor() ([]byte, []int) {
+	return fileDescriptor_dd2f68a0615029fb, []int{0}
+}
+
+func (m *ResourceVector) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ResourceVector.Unmarshal(m, b)
+}
+func (m *ResourceVector) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ResourceVector.Marshal(b, m, deterministic)
+}
+func (m *ResourceVector) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ResourceVector.Merge(m, src)
+}
+func (m *ResourceVector) XXX_Size() int {
+	return xxx_messageInfo_ResourceVector.Size(m)
+}
+func (m *ResourceVector) XXX_DiscardUnknown() {
+	xxx_messageInfo_ResourceVector.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ResourceVector proto.InternalMessageInfo
 
 func (m *ResourceVector) GetCpuCores() float32 {
 	if m != nil {
@@ -102,9 +133,9 @@ func init() {
 	proto.RegisterType((*ResourceVector)(nil), "firmament.ResourceVector")
 }
 
-func init() { proto.RegisterFile("resource_vector.proto", fileDescriptor13) }
+func init() { proto.RegisterFile("resource_vector.proto", fileDescriptor_dd2f68a0615029fb) }
 
-var fileDescriptor13 = []byte{
+var fileDescriptor_dd2f68a0615029fb = []byte{
 	// 198 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x3c, 0xcf, 0xbd, 0x6e, 0xc3, 0x20,
 	0x14, 0x05, 0x60, 0xe1, 0xfa, 0x97, 0xa1, 0x03, 0x92, 0x55, 0xb7, 0x5d, 0xac, 0x4e, 0x9e, 0xba,
