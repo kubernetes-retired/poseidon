@@ -19,27 +19,58 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 // Co-ordinated co-location cost model.
 type CoCoInterferenceScores struct {
-	DevilPenalty  uint32 `protobuf:"varint,1,opt,name=devil_penalty,json=devilPenalty" json:"devil_penalty,omitempty"`
-	RabbitPenalty uint32 `protobuf:"varint,2,opt,name=rabbit_penalty,json=rabbitPenalty" json:"rabbit_penalty,omitempty"`
-	SheepPenalty  uint32 `protobuf:"varint,3,opt,name=sheep_penalty,json=sheepPenalty" json:"sheep_penalty,omitempty"`
-	TurtlePenalty uint32 `protobuf:"varint,4,opt,name=turtle_penalty,json=turtlePenalty" json:"turtle_penalty,omitempty"`
+	DevilPenalty         uint32   `protobuf:"varint,1,opt,name=devil_penalty,json=devilPenalty,proto3" json:"devil_penalty,omitempty"`
+	RabbitPenalty        uint32   `protobuf:"varint,2,opt,name=rabbit_penalty,json=rabbitPenalty,proto3" json:"rabbit_penalty,omitempty"`
+	SheepPenalty         uint32   `protobuf:"varint,3,opt,name=sheep_penalty,json=sheepPenalty,proto3" json:"sheep_penalty,omitempty"`
+	TurtlePenalty        uint32   `protobuf:"varint,4,opt,name=turtle_penalty,json=turtlePenalty,proto3" json:"turtle_penalty,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *CoCoInterferenceScores) Reset()                    { *m = CoCoInterferenceScores{} }
-func (m *CoCoInterferenceScores) String() string            { return proto.CompactTextString(m) }
-func (*CoCoInterferenceScores) ProtoMessage()               {}
-func (*CoCoInterferenceScores) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{0} }
+func (m *CoCoInterferenceScores) Reset()         { *m = CoCoInterferenceScores{} }
+func (m *CoCoInterferenceScores) String() string { return proto.CompactTextString(m) }
+func (*CoCoInterferenceScores) ProtoMessage()    {}
+func (*CoCoInterferenceScores) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b1bf212dcb0808ac, []int{0}
+}
+
+func (m *CoCoInterferenceScores) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CoCoInterferenceScores.Unmarshal(m, b)
+}
+func (m *CoCoInterferenceScores) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CoCoInterferenceScores.Marshal(b, m, deterministic)
+}
+func (m *CoCoInterferenceScores) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CoCoInterferenceScores.Merge(m, src)
+}
+func (m *CoCoInterferenceScores) XXX_Size() int {
+	return xxx_messageInfo_CoCoInterferenceScores.Size(m)
+}
+func (m *CoCoInterferenceScores) XXX_DiscardUnknown() {
+	xxx_messageInfo_CoCoInterferenceScores.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CoCoInterferenceScores proto.InternalMessageInfo
 
 func (m *CoCoInterferenceScores) GetDevilPenalty() uint32 {
 	if m != nil {
@@ -73,9 +104,9 @@ func init() {
 	proto.RegisterType((*CoCoInterferenceScores)(nil), "firmament.CoCoInterferenceScores")
 }
 
-func init() { proto.RegisterFile("coco_interference_scores.proto", fileDescriptor1) }
+func init() { proto.RegisterFile("coco_interference_scores.proto", fileDescriptor_b1bf212dcb0808ac) }
 
-var fileDescriptor1 = []byte{
+var fileDescriptor_b1bf212dcb0808ac = []byte{
 	// 169 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0x4b, 0xce, 0x4f, 0xce,
 	0x8f, 0xcf, 0xcc, 0x2b, 0x49, 0x2d, 0x4a, 0x4b, 0x2d, 0x4a, 0xcd, 0x4b, 0x4e, 0x8d, 0x2f, 0x4e,

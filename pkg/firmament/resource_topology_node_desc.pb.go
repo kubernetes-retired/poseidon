@@ -19,28 +19,59 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 // ResourceTopologyNodeDescriptor describe a node resource topology information.
 type ResourceTopologyNodeDescriptor struct {
-	ResourceDesc *ResourceDescriptor `protobuf:"bytes,1,opt,name=resource_desc,json=resourceDesc" json:"resource_desc,omitempty"`
+	ResourceDesc *ResourceDescriptor `protobuf:"bytes,1,opt,name=resource_desc,json=resourceDesc,proto3" json:"resource_desc,omitempty"`
 	// children stores the children nodes.
-	Children []*ResourceTopologyNodeDescriptor `protobuf:"bytes,2,rep,name=children" json:"children,omitempty"`
+	Children []*ResourceTopologyNodeDescriptor `protobuf:"bytes,2,rep,name=children,proto3" json:"children,omitempty"`
 	// parent_id is the id of its parent topology node.
-	ParentId string `protobuf:"bytes,3,opt,name=parent_id,json=parentId" json:"parent_id,omitempty"`
+	ParentId             string   `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ResourceTopologyNodeDescriptor) Reset()                    { *m = ResourceTopologyNodeDescriptor{} }
-func (m *ResourceTopologyNodeDescriptor) String() string            { return proto.CompactTextString(m) }
-func (*ResourceTopologyNodeDescriptor) ProtoMessage()               {}
-func (*ResourceTopologyNodeDescriptor) Descriptor() ([]byte, []int) { return fileDescriptor12, []int{0} }
+func (m *ResourceTopologyNodeDescriptor) Reset()         { *m = ResourceTopologyNodeDescriptor{} }
+func (m *ResourceTopologyNodeDescriptor) String() string { return proto.CompactTextString(m) }
+func (*ResourceTopologyNodeDescriptor) ProtoMessage()    {}
+func (*ResourceTopologyNodeDescriptor) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7efed64a16c51499, []int{0}
+}
+
+func (m *ResourceTopologyNodeDescriptor) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ResourceTopologyNodeDescriptor.Unmarshal(m, b)
+}
+func (m *ResourceTopologyNodeDescriptor) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ResourceTopologyNodeDescriptor.Marshal(b, m, deterministic)
+}
+func (m *ResourceTopologyNodeDescriptor) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ResourceTopologyNodeDescriptor.Merge(m, src)
+}
+func (m *ResourceTopologyNodeDescriptor) XXX_Size() int {
+	return xxx_messageInfo_ResourceTopologyNodeDescriptor.Size(m)
+}
+func (m *ResourceTopologyNodeDescriptor) XXX_DiscardUnknown() {
+	xxx_messageInfo_ResourceTopologyNodeDescriptor.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ResourceTopologyNodeDescriptor proto.InternalMessageInfo
 
 func (m *ResourceTopologyNodeDescriptor) GetResourceDesc() *ResourceDescriptor {
 	if m != nil {
@@ -67,9 +98,9 @@ func init() {
 	proto.RegisterType((*ResourceTopologyNodeDescriptor)(nil), "firmament.ResourceTopologyNodeDescriptor")
 }
 
-func init() { proto.RegisterFile("resource_topology_node_desc.proto", fileDescriptor12) }
+func init() { proto.RegisterFile("resource_topology_node_desc.proto", fileDescriptor_7efed64a16c51499) }
 
-var fileDescriptor12 = []byte{
+var fileDescriptor_7efed64a16c51499 = []byte{
 	// 186 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x2c, 0x4a, 0x2d, 0xce,
 	0x2f, 0x2d, 0x4a, 0x4e, 0x8d, 0x2f, 0xc9, 0x2f, 0xc8, 0xcf, 0xc9, 0x4f, 0xaf, 0x8c, 0xcf, 0xcb,

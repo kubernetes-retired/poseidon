@@ -19,14 +19,22 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 type SchedulingDelta_ChangeType int32
 
@@ -47,6 +55,7 @@ var SchedulingDelta_ChangeType_name = map[int32]string{
 	2: "PREEMPT",
 	3: "MIGRATE",
 }
+
 var SchedulingDelta_ChangeType_value = map[string]int32{
 	"NOOP":    0,
 	"PLACE":   1,
@@ -57,22 +66,46 @@ var SchedulingDelta_ChangeType_value = map[string]int32{
 func (x SchedulingDelta_ChangeType) String() string {
 	return proto.EnumName(SchedulingDelta_ChangeType_name, int32(x))
 }
+
 func (SchedulingDelta_ChangeType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor14, []int{0, 0}
+	return fileDescriptor_9f86c8a6a6ba2880, []int{0, 0}
 }
 
 // SchedulingDelta is a scheduling decision from previous state.
 type SchedulingDelta struct {
-	TaskId     uint64 `protobuf:"varint,1,opt,name=task_id,json=taskId" json:"task_id,omitempty"`
-	ResourceId string `protobuf:"bytes,2,opt,name=resource_id,json=resourceId" json:"resource_id,omitempty"`
+	TaskId     uint64 `protobuf:"varint,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	ResourceId string `protobuf:"bytes,2,opt,name=resource_id,json=resourceId,proto3" json:"resource_id,omitempty"`
 	// type is the scheduling decision type.
-	Type SchedulingDelta_ChangeType `protobuf:"varint,3,opt,name=type,enum=firmament.SchedulingDelta_ChangeType" json:"type,omitempty"`
+	Type                 SchedulingDelta_ChangeType `protobuf:"varint,3,opt,name=type,proto3,enum=firmament.SchedulingDelta_ChangeType" json:"type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
+	XXX_unrecognized     []byte                     `json:"-"`
+	XXX_sizecache        int32                      `json:"-"`
 }
 
-func (m *SchedulingDelta) Reset()                    { *m = SchedulingDelta{} }
-func (m *SchedulingDelta) String() string            { return proto.CompactTextString(m) }
-func (*SchedulingDelta) ProtoMessage()               {}
-func (*SchedulingDelta) Descriptor() ([]byte, []int) { return fileDescriptor14, []int{0} }
+func (m *SchedulingDelta) Reset()         { *m = SchedulingDelta{} }
+func (m *SchedulingDelta) String() string { return proto.CompactTextString(m) }
+func (*SchedulingDelta) ProtoMessage()    {}
+func (*SchedulingDelta) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9f86c8a6a6ba2880, []int{0}
+}
+
+func (m *SchedulingDelta) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SchedulingDelta.Unmarshal(m, b)
+}
+func (m *SchedulingDelta) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SchedulingDelta.Marshal(b, m, deterministic)
+}
+func (m *SchedulingDelta) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SchedulingDelta.Merge(m, src)
+}
+func (m *SchedulingDelta) XXX_Size() int {
+	return xxx_messageInfo_SchedulingDelta.Size(m)
+}
+func (m *SchedulingDelta) XXX_DiscardUnknown() {
+	xxx_messageInfo_SchedulingDelta.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SchedulingDelta proto.InternalMessageInfo
 
 func (m *SchedulingDelta) GetTaskId() uint64 {
 	if m != nil {
@@ -96,13 +129,13 @@ func (m *SchedulingDelta) GetType() SchedulingDelta_ChangeType {
 }
 
 func init() {
-	proto.RegisterType((*SchedulingDelta)(nil), "firmament.SchedulingDelta")
 	proto.RegisterEnum("firmament.SchedulingDelta_ChangeType", SchedulingDelta_ChangeType_name, SchedulingDelta_ChangeType_value)
+	proto.RegisterType((*SchedulingDelta)(nil), "firmament.SchedulingDelta")
 }
 
-func init() { proto.RegisterFile("scheduling_delta.proto", fileDescriptor14) }
+func init() { proto.RegisterFile("scheduling_delta.proto", fileDescriptor_9f86c8a6a6ba2880) }
 
-var fileDescriptor14 = []byte{
+var fileDescriptor_9f86c8a6a6ba2880 = []byte{
 	// 210 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x2b, 0x4e, 0xce, 0x48,
 	0x4d, 0x29, 0xcd, 0xc9, 0xcc, 0x4b, 0x8f, 0x4f, 0x49, 0xcd, 0x29, 0x49, 0xd4, 0x2b, 0x28, 0xca,

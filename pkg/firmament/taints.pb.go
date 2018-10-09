@@ -19,33 +19,64 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 // The node this Taint is attached to has the "effect" on
 // any pod that does not tolerate the Taint.
 type Taint struct {
 	// Required. The taint key to be applied to a node.
-	Key string `protobuf:"bytes,1,opt,name=key" json:"key,omitempty"`
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	// Required. The taint value corresponding to the taint key.
 	// +optional
-	Value string `protobuf:"bytes,2,opt,name=value" json:"value,omitempty"`
+	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 	// Required. The effect of the taint on pods
 	// that do not tolerate the taint.
 	// Valid effects are NoSchedule, PreferNoSchedule and NoExecute.
-	Effect string `protobuf:"bytes,3,opt,name=effect" json:"effect,omitempty"`
+	Effect               string   `protobuf:"bytes,3,opt,name=effect,proto3" json:"effect,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *Taint) Reset()                    { *m = Taint{} }
-func (m *Taint) String() string            { return proto.CompactTextString(m) }
-func (*Taint) ProtoMessage()               {}
-func (*Taint) Descriptor() ([]byte, []int) { return fileDescriptor15, []int{0} }
+func (m *Taint) Reset()         { *m = Taint{} }
+func (m *Taint) String() string { return proto.CompactTextString(m) }
+func (*Taint) ProtoMessage()    {}
+func (*Taint) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b1d857553183faf2, []int{0}
+}
+
+func (m *Taint) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Taint.Unmarshal(m, b)
+}
+func (m *Taint) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Taint.Marshal(b, m, deterministic)
+}
+func (m *Taint) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Taint.Merge(m, src)
+}
+func (m *Taint) XXX_Size() int {
+	return xxx_messageInfo_Taint.Size(m)
+}
+func (m *Taint) XXX_DiscardUnknown() {
+	xxx_messageInfo_Taint.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Taint proto.InternalMessageInfo
 
 func (m *Taint) GetKey() string {
 	if m != nil {
@@ -72,9 +103,9 @@ func init() {
 	proto.RegisterType((*Taint)(nil), "firmament.Taint")
 }
 
-func init() { proto.RegisterFile("taints.proto", fileDescriptor15) }
+func init() { proto.RegisterFile("taints.proto", fileDescriptor_b1d857553183faf2) }
 
-var fileDescriptor15 = []byte{
+var fileDescriptor_b1d857553183faf2 = []byte{
 	// 107 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x29, 0x49, 0xcc, 0xcc,
 	0x2b, 0x29, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x4c, 0xcb, 0x2c, 0xca, 0x4d, 0xcc,

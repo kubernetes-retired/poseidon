@@ -19,14 +19,22 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 // The pod this Toleration is attached to tolerates any taint that matches
 // the triple <key,value,effect> using the matching operator <operator>.
@@ -34,33 +42,56 @@ type Toleration struct {
 	// Key is the taint key that the toleration applies to. Empty means match all taint keys.
 	// If the key is empty, operator must be Exists; this combination means to match all values and all keys.
 	// +optional
-	Key string `protobuf:"bytes,1,opt,name=key" json:"key,omitempty"`
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	// Operator represents a key's relationship to the value.
 	// Valid operators are Exists and Equal. Defaults to Equal.
 	// Exists is equivalent to wildcard for value, so that a pod can
 	// tolerate all taints of a particular category.
 	// +optional
-	Operator string `protobuf:"bytes,2,opt,name=operator" json:"operator,omitempty"`
+	Operator string `protobuf:"bytes,2,opt,name=operator,proto3" json:"operator,omitempty"`
 	// Value is the taint value the toleration matches to.
 	// If the operator is Exists, the value should be empty, otherwise just a regular string.
 	// +optional
-	Value string `protobuf:"bytes,3,opt,name=value" json:"value,omitempty"`
+	Value string `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
 	// Effect indicates the taint effect to match. Empty means match all taint effects.
 	// When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.
 	// +optional
-	Effect string `protobuf:"bytes,4,opt,name=effect" json:"effect,omitempty"`
+	Effect string `protobuf:"bytes,4,opt,name=effect,proto3" json:"effect,omitempty"`
 	// TolerationSeconds represents the period of time the toleration (which must be
 	// of effect NoExecute, otherwise this field is ignored) tolerates the taint. By default,
 	// it is not set, which means tolerate the taint forever (do not evict). Zero and
 	// negative values will be treated as 0 (evict immediately) by the system.
 	// +optional
-	TolerationSeconds int64 `protobuf:"varint,5,opt,name=tolerationSeconds" json:"tolerationSeconds,omitempty"`
+	TolerationSeconds    int64    `protobuf:"varint,5,opt,name=tolerationSeconds,proto3" json:"tolerationSeconds,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *Toleration) Reset()                    { *m = Toleration{} }
-func (m *Toleration) String() string            { return proto.CompactTextString(m) }
-func (*Toleration) ProtoMessage()               {}
-func (*Toleration) Descriptor() ([]byte, []int) { return fileDescriptor19, []int{0} }
+func (m *Toleration) Reset()         { *m = Toleration{} }
+func (m *Toleration) String() string { return proto.CompactTextString(m) }
+func (*Toleration) ProtoMessage()    {}
+func (*Toleration) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fa244b0f86e91dd3, []int{0}
+}
+
+func (m *Toleration) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Toleration.Unmarshal(m, b)
+}
+func (m *Toleration) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Toleration.Marshal(b, m, deterministic)
+}
+func (m *Toleration) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Toleration.Merge(m, src)
+}
+func (m *Toleration) XXX_Size() int {
+	return xxx_messageInfo_Toleration.Size(m)
+}
+func (m *Toleration) XXX_DiscardUnknown() {
+	xxx_messageInfo_Toleration.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Toleration proto.InternalMessageInfo
 
 func (m *Toleration) GetKey() string {
 	if m != nil {
@@ -101,9 +132,9 @@ func init() {
 	proto.RegisterType((*Toleration)(nil), "firmament.Toleration")
 }
 
-func init() { proto.RegisterFile("tolerations.proto", fileDescriptor19) }
+func init() { proto.RegisterFile("tolerations.proto", fileDescriptor_fa244b0f86e91dd3) }
 
-var fileDescriptor19 = []byte{
+var fileDescriptor_fa244b0f86e91dd3 = []byte{
 	// 149 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x2c, 0xc9, 0xcf, 0x49,
 	0x2d, 0x4a, 0x2c, 0xc9, 0xcc, 0xcf, 0x2b, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x4c,

@@ -19,24 +19,55 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 type MatchLabelsAntiAff struct {
-	Key   string `protobuf:"bytes,1,opt,name=key" json:"key,omitempty"`
-	Value string `protobuf:"bytes,2,opt,name=value" json:"value,omitempty"`
+	Key                  string   `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value                string   `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *MatchLabelsAntiAff) Reset()                    { *m = MatchLabelsAntiAff{} }
-func (m *MatchLabelsAntiAff) String() string            { return proto.CompactTextString(m) }
-func (*MatchLabelsAntiAff) ProtoMessage()               {}
-func (*MatchLabelsAntiAff) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{0} }
+func (m *MatchLabelsAntiAff) Reset()         { *m = MatchLabelsAntiAff{} }
+func (m *MatchLabelsAntiAff) String() string { return proto.CompactTextString(m) }
+func (*MatchLabelsAntiAff) ProtoMessage()    {}
+func (*MatchLabelsAntiAff) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6da546618ab8b92a, []int{0}
+}
+
+func (m *MatchLabelsAntiAff) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_MatchLabelsAntiAff.Unmarshal(m, b)
+}
+func (m *MatchLabelsAntiAff) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_MatchLabelsAntiAff.Marshal(b, m, deterministic)
+}
+func (m *MatchLabelsAntiAff) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MatchLabelsAntiAff.Merge(m, src)
+}
+func (m *MatchLabelsAntiAff) XXX_Size() int {
+	return xxx_messageInfo_MatchLabelsAntiAff.Size(m)
+}
+func (m *MatchLabelsAntiAff) XXX_DiscardUnknown() {
+	xxx_messageInfo_MatchLabelsAntiAff.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MatchLabelsAntiAff proto.InternalMessageInfo
 
 func (m *MatchLabelsAntiAff) GetKey() string {
 	if m != nil {
@@ -53,15 +84,38 @@ func (m *MatchLabelsAntiAff) GetValue() string {
 }
 
 type LabelSelectorRequirementAntiAff struct {
-	Key      string   `protobuf:"bytes,1,opt,name=key" json:"key,omitempty"`
-	Operator string   `protobuf:"bytes,2,opt,name=operator" json:"operator,omitempty"`
-	Values   []string `protobuf:"bytes,3,rep,name=values" json:"values,omitempty"`
+	Key                  string   `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Operator             string   `protobuf:"bytes,2,opt,name=operator,proto3" json:"operator,omitempty"`
+	Values               []string `protobuf:"bytes,3,rep,name=values,proto3" json:"values,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *LabelSelectorRequirementAntiAff) Reset()                    { *m = LabelSelectorRequirementAntiAff{} }
-func (m *LabelSelectorRequirementAntiAff) String() string            { return proto.CompactTextString(m) }
-func (*LabelSelectorRequirementAntiAff) ProtoMessage()               {}
-func (*LabelSelectorRequirementAntiAff) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{1} }
+func (m *LabelSelectorRequirementAntiAff) Reset()         { *m = LabelSelectorRequirementAntiAff{} }
+func (m *LabelSelectorRequirementAntiAff) String() string { return proto.CompactTextString(m) }
+func (*LabelSelectorRequirementAntiAff) ProtoMessage()    {}
+func (*LabelSelectorRequirementAntiAff) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6da546618ab8b92a, []int{1}
+}
+
+func (m *LabelSelectorRequirementAntiAff) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LabelSelectorRequirementAntiAff.Unmarshal(m, b)
+}
+func (m *LabelSelectorRequirementAntiAff) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LabelSelectorRequirementAntiAff.Marshal(b, m, deterministic)
+}
+func (m *LabelSelectorRequirementAntiAff) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LabelSelectorRequirementAntiAff.Merge(m, src)
+}
+func (m *LabelSelectorRequirementAntiAff) XXX_Size() int {
+	return xxx_messageInfo_LabelSelectorRequirementAntiAff.Size(m)
+}
+func (m *LabelSelectorRequirementAntiAff) XXX_DiscardUnknown() {
+	xxx_messageInfo_LabelSelectorRequirementAntiAff.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LabelSelectorRequirementAntiAff proto.InternalMessageInfo
 
 func (m *LabelSelectorRequirementAntiAff) GetKey() string {
 	if m != nil {
@@ -85,14 +139,37 @@ func (m *LabelSelectorRequirementAntiAff) GetValues() []string {
 }
 
 type LabelSelectorAntiAff struct {
-	MatchLabels      *MatchLabelsAntiAff                `protobuf:"bytes,1,opt,name=matchLabels" json:"matchLabels,omitempty"`
-	MatchExpressions []*LabelSelectorRequirementAntiAff `protobuf:"bytes,2,rep,name=matchExpressions" json:"matchExpressions,omitempty"`
+	MatchLabels          *MatchLabelsAntiAff                `protobuf:"bytes,1,opt,name=matchLabels,proto3" json:"matchLabels,omitempty"`
+	MatchExpressions     []*LabelSelectorRequirementAntiAff `protobuf:"bytes,2,rep,name=matchExpressions,proto3" json:"matchExpressions,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                           `json:"-"`
+	XXX_unrecognized     []byte                             `json:"-"`
+	XXX_sizecache        int32                              `json:"-"`
 }
 
-func (m *LabelSelectorAntiAff) Reset()                    { *m = LabelSelectorAntiAff{} }
-func (m *LabelSelectorAntiAff) String() string            { return proto.CompactTextString(m) }
-func (*LabelSelectorAntiAff) ProtoMessage()               {}
-func (*LabelSelectorAntiAff) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{2} }
+func (m *LabelSelectorAntiAff) Reset()         { *m = LabelSelectorAntiAff{} }
+func (m *LabelSelectorAntiAff) String() string { return proto.CompactTextString(m) }
+func (*LabelSelectorAntiAff) ProtoMessage()    {}
+func (*LabelSelectorAntiAff) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6da546618ab8b92a, []int{2}
+}
+
+func (m *LabelSelectorAntiAff) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LabelSelectorAntiAff.Unmarshal(m, b)
+}
+func (m *LabelSelectorAntiAff) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LabelSelectorAntiAff.Marshal(b, m, deterministic)
+}
+func (m *LabelSelectorAntiAff) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LabelSelectorAntiAff.Merge(m, src)
+}
+func (m *LabelSelectorAntiAff) XXX_Size() int {
+	return xxx_messageInfo_LabelSelectorAntiAff.Size(m)
+}
+func (m *LabelSelectorAntiAff) XXX_DiscardUnknown() {
+	xxx_messageInfo_LabelSelectorAntiAff.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LabelSelectorAntiAff proto.InternalMessageInfo
 
 func (m *LabelSelectorAntiAff) GetMatchLabels() *MatchLabelsAntiAff {
 	if m != nil {
@@ -109,16 +186,39 @@ func (m *LabelSelectorAntiAff) GetMatchExpressions() []*LabelSelectorRequirement
 }
 
 type PodAffinityTermAntiAff struct {
-	LabelSelector *LabelSelectorAntiAff `protobuf:"bytes,1,opt,name=labelSelector" json:"labelSelector,omitempty"`
-	Namespaces    []string              `protobuf:"bytes,2,rep,name=namespaces" json:"namespaces,omitempty"`
+	LabelSelector *LabelSelectorAntiAff `protobuf:"bytes,1,opt,name=labelSelector,proto3" json:"labelSelector,omitempty"`
+	Namespaces    []string              `protobuf:"bytes,2,rep,name=namespaces,proto3" json:"namespaces,omitempty"`
 	// Empty topologyKey is not allowed.
-	TopologyKey string `protobuf:"bytes,3,opt,name=topologyKey" json:"topologyKey,omitempty"`
+	TopologyKey          string   `protobuf:"bytes,3,opt,name=topologyKey,proto3" json:"topologyKey,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *PodAffinityTermAntiAff) Reset()                    { *m = PodAffinityTermAntiAff{} }
-func (m *PodAffinityTermAntiAff) String() string            { return proto.CompactTextString(m) }
-func (*PodAffinityTermAntiAff) ProtoMessage()               {}
-func (*PodAffinityTermAntiAff) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{3} }
+func (m *PodAffinityTermAntiAff) Reset()         { *m = PodAffinityTermAntiAff{} }
+func (m *PodAffinityTermAntiAff) String() string { return proto.CompactTextString(m) }
+func (*PodAffinityTermAntiAff) ProtoMessage()    {}
+func (*PodAffinityTermAntiAff) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6da546618ab8b92a, []int{3}
+}
+
+func (m *PodAffinityTermAntiAff) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PodAffinityTermAntiAff.Unmarshal(m, b)
+}
+func (m *PodAffinityTermAntiAff) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PodAffinityTermAntiAff.Marshal(b, m, deterministic)
+}
+func (m *PodAffinityTermAntiAff) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PodAffinityTermAntiAff.Merge(m, src)
+}
+func (m *PodAffinityTermAntiAff) XXX_Size() int {
+	return xxx_messageInfo_PodAffinityTermAntiAff.Size(m)
+}
+func (m *PodAffinityTermAntiAff) XXX_DiscardUnknown() {
+	xxx_messageInfo_PodAffinityTermAntiAff.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PodAffinityTermAntiAff proto.InternalMessageInfo
 
 func (m *PodAffinityTermAntiAff) GetLabelSelector() *LabelSelectorAntiAff {
 	if m != nil {
@@ -144,15 +244,38 @@ func (m *PodAffinityTermAntiAff) GetTopologyKey() string {
 type WeightedPodAffinityTermAntiAff struct {
 	// weight associated with matching the corresponding podAffinityTerm,
 	// in the range 1-100.
-	Weight int32 `protobuf:"varint,1,opt,name=weight" json:"weight,omitempty"`
+	Weight int32 `protobuf:"varint,1,opt,name=weight,proto3" json:"weight,omitempty"`
 	// A pod affinity term, associated with the corresponding weight.
-	PodAffinityTerm *PodAffinityTermAntiAff `protobuf:"bytes,2,opt,name=podAffinityTerm" json:"podAffinityTerm,omitempty"`
+	PodAffinityTerm      *PodAffinityTermAntiAff `protobuf:"bytes,2,opt,name=podAffinityTerm,proto3" json:"podAffinityTerm,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
 }
 
-func (m *WeightedPodAffinityTermAntiAff) Reset()                    { *m = WeightedPodAffinityTermAntiAff{} }
-func (m *WeightedPodAffinityTermAntiAff) String() string            { return proto.CompactTextString(m) }
-func (*WeightedPodAffinityTermAntiAff) ProtoMessage()               {}
-func (*WeightedPodAffinityTermAntiAff) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{4} }
+func (m *WeightedPodAffinityTermAntiAff) Reset()         { *m = WeightedPodAffinityTermAntiAff{} }
+func (m *WeightedPodAffinityTermAntiAff) String() string { return proto.CompactTextString(m) }
+func (*WeightedPodAffinityTermAntiAff) ProtoMessage()    {}
+func (*WeightedPodAffinityTermAntiAff) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6da546618ab8b92a, []int{4}
+}
+
+func (m *WeightedPodAffinityTermAntiAff) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_WeightedPodAffinityTermAntiAff.Unmarshal(m, b)
+}
+func (m *WeightedPodAffinityTermAntiAff) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_WeightedPodAffinityTermAntiAff.Marshal(b, m, deterministic)
+}
+func (m *WeightedPodAffinityTermAntiAff) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WeightedPodAffinityTermAntiAff.Merge(m, src)
+}
+func (m *WeightedPodAffinityTermAntiAff) XXX_Size() int {
+	return xxx_messageInfo_WeightedPodAffinityTermAntiAff.Size(m)
+}
+func (m *WeightedPodAffinityTermAntiAff) XXX_DiscardUnknown() {
+	xxx_messageInfo_WeightedPodAffinityTermAntiAff.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_WeightedPodAffinityTermAntiAff proto.InternalMessageInfo
 
 func (m *WeightedPodAffinityTermAntiAff) GetWeight() int32 {
 	if m != nil {
@@ -169,14 +292,37 @@ func (m *WeightedPodAffinityTermAntiAff) GetPodAffinityTerm() *PodAffinityTermAn
 }
 
 type PodAntiAffinity struct {
-	RequiredDuringSchedulingIgnoredDuringExecution  []*PodAffinityTermAntiAff         `protobuf:"bytes,1,rep,name=requiredDuringSchedulingIgnoredDuringExecution" json:"requiredDuringSchedulingIgnoredDuringExecution,omitempty"`
-	PreferredDuringSchedulingIgnoredDuringExecution []*WeightedPodAffinityTermAntiAff `protobuf:"bytes,2,rep,name=preferredDuringSchedulingIgnoredDuringExecution" json:"preferredDuringSchedulingIgnoredDuringExecution,omitempty"`
+	RequiredDuringSchedulingIgnoredDuringExecution  []*PodAffinityTermAntiAff         `protobuf:"bytes,1,rep,name=requiredDuringSchedulingIgnoredDuringExecution,proto3" json:"requiredDuringSchedulingIgnoredDuringExecution,omitempty"`
+	PreferredDuringSchedulingIgnoredDuringExecution []*WeightedPodAffinityTermAntiAff `protobuf:"bytes,2,rep,name=preferredDuringSchedulingIgnoredDuringExecution,proto3" json:"preferredDuringSchedulingIgnoredDuringExecution,omitempty"`
+	XXX_NoUnkeyedLiteral                            struct{}                          `json:"-"`
+	XXX_unrecognized                                []byte                            `json:"-"`
+	XXX_sizecache                                   int32                             `json:"-"`
 }
 
-func (m *PodAntiAffinity) Reset()                    { *m = PodAntiAffinity{} }
-func (m *PodAntiAffinity) String() string            { return proto.CompactTextString(m) }
-func (*PodAntiAffinity) ProtoMessage()               {}
-func (*PodAntiAffinity) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{5} }
+func (m *PodAntiAffinity) Reset()         { *m = PodAntiAffinity{} }
+func (m *PodAntiAffinity) String() string { return proto.CompactTextString(m) }
+func (*PodAntiAffinity) ProtoMessage()    {}
+func (*PodAntiAffinity) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6da546618ab8b92a, []int{5}
+}
+
+func (m *PodAntiAffinity) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PodAntiAffinity.Unmarshal(m, b)
+}
+func (m *PodAntiAffinity) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PodAntiAffinity.Marshal(b, m, deterministic)
+}
+func (m *PodAntiAffinity) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PodAntiAffinity.Merge(m, src)
+}
+func (m *PodAntiAffinity) XXX_Size() int {
+	return xxx_messageInfo_PodAntiAffinity.Size(m)
+}
+func (m *PodAntiAffinity) XXX_DiscardUnknown() {
+	xxx_messageInfo_PodAntiAffinity.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PodAntiAffinity proto.InternalMessageInfo
 
 func (m *PodAntiAffinity) GetRequiredDuringSchedulingIgnoredDuringExecution() []*PodAffinityTermAntiAff {
 	if m != nil {
@@ -201,9 +347,9 @@ func init() {
 	proto.RegisterType((*PodAntiAffinity)(nil), "firmament.PodAntiAffinity")
 }
 
-func init() { proto.RegisterFile("pod_anti_affinity.proto", fileDescriptor8) }
+func init() { proto.RegisterFile("pod_anti_affinity.proto", fileDescriptor_6da546618ab8b92a) }
 
-var fileDescriptor8 = []byte{
+var fileDescriptor_6da546618ab8b92a = []byte{
 	// 425 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x93, 0xc1, 0x8e, 0xd3, 0x30,
 	0x10, 0x86, 0xe5, 0x46, 0x5b, 0x91, 0x89, 0xd0, 0xae, 0xac, 0x55, 0x89, 0x90, 0xd8, 0x0d, 0x39,
