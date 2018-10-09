@@ -19,28 +19,59 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 // WhareMapStats is the stats of WhareMap scheduling cost model, as described in the ISCA 2013 paper.
 type WhareMapStats struct {
-	NumIdle    uint64 `protobuf:"varint,1,opt,name=num_idle,json=numIdle" json:"num_idle,omitempty"`
-	NumDevils  uint64 `protobuf:"varint,2,opt,name=num_devils,json=numDevils" json:"num_devils,omitempty"`
-	NumRabbits uint64 `protobuf:"varint,3,opt,name=num_rabbits,json=numRabbits" json:"num_rabbits,omitempty"`
-	NumSheep   uint64 `protobuf:"varint,4,opt,name=num_sheep,json=numSheep" json:"num_sheep,omitempty"`
-	NumTurtles uint64 `protobuf:"varint,5,opt,name=num_turtles,json=numTurtles" json:"num_turtles,omitempty"`
+	NumIdle              uint64   `protobuf:"varint,1,opt,name=num_idle,json=numIdle,proto3" json:"num_idle,omitempty"`
+	NumDevils            uint64   `protobuf:"varint,2,opt,name=num_devils,json=numDevils,proto3" json:"num_devils,omitempty"`
+	NumRabbits           uint64   `protobuf:"varint,3,opt,name=num_rabbits,json=numRabbits,proto3" json:"num_rabbits,omitempty"`
+	NumSheep             uint64   `protobuf:"varint,4,opt,name=num_sheep,json=numSheep,proto3" json:"num_sheep,omitempty"`
+	NumTurtles           uint64   `protobuf:"varint,5,opt,name=num_turtles,json=numTurtles,proto3" json:"num_turtles,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *WhareMapStats) Reset()                    { *m = WhareMapStats{} }
-func (m *WhareMapStats) String() string            { return proto.CompactTextString(m) }
-func (*WhareMapStats) ProtoMessage()               {}
-func (*WhareMapStats) Descriptor() ([]byte, []int) { return fileDescriptor20, []int{0} }
+func (m *WhareMapStats) Reset()         { *m = WhareMapStats{} }
+func (m *WhareMapStats) String() string { return proto.CompactTextString(m) }
+func (*WhareMapStats) ProtoMessage()    {}
+func (*WhareMapStats) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d4a4ceac8dff9bab, []int{0}
+}
+
+func (m *WhareMapStats) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_WhareMapStats.Unmarshal(m, b)
+}
+func (m *WhareMapStats) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_WhareMapStats.Marshal(b, m, deterministic)
+}
+func (m *WhareMapStats) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WhareMapStats.Merge(m, src)
+}
+func (m *WhareMapStats) XXX_Size() int {
+	return xxx_messageInfo_WhareMapStats.Size(m)
+}
+func (m *WhareMapStats) XXX_DiscardUnknown() {
+	xxx_messageInfo_WhareMapStats.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_WhareMapStats proto.InternalMessageInfo
 
 func (m *WhareMapStats) GetNumIdle() uint64 {
 	if m != nil {
@@ -81,9 +112,9 @@ func init() {
 	proto.RegisterType((*WhareMapStats)(nil), "firmament.WhareMapStats")
 }
 
-func init() { proto.RegisterFile("whare_map_stats.proto", fileDescriptor20) }
+func init() { proto.RegisterFile("whare_map_stats.proto", fileDescriptor_d4a4ceac8dff9bab) }
 
-var fileDescriptor20 = []byte{
+var fileDescriptor_d4a4ceac8dff9bab = []byte{
 	// 184 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x3c, 0x8e, 0xb1, 0xaa, 0xc2, 0x30,
 	0x14, 0x86, 0xe9, 0xbd, 0xbd, 0x57, 0x1b, 0x71, 0x09, 0x08, 0x11, 0x11, 0xc5, 0xc9, 0xc9, 0xc5,

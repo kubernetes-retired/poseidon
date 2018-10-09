@@ -19,14 +19,22 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 type JobDescriptor_JobState int32
 
@@ -49,6 +57,7 @@ var JobDescriptor_JobState_name = map[int32]string{
 	5: "ABORTED",
 	6: "UNKNOWN",
 }
+
 var JobDescriptor_JobState_value = map[string]int32{
 	"NEW":       0,
 	"CREATED":   1,
@@ -62,20 +71,46 @@ var JobDescriptor_JobState_value = map[string]int32{
 func (x JobDescriptor_JobState) String() string {
 	return proto.EnumName(JobDescriptor_JobState_name, int32(x))
 }
-func (JobDescriptor_JobState) EnumDescriptor() ([]byte, []int) { return fileDescriptor3, []int{0, 0} }
 
-type JobDescriptor struct {
-	Uuid      string                 `protobuf:"bytes,1,opt,name=uuid" json:"uuid,omitempty"`
-	Name      string                 `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
-	State     JobDescriptor_JobState `protobuf:"varint,3,opt,name=state,enum=firmament.JobDescriptor_JobState" json:"state,omitempty"`
-	RootTask  *TaskDescriptor        `protobuf:"bytes,4,opt,name=root_task,json=rootTask" json:"root_task,omitempty"`
-	OutputIds [][]byte               `protobuf:"bytes,5,rep,name=output_ids,json=outputIds,proto3" json:"output_ids,omitempty"`
+func (JobDescriptor_JobState) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_4f2b7ee7452ce50f, []int{0, 0}
 }
 
-func (m *JobDescriptor) Reset()                    { *m = JobDescriptor{} }
-func (m *JobDescriptor) String() string            { return proto.CompactTextString(m) }
-func (*JobDescriptor) ProtoMessage()               {}
-func (*JobDescriptor) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{0} }
+type JobDescriptor struct {
+	Uuid                 string                 `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	Name                 string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	State                JobDescriptor_JobState `protobuf:"varint,3,opt,name=state,proto3,enum=firmament.JobDescriptor_JobState" json:"state,omitempty"`
+	RootTask             *TaskDescriptor        `protobuf:"bytes,4,opt,name=root_task,json=rootTask,proto3" json:"root_task,omitempty"`
+	OutputIds            [][]byte               `protobuf:"bytes,5,rep,name=output_ids,json=outputIds,proto3" json:"output_ids,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
+	XXX_unrecognized     []byte                 `json:"-"`
+	XXX_sizecache        int32                  `json:"-"`
+}
+
+func (m *JobDescriptor) Reset()         { *m = JobDescriptor{} }
+func (m *JobDescriptor) String() string { return proto.CompactTextString(m) }
+func (*JobDescriptor) ProtoMessage()    {}
+func (*JobDescriptor) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4f2b7ee7452ce50f, []int{0}
+}
+
+func (m *JobDescriptor) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_JobDescriptor.Unmarshal(m, b)
+}
+func (m *JobDescriptor) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_JobDescriptor.Marshal(b, m, deterministic)
+}
+func (m *JobDescriptor) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_JobDescriptor.Merge(m, src)
+}
+func (m *JobDescriptor) XXX_Size() int {
+	return xxx_messageInfo_JobDescriptor.Size(m)
+}
+func (m *JobDescriptor) XXX_DiscardUnknown() {
+	xxx_messageInfo_JobDescriptor.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_JobDescriptor proto.InternalMessageInfo
 
 func (m *JobDescriptor) GetUuid() string {
 	if m != nil {
@@ -113,13 +148,13 @@ func (m *JobDescriptor) GetOutputIds() [][]byte {
 }
 
 func init() {
-	proto.RegisterType((*JobDescriptor)(nil), "firmament.JobDescriptor")
 	proto.RegisterEnum("firmament.JobDescriptor_JobState", JobDescriptor_JobState_name, JobDescriptor_JobState_value)
+	proto.RegisterType((*JobDescriptor)(nil), "firmament.JobDescriptor")
 }
 
-func init() { proto.RegisterFile("job_desc.proto", fileDescriptor3) }
+func init() { proto.RegisterFile("job_desc.proto", fileDescriptor_4f2b7ee7452ce50f) }
 
-var fileDescriptor3 = []byte{
+var fileDescriptor_4f2b7ee7452ce50f = []byte{
 	// 275 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x54, 0x90, 0x4f, 0x4f, 0x83, 0x40,
 	0x10, 0xc5, 0xe5, 0x6f, 0xcb, 0xd4, 0x56, 0xb2, 0x27, 0x34, 0x31, 0xc1, 0x9e, 0x38, 0x71, 0xa8,

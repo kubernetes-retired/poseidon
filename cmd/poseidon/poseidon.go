@@ -45,6 +45,11 @@ func schedule(fc firmament.FirmamentSchedulerClient) {
 		deltas := firmament.Schedule(fc)
 
 		glog.Infof("Scheduler returned %d deltas", len(deltas.GetDeltas()))
+		if (len(deltas.GetUnscheduledTasks()) > 0) || (len(deltas.GetDeltas()) > 0) {
+			if k8sclient.ClientSet != nil {
+				go k8sclient.NewPoseidonEvents(k8sclient.ClientSet).ProcessEvents(deltas)
+			}
+		}
 		for _, delta := range deltas.GetDeltas() {
 			switch delta.GetType() {
 			case firmament.SchedulingDelta_PLACE:
