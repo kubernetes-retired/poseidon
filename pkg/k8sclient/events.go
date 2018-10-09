@@ -72,7 +72,7 @@ func NewPodEvents(coreEvent kubernetes.Interface) *PodEvents {
 	err = corev1.AddToScheme(legacyscheme.Scheme)
 	//err=api.AddToScheme(legacyscheme.Scheme)
 	if err != nil {
-		glog.Fatalf("could not register schemes", err)
+		glog.Fatalf("could not register schemes %v", err)
 	}
 	broadCaster := record.NewBroadcaster()
 	recorder := broadCaster.NewRecorder(sch, corev1.EventSource{Component: "Poseidon"})
@@ -140,7 +140,7 @@ func (posiedonEvents *PoseidonEvents) ProcessSuccessEvents(scheduledTasks []*fir
 			podIdentifier, ok := TaskIDToPod[taskId.GetTaskId()]
 			PodMux.RUnlock()
 			if !ok {
-				glog.Error("Task id %v to Pod mapping not found ", taskId)
+				glog.Errorf("Task id %v to Pod mapping not found ", taskId)
 				continue
 			}
 			ProcessedPodEventsLock.Lock()
