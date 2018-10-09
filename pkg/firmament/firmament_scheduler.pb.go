@@ -19,9 +19,11 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 import (
 	context "golang.org/x/net/context"
@@ -32,6 +34,12 @@ import (
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 type TaskReplyType int32
 
@@ -58,6 +66,7 @@ var TaskReplyType_name = map[int32]string{
 	7: "TASK_ALREADY_SUBMITTED",
 	8: "TASK_STATE_NOT_CREATED",
 }
+
 var TaskReplyType_value = map[string]int32{
 	"TASK_COMPLETED_OK":      0,
 	"TASK_SUBMITTED_OK":      1,
@@ -73,7 +82,10 @@ var TaskReplyType_value = map[string]int32{
 func (x TaskReplyType) String() string {
 	return proto.EnumName(TaskReplyType_name, int32(x))
 }
-func (TaskReplyType) EnumDescriptor() ([]byte, []int) { return fileDescriptor2, []int{0} }
+
+func (TaskReplyType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{0}
+}
 
 type NodeReplyType int32
 
@@ -94,6 +106,7 @@ var NodeReplyType_name = map[int32]string{
 	4: "NODE_NOT_FOUND",
 	5: "NODE_ALREADY_EXISTS",
 }
+
 var NodeReplyType_value = map[string]int32{
 	"NODE_ADDED_OK":       0,
 	"NODE_FAILED_OK":      1,
@@ -106,7 +119,10 @@ var NodeReplyType_value = map[string]int32{
 func (x NodeReplyType) String() string {
 	return proto.EnumName(NodeReplyType_name, int32(x))
 }
-func (NodeReplyType) EnumDescriptor() ([]byte, []int) { return fileDescriptor2, []int{1} }
+
+func (NodeReplyType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{1}
+}
 
 type ServingStatus int32
 
@@ -121,6 +137,7 @@ var ServingStatus_name = map[int32]string{
 	1: "SERVING",
 	2: "NOT_SERVING",
 }
+
 var ServingStatus_value = map[string]int32{
 	"UNKNOWN":     0,
 	"SERVING":     1,
@@ -130,24 +147,74 @@ var ServingStatus_value = map[string]int32{
 func (x ServingStatus) String() string {
 	return proto.EnumName(ServingStatus_name, int32(x))
 }
-func (ServingStatus) EnumDescriptor() ([]byte, []int) { return fileDescriptor2, []int{2} }
+
+func (ServingStatus) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{2}
+}
 
 type ScheduleRequest struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ScheduleRequest) Reset()                    { *m = ScheduleRequest{} }
-func (m *ScheduleRequest) String() string            { return proto.CompactTextString(m) }
-func (*ScheduleRequest) ProtoMessage()               {}
-func (*ScheduleRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{0} }
+func (m *ScheduleRequest) Reset()         { *m = ScheduleRequest{} }
+func (m *ScheduleRequest) String() string { return proto.CompactTextString(m) }
+func (*ScheduleRequest) ProtoMessage()    {}
+func (*ScheduleRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{0}
+}
+
+func (m *ScheduleRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ScheduleRequest.Unmarshal(m, b)
+}
+func (m *ScheduleRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ScheduleRequest.Marshal(b, m, deterministic)
+}
+func (m *ScheduleRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ScheduleRequest.Merge(m, src)
+}
+func (m *ScheduleRequest) XXX_Size() int {
+	return xxx_messageInfo_ScheduleRequest.Size(m)
+}
+func (m *ScheduleRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ScheduleRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ScheduleRequest proto.InternalMessageInfo
 
 type SchedulingDeltas struct {
-	Deltas []*SchedulingDelta `protobuf:"bytes,1,rep,name=deltas" json:"deltas,omitempty"`
+	Deltas               []*SchedulingDelta `protobuf:"bytes,1,rep,name=deltas,proto3" json:"deltas,omitempty"`
+	UnscheduledTasks     []uint64           `protobuf:"varint,2,rep,packed,name=unscheduled_tasks,json=unscheduledTasks,proto3" json:"unscheduled_tasks,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
+	XXX_unrecognized     []byte             `json:"-"`
+	XXX_sizecache        int32              `json:"-"`
 }
 
-func (m *SchedulingDeltas) Reset()                    { *m = SchedulingDeltas{} }
-func (m *SchedulingDeltas) String() string            { return proto.CompactTextString(m) }
-func (*SchedulingDeltas) ProtoMessage()               {}
-func (*SchedulingDeltas) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{1} }
+func (m *SchedulingDeltas) Reset()         { *m = SchedulingDeltas{} }
+func (m *SchedulingDeltas) String() string { return proto.CompactTextString(m) }
+func (*SchedulingDeltas) ProtoMessage()    {}
+func (*SchedulingDeltas) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{1}
+}
+
+func (m *SchedulingDeltas) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SchedulingDeltas.Unmarshal(m, b)
+}
+func (m *SchedulingDeltas) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SchedulingDeltas.Marshal(b, m, deterministic)
+}
+func (m *SchedulingDeltas) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SchedulingDeltas.Merge(m, src)
+}
+func (m *SchedulingDeltas) XXX_Size() int {
+	return xxx_messageInfo_SchedulingDeltas.Size(m)
+}
+func (m *SchedulingDeltas) XXX_DiscardUnknown() {
+	xxx_messageInfo_SchedulingDeltas.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SchedulingDeltas proto.InternalMessageInfo
 
 func (m *SchedulingDeltas) GetDeltas() []*SchedulingDelta {
 	if m != nil {
@@ -156,14 +223,44 @@ func (m *SchedulingDeltas) GetDeltas() []*SchedulingDelta {
 	return nil
 }
 
-type TaskCompletedResponse struct {
-	Type TaskReplyType `protobuf:"varint,1,opt,name=type,enum=firmament.TaskReplyType" json:"type,omitempty"`
+func (m *SchedulingDeltas) GetUnscheduledTasks() []uint64 {
+	if m != nil {
+		return m.UnscheduledTasks
+	}
+	return nil
 }
 
-func (m *TaskCompletedResponse) Reset()                    { *m = TaskCompletedResponse{} }
-func (m *TaskCompletedResponse) String() string            { return proto.CompactTextString(m) }
-func (*TaskCompletedResponse) ProtoMessage()               {}
-func (*TaskCompletedResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{2} }
+type TaskCompletedResponse struct {
+	Type                 TaskReplyType `protobuf:"varint,1,opt,name=type,proto3,enum=firmament.TaskReplyType" json:"type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *TaskCompletedResponse) Reset()         { *m = TaskCompletedResponse{} }
+func (m *TaskCompletedResponse) String() string { return proto.CompactTextString(m) }
+func (*TaskCompletedResponse) ProtoMessage()    {}
+func (*TaskCompletedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{2}
+}
+
+func (m *TaskCompletedResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TaskCompletedResponse.Unmarshal(m, b)
+}
+func (m *TaskCompletedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TaskCompletedResponse.Marshal(b, m, deterministic)
+}
+func (m *TaskCompletedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskCompletedResponse.Merge(m, src)
+}
+func (m *TaskCompletedResponse) XXX_Size() int {
+	return xxx_messageInfo_TaskCompletedResponse.Size(m)
+}
+func (m *TaskCompletedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskCompletedResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskCompletedResponse proto.InternalMessageInfo
 
 func (m *TaskCompletedResponse) GetType() TaskReplyType {
 	if m != nil {
@@ -173,14 +270,37 @@ func (m *TaskCompletedResponse) GetType() TaskReplyType {
 }
 
 type TaskDescription struct {
-	TaskDescriptor *TaskDescriptor `protobuf:"bytes,1,opt,name=task_descriptor,json=taskDescriptor" json:"task_descriptor,omitempty"`
-	JobDescriptor  *JobDescriptor  `protobuf:"bytes,2,opt,name=job_descriptor,json=jobDescriptor" json:"job_descriptor,omitempty"`
+	TaskDescriptor       *TaskDescriptor `protobuf:"bytes,1,opt,name=task_descriptor,json=taskDescriptor,proto3" json:"task_descriptor,omitempty"`
+	JobDescriptor        *JobDescriptor  `protobuf:"bytes,2,opt,name=job_descriptor,json=jobDescriptor,proto3" json:"job_descriptor,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
 }
 
-func (m *TaskDescription) Reset()                    { *m = TaskDescription{} }
-func (m *TaskDescription) String() string            { return proto.CompactTextString(m) }
-func (*TaskDescription) ProtoMessage()               {}
-func (*TaskDescription) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{3} }
+func (m *TaskDescription) Reset()         { *m = TaskDescription{} }
+func (m *TaskDescription) String() string { return proto.CompactTextString(m) }
+func (*TaskDescription) ProtoMessage()    {}
+func (*TaskDescription) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{3}
+}
+
+func (m *TaskDescription) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TaskDescription.Unmarshal(m, b)
+}
+func (m *TaskDescription) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TaskDescription.Marshal(b, m, deterministic)
+}
+func (m *TaskDescription) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskDescription.Merge(m, src)
+}
+func (m *TaskDescription) XXX_Size() int {
+	return xxx_messageInfo_TaskDescription.Size(m)
+}
+func (m *TaskDescription) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskDescription.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskDescription proto.InternalMessageInfo
 
 func (m *TaskDescription) GetTaskDescriptor() *TaskDescriptor {
 	if m != nil {
@@ -197,13 +317,36 @@ func (m *TaskDescription) GetJobDescriptor() *JobDescriptor {
 }
 
 type TaskSubmittedResponse struct {
-	Type TaskReplyType `protobuf:"varint,1,opt,name=type,enum=firmament.TaskReplyType" json:"type,omitempty"`
+	Type                 TaskReplyType `protobuf:"varint,1,opt,name=type,proto3,enum=firmament.TaskReplyType" json:"type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
-func (m *TaskSubmittedResponse) Reset()                    { *m = TaskSubmittedResponse{} }
-func (m *TaskSubmittedResponse) String() string            { return proto.CompactTextString(m) }
-func (*TaskSubmittedResponse) ProtoMessage()               {}
-func (*TaskSubmittedResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{4} }
+func (m *TaskSubmittedResponse) Reset()         { *m = TaskSubmittedResponse{} }
+func (m *TaskSubmittedResponse) String() string { return proto.CompactTextString(m) }
+func (*TaskSubmittedResponse) ProtoMessage()    {}
+func (*TaskSubmittedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{4}
+}
+
+func (m *TaskSubmittedResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TaskSubmittedResponse.Unmarshal(m, b)
+}
+func (m *TaskSubmittedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TaskSubmittedResponse.Marshal(b, m, deterministic)
+}
+func (m *TaskSubmittedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskSubmittedResponse.Merge(m, src)
+}
+func (m *TaskSubmittedResponse) XXX_Size() int {
+	return xxx_messageInfo_TaskSubmittedResponse.Size(m)
+}
+func (m *TaskSubmittedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskSubmittedResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskSubmittedResponse proto.InternalMessageInfo
 
 func (m *TaskSubmittedResponse) GetType() TaskReplyType {
 	if m != nil {
@@ -213,13 +356,36 @@ func (m *TaskSubmittedResponse) GetType() TaskReplyType {
 }
 
 type TaskRemovedResponse struct {
-	Type TaskReplyType `protobuf:"varint,1,opt,name=type,enum=firmament.TaskReplyType" json:"type,omitempty"`
+	Type                 TaskReplyType `protobuf:"varint,1,opt,name=type,proto3,enum=firmament.TaskReplyType" json:"type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
-func (m *TaskRemovedResponse) Reset()                    { *m = TaskRemovedResponse{} }
-func (m *TaskRemovedResponse) String() string            { return proto.CompactTextString(m) }
-func (*TaskRemovedResponse) ProtoMessage()               {}
-func (*TaskRemovedResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{5} }
+func (m *TaskRemovedResponse) Reset()         { *m = TaskRemovedResponse{} }
+func (m *TaskRemovedResponse) String() string { return proto.CompactTextString(m) }
+func (*TaskRemovedResponse) ProtoMessage()    {}
+func (*TaskRemovedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{5}
+}
+
+func (m *TaskRemovedResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TaskRemovedResponse.Unmarshal(m, b)
+}
+func (m *TaskRemovedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TaskRemovedResponse.Marshal(b, m, deterministic)
+}
+func (m *TaskRemovedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskRemovedResponse.Merge(m, src)
+}
+func (m *TaskRemovedResponse) XXX_Size() int {
+	return xxx_messageInfo_TaskRemovedResponse.Size(m)
+}
+func (m *TaskRemovedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskRemovedResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskRemovedResponse proto.InternalMessageInfo
 
 func (m *TaskRemovedResponse) GetType() TaskReplyType {
 	if m != nil {
@@ -229,13 +395,36 @@ func (m *TaskRemovedResponse) GetType() TaskReplyType {
 }
 
 type TaskFailedResponse struct {
-	Type TaskReplyType `protobuf:"varint,1,opt,name=type,enum=firmament.TaskReplyType" json:"type,omitempty"`
+	Type                 TaskReplyType `protobuf:"varint,1,opt,name=type,proto3,enum=firmament.TaskReplyType" json:"type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
-func (m *TaskFailedResponse) Reset()                    { *m = TaskFailedResponse{} }
-func (m *TaskFailedResponse) String() string            { return proto.CompactTextString(m) }
-func (*TaskFailedResponse) ProtoMessage()               {}
-func (*TaskFailedResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{6} }
+func (m *TaskFailedResponse) Reset()         { *m = TaskFailedResponse{} }
+func (m *TaskFailedResponse) String() string { return proto.CompactTextString(m) }
+func (*TaskFailedResponse) ProtoMessage()    {}
+func (*TaskFailedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{6}
+}
+
+func (m *TaskFailedResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TaskFailedResponse.Unmarshal(m, b)
+}
+func (m *TaskFailedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TaskFailedResponse.Marshal(b, m, deterministic)
+}
+func (m *TaskFailedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskFailedResponse.Merge(m, src)
+}
+func (m *TaskFailedResponse) XXX_Size() int {
+	return xxx_messageInfo_TaskFailedResponse.Size(m)
+}
+func (m *TaskFailedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskFailedResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskFailedResponse proto.InternalMessageInfo
 
 func (m *TaskFailedResponse) GetType() TaskReplyType {
 	if m != nil {
@@ -245,13 +434,36 @@ func (m *TaskFailedResponse) GetType() TaskReplyType {
 }
 
 type TaskUpdatedResponse struct {
-	Type TaskReplyType `protobuf:"varint,1,opt,name=type,enum=firmament.TaskReplyType" json:"type,omitempty"`
+	Type                 TaskReplyType `protobuf:"varint,1,opt,name=type,proto3,enum=firmament.TaskReplyType" json:"type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
-func (m *TaskUpdatedResponse) Reset()                    { *m = TaskUpdatedResponse{} }
-func (m *TaskUpdatedResponse) String() string            { return proto.CompactTextString(m) }
-func (*TaskUpdatedResponse) ProtoMessage()               {}
-func (*TaskUpdatedResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{7} }
+func (m *TaskUpdatedResponse) Reset()         { *m = TaskUpdatedResponse{} }
+func (m *TaskUpdatedResponse) String() string { return proto.CompactTextString(m) }
+func (*TaskUpdatedResponse) ProtoMessage()    {}
+func (*TaskUpdatedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{7}
+}
+
+func (m *TaskUpdatedResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TaskUpdatedResponse.Unmarshal(m, b)
+}
+func (m *TaskUpdatedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TaskUpdatedResponse.Marshal(b, m, deterministic)
+}
+func (m *TaskUpdatedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskUpdatedResponse.Merge(m, src)
+}
+func (m *TaskUpdatedResponse) XXX_Size() int {
+	return xxx_messageInfo_TaskUpdatedResponse.Size(m)
+}
+func (m *TaskUpdatedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskUpdatedResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskUpdatedResponse proto.InternalMessageInfo
 
 func (m *TaskUpdatedResponse) GetType() TaskReplyType {
 	if m != nil {
@@ -261,13 +473,36 @@ func (m *TaskUpdatedResponse) GetType() TaskReplyType {
 }
 
 type NodeAddedResponse struct {
-	Type NodeReplyType `protobuf:"varint,1,opt,name=type,enum=firmament.NodeReplyType" json:"type,omitempty"`
+	Type                 NodeReplyType `protobuf:"varint,1,opt,name=type,proto3,enum=firmament.NodeReplyType" json:"type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
-func (m *NodeAddedResponse) Reset()                    { *m = NodeAddedResponse{} }
-func (m *NodeAddedResponse) String() string            { return proto.CompactTextString(m) }
-func (*NodeAddedResponse) ProtoMessage()               {}
-func (*NodeAddedResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{8} }
+func (m *NodeAddedResponse) Reset()         { *m = NodeAddedResponse{} }
+func (m *NodeAddedResponse) String() string { return proto.CompactTextString(m) }
+func (*NodeAddedResponse) ProtoMessage()    {}
+func (*NodeAddedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{8}
+}
+
+func (m *NodeAddedResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NodeAddedResponse.Unmarshal(m, b)
+}
+func (m *NodeAddedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NodeAddedResponse.Marshal(b, m, deterministic)
+}
+func (m *NodeAddedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodeAddedResponse.Merge(m, src)
+}
+func (m *NodeAddedResponse) XXX_Size() int {
+	return xxx_messageInfo_NodeAddedResponse.Size(m)
+}
+func (m *NodeAddedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_NodeAddedResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NodeAddedResponse proto.InternalMessageInfo
 
 func (m *NodeAddedResponse) GetType() NodeReplyType {
 	if m != nil {
@@ -277,13 +512,36 @@ func (m *NodeAddedResponse) GetType() NodeReplyType {
 }
 
 type NodeRemovedResponse struct {
-	Type NodeReplyType `protobuf:"varint,1,opt,name=type,enum=firmament.NodeReplyType" json:"type,omitempty"`
+	Type                 NodeReplyType `protobuf:"varint,1,opt,name=type,proto3,enum=firmament.NodeReplyType" json:"type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
-func (m *NodeRemovedResponse) Reset()                    { *m = NodeRemovedResponse{} }
-func (m *NodeRemovedResponse) String() string            { return proto.CompactTextString(m) }
-func (*NodeRemovedResponse) ProtoMessage()               {}
-func (*NodeRemovedResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{9} }
+func (m *NodeRemovedResponse) Reset()         { *m = NodeRemovedResponse{} }
+func (m *NodeRemovedResponse) String() string { return proto.CompactTextString(m) }
+func (*NodeRemovedResponse) ProtoMessage()    {}
+func (*NodeRemovedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{9}
+}
+
+func (m *NodeRemovedResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NodeRemovedResponse.Unmarshal(m, b)
+}
+func (m *NodeRemovedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NodeRemovedResponse.Marshal(b, m, deterministic)
+}
+func (m *NodeRemovedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodeRemovedResponse.Merge(m, src)
+}
+func (m *NodeRemovedResponse) XXX_Size() int {
+	return xxx_messageInfo_NodeRemovedResponse.Size(m)
+}
+func (m *NodeRemovedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_NodeRemovedResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NodeRemovedResponse proto.InternalMessageInfo
 
 func (m *NodeRemovedResponse) GetType() NodeReplyType {
 	if m != nil {
@@ -293,13 +551,36 @@ func (m *NodeRemovedResponse) GetType() NodeReplyType {
 }
 
 type NodeFailedResponse struct {
-	Type NodeReplyType `protobuf:"varint,1,opt,name=type,enum=firmament.NodeReplyType" json:"type,omitempty"`
+	Type                 NodeReplyType `protobuf:"varint,1,opt,name=type,proto3,enum=firmament.NodeReplyType" json:"type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
-func (m *NodeFailedResponse) Reset()                    { *m = NodeFailedResponse{} }
-func (m *NodeFailedResponse) String() string            { return proto.CompactTextString(m) }
-func (*NodeFailedResponse) ProtoMessage()               {}
-func (*NodeFailedResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{10} }
+func (m *NodeFailedResponse) Reset()         { *m = NodeFailedResponse{} }
+func (m *NodeFailedResponse) String() string { return proto.CompactTextString(m) }
+func (*NodeFailedResponse) ProtoMessage()    {}
+func (*NodeFailedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{10}
+}
+
+func (m *NodeFailedResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NodeFailedResponse.Unmarshal(m, b)
+}
+func (m *NodeFailedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NodeFailedResponse.Marshal(b, m, deterministic)
+}
+func (m *NodeFailedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodeFailedResponse.Merge(m, src)
+}
+func (m *NodeFailedResponse) XXX_Size() int {
+	return xxx_messageInfo_NodeFailedResponse.Size(m)
+}
+func (m *NodeFailedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_NodeFailedResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NodeFailedResponse proto.InternalMessageInfo
 
 func (m *NodeFailedResponse) GetType() NodeReplyType {
 	if m != nil {
@@ -309,13 +590,36 @@ func (m *NodeFailedResponse) GetType() NodeReplyType {
 }
 
 type NodeUpdatedResponse struct {
-	Type NodeReplyType `protobuf:"varint,1,opt,name=type,enum=firmament.NodeReplyType" json:"type,omitempty"`
+	Type                 NodeReplyType `protobuf:"varint,1,opt,name=type,proto3,enum=firmament.NodeReplyType" json:"type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
-func (m *NodeUpdatedResponse) Reset()                    { *m = NodeUpdatedResponse{} }
-func (m *NodeUpdatedResponse) String() string            { return proto.CompactTextString(m) }
-func (*NodeUpdatedResponse) ProtoMessage()               {}
-func (*NodeUpdatedResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{11} }
+func (m *NodeUpdatedResponse) Reset()         { *m = NodeUpdatedResponse{} }
+func (m *NodeUpdatedResponse) String() string { return proto.CompactTextString(m) }
+func (*NodeUpdatedResponse) ProtoMessage()    {}
+func (*NodeUpdatedResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{11}
+}
+
+func (m *NodeUpdatedResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NodeUpdatedResponse.Unmarshal(m, b)
+}
+func (m *NodeUpdatedResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NodeUpdatedResponse.Marshal(b, m, deterministic)
+}
+func (m *NodeUpdatedResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodeUpdatedResponse.Merge(m, src)
+}
+func (m *NodeUpdatedResponse) XXX_Size() int {
+	return xxx_messageInfo_NodeUpdatedResponse.Size(m)
+}
+func (m *NodeUpdatedResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_NodeUpdatedResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NodeUpdatedResponse proto.InternalMessageInfo
 
 func (m *NodeUpdatedResponse) GetType() NodeReplyType {
 	if m != nil {
@@ -325,13 +629,36 @@ func (m *NodeUpdatedResponse) GetType() NodeReplyType {
 }
 
 type TaskStatsResponse struct {
-	Type TaskReplyType `protobuf:"varint,1,opt,name=type,enum=firmament.TaskReplyType" json:"type,omitempty"`
+	Type                 TaskReplyType `protobuf:"varint,1,opt,name=type,proto3,enum=firmament.TaskReplyType" json:"type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
-func (m *TaskStatsResponse) Reset()                    { *m = TaskStatsResponse{} }
-func (m *TaskStatsResponse) String() string            { return proto.CompactTextString(m) }
-func (*TaskStatsResponse) ProtoMessage()               {}
-func (*TaskStatsResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{12} }
+func (m *TaskStatsResponse) Reset()         { *m = TaskStatsResponse{} }
+func (m *TaskStatsResponse) String() string { return proto.CompactTextString(m) }
+func (*TaskStatsResponse) ProtoMessage()    {}
+func (*TaskStatsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{12}
+}
+
+func (m *TaskStatsResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TaskStatsResponse.Unmarshal(m, b)
+}
+func (m *TaskStatsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TaskStatsResponse.Marshal(b, m, deterministic)
+}
+func (m *TaskStatsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskStatsResponse.Merge(m, src)
+}
+func (m *TaskStatsResponse) XXX_Size() int {
+	return xxx_messageInfo_TaskStatsResponse.Size(m)
+}
+func (m *TaskStatsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskStatsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskStatsResponse proto.InternalMessageInfo
 
 func (m *TaskStatsResponse) GetType() TaskReplyType {
 	if m != nil {
@@ -341,13 +668,36 @@ func (m *TaskStatsResponse) GetType() TaskReplyType {
 }
 
 type ResourceStatsResponse struct {
-	Type NodeReplyType `protobuf:"varint,1,opt,name=type,enum=firmament.NodeReplyType" json:"type,omitempty"`
+	Type                 NodeReplyType `protobuf:"varint,1,opt,name=type,proto3,enum=firmament.NodeReplyType" json:"type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
-func (m *ResourceStatsResponse) Reset()                    { *m = ResourceStatsResponse{} }
-func (m *ResourceStatsResponse) String() string            { return proto.CompactTextString(m) }
-func (*ResourceStatsResponse) ProtoMessage()               {}
-func (*ResourceStatsResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{13} }
+func (m *ResourceStatsResponse) Reset()         { *m = ResourceStatsResponse{} }
+func (m *ResourceStatsResponse) String() string { return proto.CompactTextString(m) }
+func (*ResourceStatsResponse) ProtoMessage()    {}
+func (*ResourceStatsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{13}
+}
+
+func (m *ResourceStatsResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ResourceStatsResponse.Unmarshal(m, b)
+}
+func (m *ResourceStatsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ResourceStatsResponse.Marshal(b, m, deterministic)
+}
+func (m *ResourceStatsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ResourceStatsResponse.Merge(m, src)
+}
+func (m *ResourceStatsResponse) XXX_Size() int {
+	return xxx_messageInfo_ResourceStatsResponse.Size(m)
+}
+func (m *ResourceStatsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ResourceStatsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ResourceStatsResponse proto.InternalMessageInfo
 
 func (m *ResourceStatsResponse) GetType() NodeReplyType {
 	if m != nil {
@@ -357,13 +707,36 @@ func (m *ResourceStatsResponse) GetType() NodeReplyType {
 }
 
 type TaskUID struct {
-	TaskUid uint64 `protobuf:"varint,1,opt,name=task_uid,json=taskUid" json:"task_uid,omitempty"`
+	TaskUid              uint64   `protobuf:"varint,1,opt,name=task_uid,json=taskUid,proto3" json:"task_uid,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *TaskUID) Reset()                    { *m = TaskUID{} }
-func (m *TaskUID) String() string            { return proto.CompactTextString(m) }
-func (*TaskUID) ProtoMessage()               {}
-func (*TaskUID) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{14} }
+func (m *TaskUID) Reset()         { *m = TaskUID{} }
+func (m *TaskUID) String() string { return proto.CompactTextString(m) }
+func (*TaskUID) ProtoMessage()    {}
+func (*TaskUID) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{14}
+}
+
+func (m *TaskUID) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TaskUID.Unmarshal(m, b)
+}
+func (m *TaskUID) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TaskUID.Marshal(b, m, deterministic)
+}
+func (m *TaskUID) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskUID.Merge(m, src)
+}
+func (m *TaskUID) XXX_Size() int {
+	return xxx_messageInfo_TaskUID.Size(m)
+}
+func (m *TaskUID) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskUID.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskUID proto.InternalMessageInfo
 
 func (m *TaskUID) GetTaskUid() uint64 {
 	if m != nil {
@@ -373,13 +746,36 @@ func (m *TaskUID) GetTaskUid() uint64 {
 }
 
 type ResourceUID struct {
-	ResourceUid string `protobuf:"bytes,1,opt,name=resource_uid,json=resourceUid" json:"resource_uid,omitempty"`
+	ResourceUid          string   `protobuf:"bytes,1,opt,name=resource_uid,json=resourceUid,proto3" json:"resource_uid,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ResourceUID) Reset()                    { *m = ResourceUID{} }
-func (m *ResourceUID) String() string            { return proto.CompactTextString(m) }
-func (*ResourceUID) ProtoMessage()               {}
-func (*ResourceUID) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{15} }
+func (m *ResourceUID) Reset()         { *m = ResourceUID{} }
+func (m *ResourceUID) String() string { return proto.CompactTextString(m) }
+func (*ResourceUID) ProtoMessage()    {}
+func (*ResourceUID) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{15}
+}
+
+func (m *ResourceUID) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ResourceUID.Unmarshal(m, b)
+}
+func (m *ResourceUID) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ResourceUID.Marshal(b, m, deterministic)
+}
+func (m *ResourceUID) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ResourceUID.Merge(m, src)
+}
+func (m *ResourceUID) XXX_Size() int {
+	return xxx_messageInfo_ResourceUID.Size(m)
+}
+func (m *ResourceUID) XXX_DiscardUnknown() {
+	xxx_messageInfo_ResourceUID.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ResourceUID proto.InternalMessageInfo
 
 func (m *ResourceUID) GetResourceUid() string {
 	if m != nil {
@@ -389,13 +785,36 @@ func (m *ResourceUID) GetResourceUid() string {
 }
 
 type HealthCheckRequest struct {
-	GrpcService string `protobuf:"bytes,1,opt,name=grpc_service,json=grpcService" json:"grpc_service,omitempty"`
+	GrpcService          string   `protobuf:"bytes,1,opt,name=grpc_service,json=grpcService,proto3" json:"grpc_service,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *HealthCheckRequest) Reset()                    { *m = HealthCheckRequest{} }
-func (m *HealthCheckRequest) String() string            { return proto.CompactTextString(m) }
-func (*HealthCheckRequest) ProtoMessage()               {}
-func (*HealthCheckRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{16} }
+func (m *HealthCheckRequest) Reset()         { *m = HealthCheckRequest{} }
+func (m *HealthCheckRequest) String() string { return proto.CompactTextString(m) }
+func (*HealthCheckRequest) ProtoMessage()    {}
+func (*HealthCheckRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{16}
+}
+
+func (m *HealthCheckRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_HealthCheckRequest.Unmarshal(m, b)
+}
+func (m *HealthCheckRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_HealthCheckRequest.Marshal(b, m, deterministic)
+}
+func (m *HealthCheckRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HealthCheckRequest.Merge(m, src)
+}
+func (m *HealthCheckRequest) XXX_Size() int {
+	return xxx_messageInfo_HealthCheckRequest.Size(m)
+}
+func (m *HealthCheckRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_HealthCheckRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_HealthCheckRequest proto.InternalMessageInfo
 
 func (m *HealthCheckRequest) GetGrpcService() string {
 	if m != nil {
@@ -405,13 +824,36 @@ func (m *HealthCheckRequest) GetGrpcService() string {
 }
 
 type HealthCheckResponse struct {
-	Status ServingStatus `protobuf:"varint,1,opt,name=status,enum=firmament.ServingStatus" json:"status,omitempty"`
+	Status               ServingStatus `protobuf:"varint,1,opt,name=status,proto3,enum=firmament.ServingStatus" json:"status,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
 }
 
-func (m *HealthCheckResponse) Reset()                    { *m = HealthCheckResponse{} }
-func (m *HealthCheckResponse) String() string            { return proto.CompactTextString(m) }
-func (*HealthCheckResponse) ProtoMessage()               {}
-func (*HealthCheckResponse) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{17} }
+func (m *HealthCheckResponse) Reset()         { *m = HealthCheckResponse{} }
+func (m *HealthCheckResponse) String() string { return proto.CompactTextString(m) }
+func (*HealthCheckResponse) ProtoMessage()    {}
+func (*HealthCheckResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_fc144782636f334d, []int{17}
+}
+
+func (m *HealthCheckResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_HealthCheckResponse.Unmarshal(m, b)
+}
+func (m *HealthCheckResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_HealthCheckResponse.Marshal(b, m, deterministic)
+}
+func (m *HealthCheckResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HealthCheckResponse.Merge(m, src)
+}
+func (m *HealthCheckResponse) XXX_Size() int {
+	return xxx_messageInfo_HealthCheckResponse.Size(m)
+}
+func (m *HealthCheckResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_HealthCheckResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_HealthCheckResponse proto.InternalMessageInfo
 
 func (m *HealthCheckResponse) GetStatus() ServingStatus {
 	if m != nil {
@@ -421,6 +863,9 @@ func (m *HealthCheckResponse) GetStatus() ServingStatus {
 }
 
 func init() {
+	proto.RegisterEnum("firmament.TaskReplyType", TaskReplyType_name, TaskReplyType_value)
+	proto.RegisterEnum("firmament.NodeReplyType", NodeReplyType_name, NodeReplyType_value)
+	proto.RegisterEnum("firmament.ServingStatus", ServingStatus_name, ServingStatus_value)
 	proto.RegisterType((*ScheduleRequest)(nil), "firmament.ScheduleRequest")
 	proto.RegisterType((*SchedulingDeltas)(nil), "firmament.SchedulingDeltas")
 	proto.RegisterType((*TaskCompletedResponse)(nil), "firmament.TaskCompletedResponse")
@@ -439,9 +884,6 @@ func init() {
 	proto.RegisterType((*ResourceUID)(nil), "firmament.ResourceUID")
 	proto.RegisterType((*HealthCheckRequest)(nil), "firmament.HealthCheckRequest")
 	proto.RegisterType((*HealthCheckResponse)(nil), "firmament.HealthCheckResponse")
-	proto.RegisterEnum("firmament.TaskReplyType", TaskReplyType_name, TaskReplyType_value)
-	proto.RegisterEnum("firmament.NodeReplyType", NodeReplyType_name, NodeReplyType_value)
-	proto.RegisterEnum("firmament.ServingStatus", ServingStatus_name, ServingStatus_value)
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -452,8 +894,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for FirmamentScheduler service
-
+// FirmamentSchedulerClient is the client API for FirmamentScheduler service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type FirmamentSchedulerClient interface {
 	// Schedule sends a schedule request to firmament server.
 	Schedule(ctx context.Context, in *ScheduleRequest, opts ...grpc.CallOption) (*SchedulingDeltas, error)
@@ -492,7 +935,7 @@ func NewFirmamentSchedulerClient(cc *grpc.ClientConn) FirmamentSchedulerClient {
 
 func (c *firmamentSchedulerClient) Schedule(ctx context.Context, in *ScheduleRequest, opts ...grpc.CallOption) (*SchedulingDeltas, error) {
 	out := new(SchedulingDeltas)
-	err := grpc.Invoke(ctx, "/firmament.FirmamentScheduler/Schedule", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/firmament.FirmamentScheduler/Schedule", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -501,7 +944,7 @@ func (c *firmamentSchedulerClient) Schedule(ctx context.Context, in *ScheduleReq
 
 func (c *firmamentSchedulerClient) TaskCompleted(ctx context.Context, in *TaskUID, opts ...grpc.CallOption) (*TaskCompletedResponse, error) {
 	out := new(TaskCompletedResponse)
-	err := grpc.Invoke(ctx, "/firmament.FirmamentScheduler/TaskCompleted", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/firmament.FirmamentScheduler/TaskCompleted", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -510,7 +953,7 @@ func (c *firmamentSchedulerClient) TaskCompleted(ctx context.Context, in *TaskUI
 
 func (c *firmamentSchedulerClient) TaskFailed(ctx context.Context, in *TaskUID, opts ...grpc.CallOption) (*TaskFailedResponse, error) {
 	out := new(TaskFailedResponse)
-	err := grpc.Invoke(ctx, "/firmament.FirmamentScheduler/TaskFailed", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/firmament.FirmamentScheduler/TaskFailed", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -519,7 +962,7 @@ func (c *firmamentSchedulerClient) TaskFailed(ctx context.Context, in *TaskUID, 
 
 func (c *firmamentSchedulerClient) TaskRemoved(ctx context.Context, in *TaskUID, opts ...grpc.CallOption) (*TaskRemovedResponse, error) {
 	out := new(TaskRemovedResponse)
-	err := grpc.Invoke(ctx, "/firmament.FirmamentScheduler/TaskRemoved", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/firmament.FirmamentScheduler/TaskRemoved", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -528,7 +971,7 @@ func (c *firmamentSchedulerClient) TaskRemoved(ctx context.Context, in *TaskUID,
 
 func (c *firmamentSchedulerClient) TaskSubmitted(ctx context.Context, in *TaskDescription, opts ...grpc.CallOption) (*TaskSubmittedResponse, error) {
 	out := new(TaskSubmittedResponse)
-	err := grpc.Invoke(ctx, "/firmament.FirmamentScheduler/TaskSubmitted", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/firmament.FirmamentScheduler/TaskSubmitted", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -537,7 +980,7 @@ func (c *firmamentSchedulerClient) TaskSubmitted(ctx context.Context, in *TaskDe
 
 func (c *firmamentSchedulerClient) TaskUpdated(ctx context.Context, in *TaskDescription, opts ...grpc.CallOption) (*TaskUpdatedResponse, error) {
 	out := new(TaskUpdatedResponse)
-	err := grpc.Invoke(ctx, "/firmament.FirmamentScheduler/TaskUpdated", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/firmament.FirmamentScheduler/TaskUpdated", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -546,7 +989,7 @@ func (c *firmamentSchedulerClient) TaskUpdated(ctx context.Context, in *TaskDesc
 
 func (c *firmamentSchedulerClient) NodeAdded(ctx context.Context, in *ResourceTopologyNodeDescriptor, opts ...grpc.CallOption) (*NodeAddedResponse, error) {
 	out := new(NodeAddedResponse)
-	err := grpc.Invoke(ctx, "/firmament.FirmamentScheduler/NodeAdded", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/firmament.FirmamentScheduler/NodeAdded", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -555,7 +998,7 @@ func (c *firmamentSchedulerClient) NodeAdded(ctx context.Context, in *ResourceTo
 
 func (c *firmamentSchedulerClient) NodeFailed(ctx context.Context, in *ResourceUID, opts ...grpc.CallOption) (*NodeFailedResponse, error) {
 	out := new(NodeFailedResponse)
-	err := grpc.Invoke(ctx, "/firmament.FirmamentScheduler/NodeFailed", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/firmament.FirmamentScheduler/NodeFailed", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -564,7 +1007,7 @@ func (c *firmamentSchedulerClient) NodeFailed(ctx context.Context, in *ResourceU
 
 func (c *firmamentSchedulerClient) NodeRemoved(ctx context.Context, in *ResourceUID, opts ...grpc.CallOption) (*NodeRemovedResponse, error) {
 	out := new(NodeRemovedResponse)
-	err := grpc.Invoke(ctx, "/firmament.FirmamentScheduler/NodeRemoved", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/firmament.FirmamentScheduler/NodeRemoved", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -573,7 +1016,7 @@ func (c *firmamentSchedulerClient) NodeRemoved(ctx context.Context, in *Resource
 
 func (c *firmamentSchedulerClient) NodeUpdated(ctx context.Context, in *ResourceTopologyNodeDescriptor, opts ...grpc.CallOption) (*NodeUpdatedResponse, error) {
 	out := new(NodeUpdatedResponse)
-	err := grpc.Invoke(ctx, "/firmament.FirmamentScheduler/NodeUpdated", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/firmament.FirmamentScheduler/NodeUpdated", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -582,7 +1025,7 @@ func (c *firmamentSchedulerClient) NodeUpdated(ctx context.Context, in *Resource
 
 func (c *firmamentSchedulerClient) AddTaskStats(ctx context.Context, in *TaskStats, opts ...grpc.CallOption) (*TaskStatsResponse, error) {
 	out := new(TaskStatsResponse)
-	err := grpc.Invoke(ctx, "/firmament.FirmamentScheduler/AddTaskStats", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/firmament.FirmamentScheduler/AddTaskStats", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -591,7 +1034,7 @@ func (c *firmamentSchedulerClient) AddTaskStats(ctx context.Context, in *TaskSta
 
 func (c *firmamentSchedulerClient) AddNodeStats(ctx context.Context, in *ResourceStats, opts ...grpc.CallOption) (*ResourceStatsResponse, error) {
 	out := new(ResourceStatsResponse)
-	err := grpc.Invoke(ctx, "/firmament.FirmamentScheduler/AddNodeStats", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/firmament.FirmamentScheduler/AddNodeStats", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -600,15 +1043,14 @@ func (c *firmamentSchedulerClient) AddNodeStats(ctx context.Context, in *Resourc
 
 func (c *firmamentSchedulerClient) Check(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error) {
 	out := new(HealthCheckResponse)
-	err := grpc.Invoke(ctx, "/firmament.FirmamentScheduler/Check", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/firmament.FirmamentScheduler/Check", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for FirmamentScheduler service
-
+// FirmamentSchedulerServer is the server API for FirmamentScheduler service.
 type FirmamentSchedulerServer interface {
 	// Schedule sends a schedule request to firmament server.
 	Schedule(context.Context, *ScheduleRequest) (*SchedulingDeltas, error)
@@ -936,66 +1378,68 @@ var _FirmamentScheduler_serviceDesc = grpc.ServiceDesc{
 	Metadata: "firmament_scheduler.proto",
 }
 
-func init() { proto.RegisterFile("firmament_scheduler.proto", fileDescriptor2) }
+func init() { proto.RegisterFile("firmament_scheduler.proto", fileDescriptor_fc144782636f334d) }
 
-var fileDescriptor2 = []byte{
-	// 926 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0x4d, 0x6f, 0xdb, 0x46,
-	0x10, 0xa5, 0xfc, 0x25, 0x7b, 0x14, 0x49, 0xd4, 0x38, 0x76, 0x6d, 0xb5, 0x0d, 0x1c, 0xa2, 0x87,
-	0xd4, 0x28, 0x8c, 0x40, 0x3d, 0x14, 0xe8, 0xa5, 0xa0, 0x44, 0xca, 0x55, 0x6c, 0x8b, 0x01, 0x49,
-	0xb9, 0x1f, 0x17, 0x82, 0x16, 0xb7, 0x36, 0x63, 0x49, 0x64, 0x49, 0x2a, 0x80, 0x7f, 0x44, 0xaf,
-	0xfd, 0x7b, 0xbd, 0xf7, 0x57, 0x14, 0xbb, 0x24, 0x57, 0xfc, 0x72, 0xa0, 0x2a, 0xc7, 0x7d, 0x3b,
-	0xf3, 0x76, 0xde, 0x2c, 0xf7, 0x0d, 0xe1, 0xf4, 0x0f, 0x37, 0x98, 0xdb, 0x73, 0xb2, 0x88, 0xac,
-	0x70, 0xfa, 0x40, 0x9c, 0xe5, 0x8c, 0x04, 0x17, 0x7e, 0xe0, 0x45, 0x1e, 0x1e, 0xf0, 0xad, 0x6e,
-	0xeb, 0x83, 0x77, 0x67, 0x39, 0x24, 0x9c, 0xc6, 0x5b, 0xdd, 0x97, 0x01, 0x09, 0xbd, 0x65, 0x30,
-	0x25, 0x56, 0x18, 0xd9, 0x51, 0x98, 0xa0, 0xaf, 0x39, 0x1a, 0x79, 0xbe, 0x37, 0xf3, 0xee, 0x9f,
-	0xac, 0x85, 0xe7, 0x90, 0x6c, 0x62, 0x3b, 0xb2, 0xc3, 0xc7, 0x2c, 0x20, 0x32, 0x20, 0xcb, 0x72,
-	0x9c, 0xd4, 0xe1, 0x2e, 0xee, 0x2d, 0x87, 0xcc, 0x22, 0x3b, 0xc6, 0xa5, 0x0e, 0xb4, 0x8d, 0xa4,
-	0x42, 0x9d, 0xfc, 0xb9, 0x24, 0x61, 0x24, 0x0d, 0x41, 0x34, 0x78, 0xb0, 0x42, 0x63, 0x43, 0xec,
-	0xc1, 0x1e, 0xcb, 0x0a, 0x4f, 0x6a, 0x67, 0xdb, 0x6f, 0x1a, 0xbd, 0xee, 0x05, 0x97, 0x71, 0x51,
-	0x08, 0xd6, 0x93, 0x48, 0x49, 0x85, 0x23, 0xd3, 0x0e, 0x1f, 0x07, 0xde, 0xdc, 0x9f, 0x91, 0x88,
-	0x38, 0x3a, 0x09, 0x7d, 0x6f, 0x11, 0x12, 0xfc, 0x0e, 0x76, 0xa2, 0x27, 0x9f, 0x9c, 0xd4, 0xce,
-	0x6a, 0x6f, 0x5a, 0xbd, 0x93, 0x0c, 0x15, 0x8d, 0xd7, 0x89, 0x3f, 0x7b, 0x32, 0x9f, 0x7c, 0xa2,
-	0xb3, 0x28, 0xe9, 0xef, 0x1a, 0xb4, 0x29, 0xae, 0x90, 0x70, 0x1a, 0xb8, 0x7e, 0xe4, 0x7a, 0x0b,
-	0xec, 0xc3, 0x4a, 0x32, 0xc5, 0xbc, 0x80, 0x91, 0x35, 0x7a, 0xa7, 0x05, 0x32, 0x85, 0x07, 0xe8,
-	0xad, 0x28, 0xb7, 0xc6, 0x9f, 0x80, 0xf7, 0x3f, 0xa1, 0xd8, 0x62, 0x14, 0xd9, 0x7a, 0xde, 0x79,
-	0x77, 0x19, 0x86, 0xe6, 0x87, 0xec, 0x32, 0xd5, 0x67, 0x2c, 0xef, 0xe6, 0x6e, 0xb4, 0xb9, 0xbe,
-	0x01, 0x1c, 0xc6, 0xf0, 0xdc, 0xfb, 0xb8, 0x31, 0x49, 0x1f, 0x90, 0xc2, 0x43, 0xdb, 0x9d, 0x7d,
-	0x6e, 0x21, 0x13, 0xdf, 0xb1, 0x37, 0x57, 0x23, 0x43, 0x67, 0xec, 0x39, 0x44, 0x76, 0x9c, 0xb5,
-	0x28, 0x68, 0x6c, 0x45, 0x1d, 0x31, 0xbc, 0x6e, 0x43, 0xaa, 0x48, 0xfa, 0x80, 0x14, 0x5e, 0xbb,
-	0x21, 0x9f, 0x28, 0x64, 0xfd, 0x86, 0x54, 0x91, 0xc8, 0xd0, 0x61, 0x5f, 0x09, 0x7d, 0x8b, 0x1b,
-	0xf6, 0x54, 0x85, 0x23, 0x3d, 0xf1, 0x80, 0x75, 0x69, 0xaa, 0x2a, 0xf9, 0x06, 0xea, 0xec, 0x7e,
-	0x47, 0x0a, 0x9e, 0xc2, 0x3e, 0x7b, 0x3f, 0x4b, 0xd7, 0x61, 0xc9, 0x3b, 0x7a, 0x9d, 0xae, 0x27,
-	0xae, 0x23, 0xbd, 0x85, 0x46, 0x7a, 0x18, 0x8d, 0x7c, 0x0d, 0x2f, 0xb8, 0xff, 0xa4, 0xd1, 0x07,
-	0x7a, 0x23, 0xc5, 0x68, 0xc6, 0x0f, 0x80, 0x3f, 0x13, 0x7b, 0x16, 0x3d, 0x0c, 0x1e, 0xc8, 0xf4,
-	0x31, 0x71, 0x11, 0x9a, 0x78, 0x1f, 0xf8, 0x53, 0x2b, 0x24, 0xc1, 0x47, 0x77, 0x4a, 0xd2, 0x44,
-	0x8a, 0x19, 0x31, 0x24, 0x5d, 0xc2, 0x61, 0x2e, 0x31, 0x51, 0xf5, 0x16, 0xf6, 0xa8, 0x73, 0x2d,
-	0xc3, 0x0a, 0x5d, 0x2c, 0x75, 0x71, 0x6f, 0xb0, 0x7d, 0x3d, 0x89, 0x3b, 0xff, 0xa7, 0x06, 0xcd,
-	0x5c, 0xe3, 0xf0, 0x08, 0x3a, 0xa6, 0x6c, 0x5c, 0x59, 0x03, 0xed, 0xe6, 0xfd, 0xb5, 0x6a, 0xaa,
-	0x8a, 0xa5, 0x5d, 0x89, 0x02, 0x87, 0x8d, 0x49, 0xff, 0x66, 0x64, 0x26, 0x70, 0x0d, 0x0f, 0xa1,
-	0xcd, 0x60, 0x5d, 0xbd, 0xd1, 0x6e, 0x63, 0x70, 0x0b, 0x11, 0x5a, 0x0c, 0x1c, 0xca, 0xa3, 0xeb,
-	0x18, 0xdb, 0xe6, 0x81, 0x93, 0xf7, 0x8a, 0x9c, 0x64, 0xef, 0xf0, 0xc0, 0xb1, 0x66, 0x5a, 0x43,
-	0x6d, 0x32, 0x56, 0xc4, 0x5d, 0x3c, 0x06, 0x64, 0xd8, 0x3b, 0xad, 0x9f, 0xc1, 0xf7, 0xb0, 0x0b,
-	0xc7, 0x0c, 0x97, 0xaf, 0x75, 0x55, 0x56, 0x7e, 0x5b, 0x15, 0x22, 0xd6, 0xf9, 0x9e, 0x61, 0xca,
-	0xa6, 0xca, 0xb2, 0x06, 0xba, 0x4a, 0x8f, 0x11, 0xf7, 0xcf, 0xff, 0xaa, 0x41, 0x33, 0x77, 0xa7,
-	0xd8, 0x81, 0xe6, 0x58, 0x53, 0x54, 0x4b, 0x56, 0x94, 0x54, 0x1d, 0x42, 0x8b, 0x41, 0xab, 0x8a,
-	0x99, 0x34, 0x86, 0xe5, 0xa4, 0xa5, 0x60, 0x46, 0xc6, 0x36, 0xcf, 0x5e, 0x95, 0xbb, 0x83, 0x5f,
-	0xc0, 0x61, 0x7c, 0x48, 0x52, 0xae, 0xfa, 0xeb, 0xc8, 0x30, 0x0d, 0x71, 0xf7, 0xfc, 0x47, 0x68,
-	0xe6, 0xae, 0x02, 0x1b, 0x50, 0x9f, 0x8c, 0xaf, 0xc6, 0xda, 0x2f, 0x63, 0x51, 0xa0, 0x0b, 0x43,
-	0xd5, 0x6f, 0x47, 0xe3, 0x4b, 0xb1, 0x86, 0x6d, 0x68, 0x50, 0xca, 0x14, 0xd8, 0xea, 0xfd, 0x5b,
-	0x07, 0x1c, 0xa6, 0x37, 0x9a, 0x0e, 0x9f, 0x00, 0x55, 0xd8, 0x4f, 0x17, 0x58, 0x31, 0x5e, 0xd2,
-	0xf1, 0xd4, 0xfd, 0xf2, 0xf9, 0xd1, 0x13, 0x4a, 0x02, 0x5e, 0xc6, 0x9f, 0x02, 0x9f, 0x3a, 0x88,
-	0x85, 0xd7, 0x35, 0x19, 0x29, 0xdd, 0xb3, 0x02, 0x56, 0x9a, 0x51, 0x92, 0x80, 0x32, 0xc0, 0xca,
-	0x52, 0x2b, 0x59, 0xbe, 0x2e, 0x60, 0x79, 0xb3, 0x91, 0x04, 0x1c, 0x40, 0x23, 0x63, 0xed, 0x95,
-	0x1c, 0xaf, 0x4a, 0x6f, 0x3f, 0xe7, 0x7a, 0x92, 0x80, 0x5a, 0x2c, 0x88, 0x8f, 0x99, 0x5c, 0x73,
-	0x0a, 0x83, 0xb1, 0x24, 0xac, 0x34, 0x9c, 0x24, 0x01, 0xaf, 0xe2, 0xaa, 0x12, 0x5b, 0xfb, 0x24,
-	0x5d, 0xb1, 0xba, 0x82, 0x15, 0x4a, 0x02, 0xde, 0xc2, 0x01, 0xf7, 0x7b, 0xfc, 0x36, 0x13, 0x9e,
-	0x9a, 0x88, 0x99, 0xfc, 0xb4, 0xd0, 0xa8, 0xd5, 0xf0, 0xec, 0x7e, 0x55, 0x30, 0xab, 0xdc, 0xc0,
-	0x90, 0x04, 0x54, 0x01, 0x56, 0xfe, 0x8d, 0xc7, 0x15, 0xc4, 0xc5, 0x1b, 0x28, 0xdb, 0x3d, 0xfb,
-	0x1a, 0x1a, 0x99, 0x59, 0xf2, 0x2c, 0xcf, 0xab, 0x92, 0x75, 0x16, 0x6f, 0xe1, 0xf7, 0x98, 0x28,
-	0x6d, 0xda, 0xff, 0x50, 0x5a, 0xe4, 0x2e, 0xf7, 0x50, 0x81, 0x17, 0xb2, 0xe3, 0xf0, 0x29, 0x81,
-	0x2f, 0x8b, 0x97, 0x48, 0xd1, 0x5c, 0xc7, 0x4a, 0x13, 0x45, 0x12, 0xf0, 0x9a, 0xb1, 0xd0, 0x13,
-	0x62, 0x96, 0x93, 0x8a, 0x12, 0x63, 0xa6, 0xb3, 0xe7, 0x76, 0x32, 0x6c, 0x43, 0xd8, 0x65, 0xae,
-	0x8c, 0xd9, 0x16, 0x97, 0x6d, 0x3e, 0xa7, 0xae, 0xc2, 0xcc, 0xef, 0xf6, 0xd8, 0x6f, 0xe6, 0xf7,
-	0xff, 0x05, 0x00, 0x00, 0xff, 0xff, 0xea, 0x0c, 0x38, 0xbd, 0x12, 0x0b, 0x00, 0x00,
+var fileDescriptor_fc144782636f334d = []byte{
+	// 948 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0x5d, 0x6f, 0xe2, 0x46,
+	0x14, 0x35, 0x09, 0x09, 0xc9, 0x65, 0x01, 0x73, 0xb3, 0x49, 0x09, 0x6d, 0x57, 0xac, 0xd5, 0x87,
+	0x34, 0xad, 0xa2, 0x15, 0x7d, 0xa8, 0xd4, 0x97, 0xca, 0x60, 0x93, 0xb2, 0x49, 0xf0, 0xca, 0x36,
+	0xe9, 0xc7, 0x8b, 0x45, 0xf0, 0x34, 0xf1, 0x2e, 0x60, 0xd7, 0x63, 0x56, 0xca, 0x8f, 0xe8, 0x6b,
+	0xff, 0x5e, 0xdf, 0xfb, 0x2b, 0xaa, 0x19, 0x7f, 0xe0, 0xaf, 0xac, 0x68, 0xfa, 0xc6, 0x9c, 0xb9,
+	0xf7, 0xcc, 0x3d, 0x77, 0x3c, 0xe7, 0x02, 0xa7, 0xbf, 0x3b, 0xfe, 0x72, 0xb6, 0x24, 0xab, 0xc0,
+	0xa2, 0xf3, 0x07, 0x62, 0xaf, 0x17, 0xc4, 0xbf, 0xf0, 0x7c, 0x37, 0x70, 0xf1, 0x30, 0xd9, 0xea,
+	0x36, 0xdf, 0xbb, 0x77, 0x96, 0x4d, 0xe8, 0x3c, 0xdc, 0xea, 0xbe, 0xf4, 0x09, 0x75, 0xd7, 0xfe,
+	0x9c, 0x58, 0x34, 0x98, 0x05, 0x34, 0x42, 0x5f, 0x27, 0x68, 0xe0, 0x7a, 0xee, 0xc2, 0xbd, 0x7f,
+	0xb4, 0x56, 0xae, 0x4d, 0xd2, 0x89, 0xad, 0x60, 0x46, 0x3f, 0xa4, 0x01, 0x91, 0x03, 0x69, 0x96,
+	0x93, 0xa8, 0x0e, 0x67, 0x75, 0x6f, 0xd9, 0x64, 0x11, 0xcc, 0x42, 0x5c, 0x6a, 0x43, 0xcb, 0x88,
+	0x2a, 0xd4, 0xc9, 0x1f, 0x6b, 0x42, 0x03, 0x89, 0x82, 0x68, 0x24, 0xc1, 0x0a, 0x8b, 0xa5, 0xd8,
+	0x87, 0x7d, 0x9e, 0x45, 0x3b, 0x95, 0xde, 0xee, 0x59, 0xbd, 0xdf, 0xbd, 0x48, 0x64, 0x5c, 0xe4,
+	0x82, 0xf5, 0x28, 0x12, 0xbf, 0x81, 0xf6, 0x7a, 0x15, 0xcb, 0xb7, 0x2d, 0x56, 0x12, 0xed, 0xec,
+	0xf4, 0x76, 0xcf, 0xaa, 0xba, 0x98, 0xda, 0x30, 0x19, 0x2e, 0xa9, 0x70, 0xcc, 0x7e, 0x0c, 0xdd,
+	0xa5, 0xb7, 0x20, 0x01, 0xb1, 0x75, 0x42, 0x3d, 0x77, 0x45, 0x09, 0x7e, 0x0b, 0xd5, 0xe0, 0xd1,
+	0x23, 0x9d, 0x4a, 0xaf, 0x72, 0xd6, 0xec, 0x77, 0x52, 0xe7, 0xb2, 0x78, 0x9d, 0x78, 0x8b, 0x47,
+	0xf3, 0xd1, 0x23, 0x3a, 0x8f, 0x92, 0xfe, 0xaa, 0x40, 0x8b, 0xe1, 0x0a, 0xa1, 0x73, 0xdf, 0xf1,
+	0x02, 0xc7, 0x5d, 0xe1, 0x00, 0x36, 0xfd, 0x61, 0x98, 0xeb, 0x73, 0xb2, 0x7a, 0xff, 0x34, 0x47,
+	0xa6, 0x24, 0x01, 0x7a, 0x33, 0xc8, 0xac, 0xf1, 0x47, 0x48, 0x2e, 0x2b, 0xa2, 0xd8, 0xe1, 0x14,
+	0xe9, 0x7a, 0xde, 0xba, 0x77, 0x29, 0x86, 0xc6, 0xfb, 0xf4, 0x32, 0xd6, 0x67, 0xac, 0xef, 0x96,
+	0x4e, 0xf0, 0x7c, 0x7d, 0x43, 0x38, 0x0a, 0xe1, 0xa5, 0xfb, 0xf1, 0xd9, 0x24, 0x03, 0x40, 0x06,
+	0x8f, 0x66, 0xce, 0xe2, 0xff, 0x16, 0x32, 0xf5, 0xec, 0xd9, 0xf3, 0xd5, 0xc8, 0xd0, 0x9e, 0xb8,
+	0x36, 0x91, 0x6d, 0x7b, 0x2b, 0x0a, 0x16, 0x5b, 0x52, 0x47, 0x08, 0x6f, 0xdb, 0x90, 0x32, 0x92,
+	0x01, 0x20, 0x83, 0xb7, 0x6e, 0xc8, 0x27, 0x0a, 0xd9, 0xbe, 0x21, 0x65, 0x24, 0x32, 0xb4, 0xf9,
+	0x57, 0xc2, 0x1e, 0xee, 0x33, 0x7b, 0xaa, 0xc2, 0xb1, 0x1e, 0x19, 0xc6, 0xb6, 0x34, 0x65, 0x95,
+	0x7c, 0x05, 0x35, 0x7e, 0xbf, 0x63, 0x05, 0x4f, 0xe1, 0x80, 0xbf, 0x9f, 0xb5, 0x63, 0xf3, 0xe4,
+	0xaa, 0x5e, 0x63, 0xeb, 0xa9, 0x63, 0x4b, 0x6f, 0xa0, 0x1e, 0x1f, 0xc6, 0x22, 0x5f, 0xc3, 0x8b,
+	0xc4, 0xac, 0xe2, 0xe8, 0x43, 0xbd, 0x1e, 0x63, 0x2c, 0xe3, 0x7b, 0xc0, 0x9f, 0xc8, 0x6c, 0x11,
+	0x3c, 0x0c, 0x1f, 0xc8, 0xfc, 0x43, 0x64, 0x39, 0x2c, 0xf1, 0xde, 0xf7, 0xe6, 0x16, 0x25, 0xfe,
+	0x47, 0x67, 0x4e, 0xe2, 0x44, 0x86, 0x19, 0x21, 0x24, 0x5d, 0xc2, 0x51, 0x26, 0x31, 0x52, 0xf5,
+	0x06, 0xf6, 0x99, 0xcd, 0xad, 0x69, 0x89, 0x2e, 0x9e, 0xba, 0xba, 0x37, 0xf8, 0xbe, 0x1e, 0xc5,
+	0x9d, 0xff, 0x5d, 0x81, 0x46, 0xa6, 0x71, 0x78, 0x0c, 0x6d, 0x53, 0x36, 0xae, 0xac, 0xa1, 0x76,
+	0xf3, 0xee, 0x5a, 0x35, 0x55, 0xc5, 0xd2, 0xae, 0x44, 0x21, 0x81, 0x8d, 0xe9, 0xe0, 0x66, 0x6c,
+	0x46, 0x70, 0x05, 0x8f, 0xa0, 0xc5, 0x61, 0x5d, 0xbd, 0xd1, 0x6e, 0x43, 0x70, 0x07, 0x11, 0x9a,
+	0x1c, 0x1c, 0xc9, 0xe3, 0xeb, 0x10, 0xdb, 0x4d, 0x02, 0xa7, 0xef, 0x14, 0x39, 0xca, 0xae, 0x26,
+	0x81, 0x13, 0xcd, 0xb4, 0x46, 0xda, 0x74, 0xa2, 0x88, 0x7b, 0x78, 0x02, 0xc8, 0xb1, 0xb7, 0xda,
+	0x20, 0x85, 0xef, 0x63, 0x17, 0x4e, 0x38, 0x2e, 0x5f, 0xeb, 0xaa, 0xac, 0xfc, 0xba, 0x29, 0x44,
+	0xac, 0x25, 0x7b, 0x86, 0x29, 0x9b, 0x2a, 0xcf, 0x1a, 0xea, 0x2a, 0x3b, 0x46, 0x3c, 0x38, 0xff,
+	0xb3, 0x02, 0x8d, 0xcc, 0x9d, 0x62, 0x1b, 0x1a, 0x13, 0x4d, 0x51, 0x2d, 0x59, 0x51, 0x62, 0x75,
+	0x08, 0x4d, 0x0e, 0x6d, 0x2a, 0xe6, 0xd2, 0x38, 0x96, 0x91, 0x16, 0x83, 0x29, 0x19, 0xbb, 0x49,
+	0xf6, 0xa6, 0xdc, 0x2a, 0x7e, 0x06, 0x47, 0xe1, 0x21, 0x51, 0xb9, 0xea, 0x2f, 0x63, 0xc3, 0x34,
+	0xc4, 0xbd, 0xf3, 0x1f, 0xa0, 0x91, 0xb9, 0x0a, 0xac, 0x43, 0x6d, 0x3a, 0xb9, 0x9a, 0x68, 0x3f,
+	0x4f, 0x44, 0x81, 0x2d, 0x0c, 0x55, 0xbf, 0x1d, 0x4f, 0x2e, 0xc5, 0x0a, 0xb6, 0xa0, 0xce, 0x28,
+	0x63, 0x60, 0xa7, 0xff, 0x4f, 0x0d, 0x70, 0x14, 0xdf, 0x68, 0x3c, 0xa9, 0x7c, 0x54, 0xe1, 0x20,
+	0x5e, 0x60, 0xc9, 0x2c, 0x8a, 0x67, 0x59, 0xf7, 0xf3, 0xa7, 0xe7, 0x14, 0x95, 0x04, 0xbc, 0x0c,
+	0x3f, 0x85, 0x64, 0xea, 0x20, 0xe6, 0x5e, 0xd7, 0x74, 0xac, 0x74, 0x7b, 0x39, 0xac, 0x30, 0xa3,
+	0x24, 0x01, 0x65, 0x80, 0x8d, 0xa5, 0x96, 0xb2, 0x7c, 0x99, 0xc3, 0xb2, 0x66, 0x23, 0x09, 0x38,
+	0x84, 0x7a, 0xca, 0xda, 0x4b, 0x39, 0x5e, 0x15, 0xde, 0x7e, 0xc6, 0xf5, 0x24, 0x01, 0xb5, 0x50,
+	0x50, 0x32, 0x66, 0x32, 0xcd, 0xc9, 0x0d, 0xc6, 0x82, 0xb0, 0xc2, 0x70, 0x92, 0x04, 0xbc, 0x0a,
+	0xab, 0x8a, 0x6c, 0xed, 0x93, 0x74, 0xf9, 0xea, 0x72, 0x56, 0x28, 0x09, 0x78, 0x0b, 0x87, 0x89,
+	0xdf, 0xe3, 0xd7, 0xa9, 0xf0, 0xd8, 0x44, 0xcc, 0xe8, 0x1f, 0x0e, 0x8b, 0xda, 0x0c, 0xcf, 0xee,
+	0x17, 0x39, 0xb3, 0xca, 0x0c, 0x0c, 0x49, 0x40, 0x15, 0x60, 0xe3, 0xdf, 0x78, 0x52, 0x42, 0x9c,
+	0xbf, 0x81, 0xa2, 0xdd, 0xf3, 0xaf, 0xa1, 0x9e, 0x9a, 0x25, 0x4f, 0xf2, 0xbc, 0x2a, 0x58, 0x67,
+	0xfe, 0x16, 0x7e, 0x0b, 0x89, 0xe2, 0xa6, 0xfd, 0x07, 0xa5, 0x79, 0xee, 0x62, 0x0f, 0x15, 0x78,
+	0x21, 0xdb, 0x76, 0x32, 0x25, 0xf0, 0x65, 0xfe, 0x12, 0x19, 0x9a, 0xe9, 0x58, 0x61, 0xa2, 0x48,
+	0x02, 0x5e, 0x73, 0x16, 0x76, 0x42, 0xc8, 0xd2, 0x29, 0x29, 0x31, 0x64, 0xea, 0x3d, 0xb5, 0x93,
+	0x62, 0x1b, 0xc1, 0x1e, 0x77, 0x65, 0x4c, 0xb7, 0xb8, 0x68, 0xf3, 0x19, 0x75, 0x25, 0x66, 0x7e,
+	0xb7, 0xcf, 0xff, 0x93, 0x7e, 0xf7, 0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x01, 0x62, 0x1f, 0xb7,
+	0x3f, 0x0b, 0x00, 0x00,
 }

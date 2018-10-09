@@ -19,14 +19,22 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 type ResourceDescriptor_ResourceState int32
 
@@ -43,6 +51,7 @@ var ResourceDescriptor_ResourceState_name = map[int32]string{
 	2: "RESOURCE_BUSY",
 	3: "RESOURCE_LOST",
 }
+
 var ResourceDescriptor_ResourceState_value = map[string]int32{
 	"RESOURCE_UNKNOWN": 0,
 	"RESOURCE_IDLE":    1,
@@ -53,8 +62,9 @@ var ResourceDescriptor_ResourceState_value = map[string]int32{
 func (x ResourceDescriptor_ResourceState) String() string {
 	return proto.EnumName(ResourceDescriptor_ResourceState_name, int32(x))
 }
+
 func (ResourceDescriptor_ResourceState) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor10, []int{0, 0}
+	return fileDescriptor_eee6351d237bf030, []int{0, 0}
 }
 
 type ResourceDescriptor_ResourceType int32
@@ -86,6 +96,7 @@ var ResourceDescriptor_ResourceType_name = map[int32]string{
 	9:  "RESOURCE_SOCKET",
 	10: "RESOURCE_COORDINATOR",
 }
+
 var ResourceDescriptor_ResourceType_value = map[string]int32{
 	"RESOURCE_PU":          0,
 	"RESOURCE_CORE":        1,
@@ -103,52 +114,76 @@ var ResourceDescriptor_ResourceType_value = map[string]int32{
 func (x ResourceDescriptor_ResourceType) String() string {
 	return proto.EnumName(ResourceDescriptor_ResourceType_name, int32(x))
 }
+
 func (ResourceDescriptor_ResourceType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor10, []int{0, 1}
+	return fileDescriptor_eee6351d237bf030, []int{0, 1}
 }
 
 type ResourceDescriptor struct {
-	Uuid            string `protobuf:"bytes,1,opt,name=uuid" json:"uuid,omitempty"`
-	FriendlyName    string `protobuf:"bytes,2,opt,name=friendly_name,json=friendlyName" json:"friendly_name,omitempty"`
-	DescriptiveName string `protobuf:"bytes,3,opt,name=descriptive_name,json=descriptiveName" json:"descriptive_name,omitempty"`
+	Uuid            string `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	FriendlyName    string `protobuf:"bytes,2,opt,name=friendly_name,json=friendlyName,proto3" json:"friendly_name,omitempty"`
+	DescriptiveName string `protobuf:"bytes,3,opt,name=descriptive_name,json=descriptiveName,proto3" json:"descriptive_name,omitempty"`
 	// state is the state of resource.
-	State ResourceDescriptor_ResourceState `protobuf:"varint,4,opt,name=state,enum=firmament.ResourceDescriptor_ResourceState" json:"state,omitempty"`
+	State ResourceDescriptor_ResourceState `protobuf:"varint,4,opt,name=state,proto3,enum=firmament.ResourceDescriptor_ResourceState" json:"state,omitempty"`
 	// task_capacity is the max number of tasks that can be scheduled on the resource.
-	TaskCapacity uint64 `protobuf:"varint,5,opt,name=task_capacity,json=taskCapacity" json:"task_capacity,omitempty"`
+	TaskCapacity uint64 `protobuf:"varint,5,opt,name=task_capacity,json=taskCapacity,proto3" json:"task_capacity,omitempty"`
 	// last heartbeat of the resource, e.g. node.
-	LastHeartbeat uint64 `protobuf:"varint,6,opt,name=last_heartbeat,json=lastHeartbeat" json:"last_heartbeat,omitempty"`
+	LastHeartbeat uint64 `protobuf:"varint,6,opt,name=last_heartbeat,json=lastHeartbeat,proto3" json:"last_heartbeat,omitempty"`
 	// Type of the resource
-	Type ResourceDescriptor_ResourceType `protobuf:"varint,7,opt,name=type,enum=firmament.ResourceDescriptor_ResourceType" json:"type,omitempty"`
+	Type ResourceDescriptor_ResourceType `protobuf:"varint,7,opt,name=type,proto3,enum=firmament.ResourceDescriptor_ResourceType" json:"type,omitempty"`
 	// schedulable indicates if the resource, e.g. node is able to schedule tasks.
-	Schedulable bool `protobuf:"varint,8,opt,name=schedulable" json:"schedulable,omitempty"`
+	Schedulable bool `protobuf:"varint,8,opt,name=schedulable,proto3" json:"schedulable,omitempty"`
 	// current_running_tasks stores all the running tasks on the resource, e.g. node.
-	CurrentRunningTasks []uint64 `protobuf:"varint,9,rep,packed,name=current_running_tasks,json=currentRunningTasks" json:"current_running_tasks,omitempty"`
+	CurrentRunningTasks []uint64 `protobuf:"varint,9,rep,packed,name=current_running_tasks,json=currentRunningTasks,proto3" json:"current_running_tasks,omitempty"`
 	// num_running_tasks_below stores the number of running tasks on the resources that are below this node.
-	NumRunningTasksBelow uint64 `protobuf:"varint,10,opt,name=num_running_tasks_below,json=numRunningTasksBelow" json:"num_running_tasks_below,omitempty"`
-	NumSlotsBelow        uint64 `protobuf:"varint,11,opt,name=num_slots_below,json=numSlotsBelow" json:"num_slots_below,omitempty"`
+	NumRunningTasksBelow uint64 `protobuf:"varint,10,opt,name=num_running_tasks_below,json=numRunningTasksBelow,proto3" json:"num_running_tasks_below,omitempty"`
+	NumSlotsBelow        uint64 `protobuf:"varint,11,opt,name=num_slots_below,json=numSlotsBelow,proto3" json:"num_slots_below,omitempty"`
 	// Resource capacity and load tracking
-	AvailableResources          *ResourceVector `protobuf:"bytes,12,opt,name=available_resources,json=availableResources" json:"available_resources,omitempty"`
-	ReservedResources           *ResourceVector `protobuf:"bytes,13,opt,name=reserved_resources,json=reservedResources" json:"reserved_resources,omitempty"`
-	MinAvailableResourcesBelow  *ResourceVector `protobuf:"bytes,14,opt,name=min_available_resources_below,json=minAvailableResourcesBelow" json:"min_available_resources_below,omitempty"`
-	MaxAvailableResourcesBelow  *ResourceVector `protobuf:"bytes,15,opt,name=max_available_resources_below,json=maxAvailableResourcesBelow" json:"max_available_resources_below,omitempty"`
-	MinUnreservedResourcesBelow *ResourceVector `protobuf:"bytes,16,opt,name=min_unreserved_resources_below,json=minUnreservedResourcesBelow" json:"min_unreserved_resources_below,omitempty"`
-	MaxUnreservedResourcesBelow *ResourceVector `protobuf:"bytes,17,opt,name=max_unreserved_resources_below,json=maxUnreservedResourcesBelow" json:"max_unreserved_resources_below,omitempty"`
-	ResourceCapacity            *ResourceVector `protobuf:"bytes,18,opt,name=resource_capacity,json=resourceCapacity" json:"resource_capacity,omitempty"`
+	AvailableResources          *ResourceVector `protobuf:"bytes,12,opt,name=available_resources,json=availableResources,proto3" json:"available_resources,omitempty"`
+	ReservedResources           *ResourceVector `protobuf:"bytes,13,opt,name=reserved_resources,json=reservedResources,proto3" json:"reserved_resources,omitempty"`
+	MinAvailableResourcesBelow  *ResourceVector `protobuf:"bytes,14,opt,name=min_available_resources_below,json=minAvailableResourcesBelow,proto3" json:"min_available_resources_below,omitempty"`
+	MaxAvailableResourcesBelow  *ResourceVector `protobuf:"bytes,15,opt,name=max_available_resources_below,json=maxAvailableResourcesBelow,proto3" json:"max_available_resources_below,omitempty"`
+	MinUnreservedResourcesBelow *ResourceVector `protobuf:"bytes,16,opt,name=min_unreserved_resources_below,json=minUnreservedResourcesBelow,proto3" json:"min_unreserved_resources_below,omitempty"`
+	MaxUnreservedResourcesBelow *ResourceVector `protobuf:"bytes,17,opt,name=max_unreserved_resources_below,json=maxUnreservedResourcesBelow,proto3" json:"max_unreserved_resources_below,omitempty"`
+	ResourceCapacity            *ResourceVector `protobuf:"bytes,18,opt,name=resource_capacity,json=resourceCapacity,proto3" json:"resource_capacity,omitempty"`
 	// Cost-model-specific statistics
-	WhareMapStats          *WhareMapStats          `protobuf:"bytes,19,opt,name=whare_map_stats,json=whareMapStats" json:"whare_map_stats,omitempty"`
-	CocoInterferenceScores *CoCoInterferenceScores `protobuf:"bytes,20,opt,name=coco_interference_scores,json=cocoInterferenceScores" json:"coco_interference_scores,omitempty"`
+	WhareMapStats          *WhareMapStats          `protobuf:"bytes,19,opt,name=whare_map_stats,json=whareMapStats,proto3" json:"whare_map_stats,omitempty"`
+	CocoInterferenceScores *CoCoInterferenceScores `protobuf:"bytes,20,opt,name=coco_interference_scores,json=cocoInterferenceScores,proto3" json:"coco_interference_scores,omitempty"`
 	// Simulation related fields
-	TraceMachineId uint64 `protobuf:"varint,21,opt,name=trace_machine_id,json=traceMachineId" json:"trace_machine_id,omitempty"`
+	TraceMachineId uint64 `protobuf:"varint,21,opt,name=trace_machine_id,json=traceMachineId,proto3" json:"trace_machine_id,omitempty"`
 	// Resource labels
-	Labels []*Label `protobuf:"bytes,32,rep,name=labels" json:"labels,omitempty"`
+	Labels []*Label `protobuf:"bytes,32,rep,name=labels,proto3" json:"labels,omitempty"`
 	// Taints
-	Taints []*Taint `protobuf:"bytes,33,rep,name=taints" json:"taints,omitempty"`
+	Taints               []*Taint `protobuf:"bytes,33,rep,name=taints,proto3" json:"taints,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ResourceDescriptor) Reset()                    { *m = ResourceDescriptor{} }
-func (m *ResourceDescriptor) String() string            { return proto.CompactTextString(m) }
-func (*ResourceDescriptor) ProtoMessage()               {}
-func (*ResourceDescriptor) Descriptor() ([]byte, []int) { return fileDescriptor10, []int{0} }
+func (m *ResourceDescriptor) Reset()         { *m = ResourceDescriptor{} }
+func (m *ResourceDescriptor) String() string { return proto.CompactTextString(m) }
+func (*ResourceDescriptor) ProtoMessage()    {}
+func (*ResourceDescriptor) Descriptor() ([]byte, []int) {
+	return fileDescriptor_eee6351d237bf030, []int{0}
+}
+
+func (m *ResourceDescriptor) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ResourceDescriptor.Unmarshal(m, b)
+}
+func (m *ResourceDescriptor) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ResourceDescriptor.Marshal(b, m, deterministic)
+}
+func (m *ResourceDescriptor) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ResourceDescriptor.Merge(m, src)
+}
+func (m *ResourceDescriptor) XXX_Size() int {
+	return xxx_messageInfo_ResourceDescriptor.Size(m)
+}
+func (m *ResourceDescriptor) XXX_DiscardUnknown() {
+	xxx_messageInfo_ResourceDescriptor.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ResourceDescriptor proto.InternalMessageInfo
 
 func (m *ResourceDescriptor) GetUuid() string {
 	if m != nil {
@@ -312,14 +347,14 @@ func (m *ResourceDescriptor) GetTaints() []*Taint {
 }
 
 func init() {
-	proto.RegisterType((*ResourceDescriptor)(nil), "firmament.ResourceDescriptor")
 	proto.RegisterEnum("firmament.ResourceDescriptor_ResourceState", ResourceDescriptor_ResourceState_name, ResourceDescriptor_ResourceState_value)
 	proto.RegisterEnum("firmament.ResourceDescriptor_ResourceType", ResourceDescriptor_ResourceType_name, ResourceDescriptor_ResourceType_value)
+	proto.RegisterType((*ResourceDescriptor)(nil), "firmament.ResourceDescriptor")
 }
 
-func init() { proto.RegisterFile("resource_desc.proto", fileDescriptor10) }
+func init() { proto.RegisterFile("resource_desc.proto", fileDescriptor_eee6351d237bf030) }
 
-var fileDescriptor10 = []byte{
+var fileDescriptor_eee6351d237bf030 = []byte{
 	// 806 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x95, 0xed, 0x6e, 0xe3, 0xc4,
 	0x17, 0xc6, 0xff, 0x69, 0xd2, 0x6e, 0x7b, 0xf2, 0x36, 0x9d, 0xb4, 0xfb, 0x1f, 0x8a, 0x58, 0x79,

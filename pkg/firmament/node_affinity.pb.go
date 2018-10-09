@@ -19,25 +19,56 @@ limitations under the License.
 
 package firmament
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
 type NodeSelectorRequirement struct {
-	Key      string   `protobuf:"bytes,1,opt,name=key" json:"key,omitempty"`
-	Operator string   `protobuf:"bytes,2,opt,name=operator" json:"operator,omitempty"`
-	Values   []string `protobuf:"bytes,3,rep,name=values" json:"values,omitempty"`
+	Key                  string   `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Operator             string   `protobuf:"bytes,2,opt,name=operator,proto3" json:"operator,omitempty"`
+	Values               []string `protobuf:"bytes,3,rep,name=values,proto3" json:"values,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *NodeSelectorRequirement) Reset()                    { *m = NodeSelectorRequirement{} }
-func (m *NodeSelectorRequirement) String() string            { return proto.CompactTextString(m) }
-func (*NodeSelectorRequirement) ProtoMessage()               {}
-func (*NodeSelectorRequirement) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{0} }
+func (m *NodeSelectorRequirement) Reset()         { *m = NodeSelectorRequirement{} }
+func (m *NodeSelectorRequirement) String() string { return proto.CompactTextString(m) }
+func (*NodeSelectorRequirement) ProtoMessage()    {}
+func (*NodeSelectorRequirement) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4195d4f8cde27a8c, []int{0}
+}
+
+func (m *NodeSelectorRequirement) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NodeSelectorRequirement.Unmarshal(m, b)
+}
+func (m *NodeSelectorRequirement) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NodeSelectorRequirement.Marshal(b, m, deterministic)
+}
+func (m *NodeSelectorRequirement) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodeSelectorRequirement.Merge(m, src)
+}
+func (m *NodeSelectorRequirement) XXX_Size() int {
+	return xxx_messageInfo_NodeSelectorRequirement.Size(m)
+}
+func (m *NodeSelectorRequirement) XXX_DiscardUnknown() {
+	xxx_messageInfo_NodeSelectorRequirement.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NodeSelectorRequirement proto.InternalMessageInfo
 
 func (m *NodeSelectorRequirement) GetKey() string {
 	if m != nil {
@@ -63,13 +94,36 @@ func (m *NodeSelectorRequirement) GetValues() []string {
 type NodeSelectorTerm struct {
 	// A list of node selector requirements by node's labels.
 	// +optional
-	MatchExpressions []*NodeSelectorRequirement `protobuf:"bytes,1,rep,name=matchExpressions" json:"matchExpressions,omitempty"`
+	MatchExpressions     []*NodeSelectorRequirement `protobuf:"bytes,1,rep,name=matchExpressions,proto3" json:"matchExpressions,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
+	XXX_unrecognized     []byte                     `json:"-"`
+	XXX_sizecache        int32                      `json:"-"`
 }
 
-func (m *NodeSelectorTerm) Reset()                    { *m = NodeSelectorTerm{} }
-func (m *NodeSelectorTerm) String() string            { return proto.CompactTextString(m) }
-func (*NodeSelectorTerm) ProtoMessage()               {}
-func (*NodeSelectorTerm) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{1} }
+func (m *NodeSelectorTerm) Reset()         { *m = NodeSelectorTerm{} }
+func (m *NodeSelectorTerm) String() string { return proto.CompactTextString(m) }
+func (*NodeSelectorTerm) ProtoMessage()    {}
+func (*NodeSelectorTerm) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4195d4f8cde27a8c, []int{1}
+}
+
+func (m *NodeSelectorTerm) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NodeSelectorTerm.Unmarshal(m, b)
+}
+func (m *NodeSelectorTerm) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NodeSelectorTerm.Marshal(b, m, deterministic)
+}
+func (m *NodeSelectorTerm) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodeSelectorTerm.Merge(m, src)
+}
+func (m *NodeSelectorTerm) XXX_Size() int {
+	return xxx_messageInfo_NodeSelectorTerm.Size(m)
+}
+func (m *NodeSelectorTerm) XXX_DiscardUnknown() {
+	xxx_messageInfo_NodeSelectorTerm.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NodeSelectorTerm proto.InternalMessageInfo
 
 func (m *NodeSelectorTerm) GetMatchExpressions() []*NodeSelectorRequirement {
 	if m != nil {
@@ -80,13 +134,36 @@ func (m *NodeSelectorTerm) GetMatchExpressions() []*NodeSelectorRequirement {
 
 type NodeSelector struct {
 	// Required. A list of node selector terms. The terms are ORed.
-	NodeSelectorTerms []*NodeSelectorTerm `protobuf:"bytes,1,rep,name=nodeSelectorTerms" json:"nodeSelectorTerms,omitempty"`
+	NodeSelectorTerms    []*NodeSelectorTerm `protobuf:"bytes,1,rep,name=nodeSelectorTerms,proto3" json:"nodeSelectorTerms,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
+	XXX_unrecognized     []byte              `json:"-"`
+	XXX_sizecache        int32               `json:"-"`
 }
 
-func (m *NodeSelector) Reset()                    { *m = NodeSelector{} }
-func (m *NodeSelector) String() string            { return proto.CompactTextString(m) }
-func (*NodeSelector) ProtoMessage()               {}
-func (*NodeSelector) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{2} }
+func (m *NodeSelector) Reset()         { *m = NodeSelector{} }
+func (m *NodeSelector) String() string { return proto.CompactTextString(m) }
+func (*NodeSelector) ProtoMessage()    {}
+func (*NodeSelector) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4195d4f8cde27a8c, []int{2}
+}
+
+func (m *NodeSelector) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NodeSelector.Unmarshal(m, b)
+}
+func (m *NodeSelector) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NodeSelector.Marshal(b, m, deterministic)
+}
+func (m *NodeSelector) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodeSelector.Merge(m, src)
+}
+func (m *NodeSelector) XXX_Size() int {
+	return xxx_messageInfo_NodeSelector.Size(m)
+}
+func (m *NodeSelector) XXX_DiscardUnknown() {
+	xxx_messageInfo_NodeSelector.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NodeSelector proto.InternalMessageInfo
 
 func (m *NodeSelector) GetNodeSelectorTerms() []*NodeSelectorTerm {
 	if m != nil {
@@ -97,15 +174,38 @@ func (m *NodeSelector) GetNodeSelectorTerms() []*NodeSelectorTerm {
 
 type PreferredSchedulingTerm struct {
 	// Weight associated with matching the corresponding nodeSelectorTerm, in the range 1-100.
-	Weight int32 `protobuf:"varint,1,opt,name=weight" json:"weight,omitempty"`
+	Weight int32 `protobuf:"varint,1,opt,name=weight,proto3" json:"weight,omitempty"`
 	// A node selector term, associated with the corresponding weight.
-	Preference *NodeSelectorTerm `protobuf:"bytes,2,opt,name=preference" json:"preference,omitempty"`
+	Preference           *NodeSelectorTerm `protobuf:"bytes,2,opt,name=preference,proto3" json:"preference,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
-func (m *PreferredSchedulingTerm) Reset()                    { *m = PreferredSchedulingTerm{} }
-func (m *PreferredSchedulingTerm) String() string            { return proto.CompactTextString(m) }
-func (*PreferredSchedulingTerm) ProtoMessage()               {}
-func (*PreferredSchedulingTerm) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{3} }
+func (m *PreferredSchedulingTerm) Reset()         { *m = PreferredSchedulingTerm{} }
+func (m *PreferredSchedulingTerm) String() string { return proto.CompactTextString(m) }
+func (*PreferredSchedulingTerm) ProtoMessage()    {}
+func (*PreferredSchedulingTerm) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4195d4f8cde27a8c, []int{3}
+}
+
+func (m *PreferredSchedulingTerm) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PreferredSchedulingTerm.Unmarshal(m, b)
+}
+func (m *PreferredSchedulingTerm) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PreferredSchedulingTerm.Marshal(b, m, deterministic)
+}
+func (m *PreferredSchedulingTerm) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PreferredSchedulingTerm.Merge(m, src)
+}
+func (m *PreferredSchedulingTerm) XXX_Size() int {
+	return xxx_messageInfo_PreferredSchedulingTerm.Size(m)
+}
+func (m *PreferredSchedulingTerm) XXX_DiscardUnknown() {
+	xxx_messageInfo_PreferredSchedulingTerm.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PreferredSchedulingTerm proto.InternalMessageInfo
 
 func (m *PreferredSchedulingTerm) GetWeight() int32 {
 	if m != nil {
@@ -122,14 +222,37 @@ func (m *PreferredSchedulingTerm) GetPreference() *NodeSelectorTerm {
 }
 
 type NodeAffinity struct {
-	RequiredDuringSchedulingIgnoredDuringExecution  *NodeSelector              `protobuf:"bytes,1,opt,name=requiredDuringSchedulingIgnoredDuringExecution" json:"requiredDuringSchedulingIgnoredDuringExecution,omitempty"`
-	PreferredDuringSchedulingIgnoredDuringExecution []*PreferredSchedulingTerm `protobuf:"bytes,2,rep,name=preferredDuringSchedulingIgnoredDuringExecution" json:"preferredDuringSchedulingIgnoredDuringExecution,omitempty"`
+	RequiredDuringSchedulingIgnoredDuringExecution  *NodeSelector              `protobuf:"bytes,1,opt,name=requiredDuringSchedulingIgnoredDuringExecution,proto3" json:"requiredDuringSchedulingIgnoredDuringExecution,omitempty"`
+	PreferredDuringSchedulingIgnoredDuringExecution []*PreferredSchedulingTerm `protobuf:"bytes,2,rep,name=preferredDuringSchedulingIgnoredDuringExecution,proto3" json:"preferredDuringSchedulingIgnoredDuringExecution,omitempty"`
+	XXX_NoUnkeyedLiteral                            struct{}                   `json:"-"`
+	XXX_unrecognized                                []byte                     `json:"-"`
+	XXX_sizecache                                   int32                      `json:"-"`
 }
 
-func (m *NodeAffinity) Reset()                    { *m = NodeAffinity{} }
-func (m *NodeAffinity) String() string            { return proto.CompactTextString(m) }
-func (*NodeAffinity) ProtoMessage()               {}
-func (*NodeAffinity) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{4} }
+func (m *NodeAffinity) Reset()         { *m = NodeAffinity{} }
+func (m *NodeAffinity) String() string { return proto.CompactTextString(m) }
+func (*NodeAffinity) ProtoMessage()    {}
+func (*NodeAffinity) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4195d4f8cde27a8c, []int{4}
+}
+
+func (m *NodeAffinity) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NodeAffinity.Unmarshal(m, b)
+}
+func (m *NodeAffinity) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NodeAffinity.Marshal(b, m, deterministic)
+}
+func (m *NodeAffinity) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodeAffinity.Merge(m, src)
+}
+func (m *NodeAffinity) XXX_Size() int {
+	return xxx_messageInfo_NodeAffinity.Size(m)
+}
+func (m *NodeAffinity) XXX_DiscardUnknown() {
+	xxx_messageInfo_NodeAffinity.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NodeAffinity proto.InternalMessageInfo
 
 func (m *NodeAffinity) GetRequiredDuringSchedulingIgnoredDuringExecution() *NodeSelector {
 	if m != nil {
@@ -153,9 +276,9 @@ func init() {
 	proto.RegisterType((*NodeAffinity)(nil), "firmament.NodeAffinity")
 }
 
-func init() { proto.RegisterFile("node_affinity.proto", fileDescriptor6) }
+func init() { proto.RegisterFile("node_affinity.proto", fileDescriptor_4195d4f8cde27a8c) }
 
-var fileDescriptor6 = []byte{
+var fileDescriptor_4195d4f8cde27a8c = []byte{
 	// 326 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x52, 0xcf, 0x4e, 0xf2, 0x40,
 	0x10, 0x4f, 0x69, 0x3e, 0xf2, 0x31, 0x78, 0xc0, 0x35, 0x81, 0x46, 0x2f, 0x64, 0x4f, 0x9c, 0x6a,

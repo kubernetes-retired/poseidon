@@ -303,6 +303,15 @@ func (pw *PodWatcher) enqueuePodAddition(key interface{}, obj interface{}) {
 			return
 		}
 	}
+	// update the pod
+	// Note the sequence is importatnt
+	PodToK8sPodLock.Lock()
+	identifier := PodIdentifier{
+		Name:      pod.Name,
+		Namespace: pod.Namespace,
+	}
+	PodToK8sPod[identifier] = pod.DeepCopy()
+	PodToK8sPodLock.Unlock()
 	pw.podWorkQueue.Add(key, addedPod)
 	glog.V(2).Info("enqueuePodAddition: Added pod ", addedPod.Identifier)
 }
@@ -319,7 +328,19 @@ func (pw *PodWatcher) enqueuePodDeletion(key interface{}, obj interface{}) {
 			State:    PodDeleted,
 			OwnerRef: GetOwnerReference(pod),
 		}
+		ProcessedPodEventsLock.Lock()
+		if _, ok := ProcessedPodEvents[deletedPod.Identifier]; ok {
+			delete(ProcessedPodEvents, deletedPod.Identifier)
+		}
+		ProcessedPodEventsLock.Unlock()
+		PodToK8sPodLock.Lock()
+		if _, ok := PodToK8sPod[deletedPod.Identifier]; ok {
+			// the only place where the pod is deleted from the map
+			delete(PodToK8sPod, deletedPod.Identifier)
+		}
+		PodToK8sPodLock.Unlock()
 		pw.podWorkQueue.Add(key, deletedPod)
+
 		glog.V(2).Info("enqueuePodDeletion: Added pod ", deletedPod.Identifier)
 	}
 }
@@ -330,6 +351,14 @@ func (pw *PodWatcher) enqueuePodUpdate(key, oldObj, newObj interface{}) {
 	if oldPod.Status.Phase != newPod.Status.Phase {
 		// TODO(ionel): pw code assumes that if other fields changed as well then Firmament will automatically update them upon state transition. pw is currently not true.
 		updatedPod := pw.parsePod(newPod)
+		// update the pod
+		PodToK8sPodLock.Lock()
+		identifier := PodIdentifier{
+			Name:      newPod.Name,
+			Namespace: newPod.Namespace,
+		}
+		PodToK8sPod[identifier] = newPod.DeepCopy()
+		PodToK8sPodLock.Unlock()
 		pw.podWorkQueue.Add(key, updatedPod)
 		glog.V(2).Infof("enqueuePodUpdate: Updated pod state change %v %s", updatedPod.Identifier, updatedPod.State)
 		return
@@ -889,5 +918,66 @@ func (pw *PodWatcher) getPVNodeAffinity(volumes []v1.Volume, pod *v1.Pod) (*v1.P
 	}
 
 	return pod, true
+}
 
+func Update(pw kubernetes.Interface, pod *v1.Pod, condition *v1.PodCondition) error {
+	glog.V(1).Infof("Updating pod condition for %s/%s to (%s==%s)", pod.Namespace, pod.Name, condition.Type, condition.Status)
+	if UpdatePodCondition(&pod.Status, condition) {
+		_, err := pw.CoreV1().Pods(pod.Namespace).UpdateStatus(pod)
+		return err
+	}
+	return nil
+}
+
+// Updates existing pod condition or creates a new one. Sets LastTransitionTime to now if the
+// status has changed.
+// Returns true if pod condition has changed or has been added.
+func UpdatePodCondition(status *v1.PodStatus, condition *v1.PodCondition) bool {
+	condition.LastTransitionTime = metav1.Now()
+	// Try to find this pod condition.
+	conditionIndex, oldCondition := GetPodCondition(status, condition.Type)
+
+	if oldCondition == nil {
+		// We are adding new pod condition.
+		status.Conditions = append(status.Conditions, *condition)
+		return true
+	} else {
+		// We are updating an existing condition, so we need to check if it has changed.
+		if condition.Status == oldCondition.Status {
+			condition.LastTransitionTime = oldCondition.LastTransitionTime
+		}
+
+		isEqual := condition.Status == oldCondition.Status &&
+			condition.Reason == oldCondition.Reason &&
+			condition.Message == oldCondition.Message &&
+			condition.LastProbeTime.Equal(&oldCondition.LastProbeTime) &&
+			condition.LastTransitionTime.Equal(&oldCondition.LastTransitionTime)
+
+		status.Conditions[conditionIndex] = *condition
+		// Return true if one of the fields have changed.
+		return !isEqual
+	}
+}
+
+// GetPodCondition extracts the provided condition from the given status and returns that.
+// Returns nil and -1 if the condition is not present, and the index of the located condition.
+func GetPodCondition(status *v1.PodStatus, conditionType v1.PodConditionType) (int, *v1.PodCondition) {
+	if status == nil {
+		return -1, nil
+	}
+	return GetPodConditionFromList(status.Conditions, conditionType)
+}
+
+// GetPodConditionFromList extracts the provided condition from the given list of condition and
+// returns the index of the condition and the condition. Returns -1 and nil if the condition is not present.
+func GetPodConditionFromList(conditions []v1.PodCondition, conditionType v1.PodConditionType) (int, *v1.PodCondition) {
+	if conditions == nil {
+		return -1, nil
+	}
+	for i := range conditions {
+		if conditions[i].Type == conditionType {
+			return i, &conditions[i]
+		}
+	}
+	return -1, nil
 }
