@@ -27,16 +27,17 @@ import (
 	"github.com/golang/glog"
 	config2 "github.com/kubernetes-sigs/poseidon/pkg/config"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"sync"
 	"time"
 )
 
-var clientSet kubernetes.Interface
+var ClientSet kubernetes.Interface
 
 // BindPodToNode call Kubernetes API to place a pod on a node.
 func BindPodToNode() {
 	for {
 		bindInfo := <-BindChannel
-		err := clientSet.CoreV1().Pods(bindInfo.Namespace).Bind(&v1.Binding{
+		err := ClientSet.CoreV1().Pods(bindInfo.Namespace).Bind(&v1.Binding{
 			TypeMeta: meta_v1.TypeMeta{},
 			ObjectMeta: meta_v1.ObjectMeta{
 				Name: bindInfo.Name,
@@ -53,7 +54,7 @@ func BindPodToNode() {
 
 // DeletePod calls Kubernetes API to delete a Pod by its namespace and name.
 func DeletePod(podName string, namespace string) {
-	err := clientSet.CoreV1().Pods(namespace).Delete(podName, &meta_v1.DeleteOptions{})
+	err := ClientSet.CoreV1().Pods(namespace).Delete(podName, &meta_v1.DeleteOptions{})
 	if err != nil {
 		glog.Fatalf("Could not delete pod:%s in namespace:%s, error: %v", podName, namespace, err)
 	}
@@ -79,7 +80,7 @@ func New(schedulerName string, kubeConfig string, kubeVersionMajor, kubeVersionM
 	config.QPS = config2.GetQPS()
 	config.Burst = config2.GetBurst()
 
-	clientSet, err = kubernetes.NewForConfig(config)
+	ClientSet, err = kubernetes.NewForConfig(config)
 	if err != nil {
 		glog.Fatalf("Failed to create connection: %v", err)
 	}
@@ -90,16 +91,22 @@ func New(schedulerName string, kubeConfig string, kubeVersionMajor, kubeVersionM
 	defer conn.Close()
 	glog.Info("k8s newclient called")
 	stopCh := make(chan struct{})
-	go NewPodWatcher(kubeVersionMajor, kubeVersionMinor, schedulerName, clientSet, fc).Run(stopCh, 10)
-	go NewNodeWatcher(clientSet, fc).Run(stopCh, 10)
-	go NewK8sPodWatcher(kubeVersionMajor, kubeVersionMinor, schedulerName, clientSet, fc).controller.Run(stopCh)
+	go NewPodWatcher(kubeVersionMajor, kubeVersionMinor, schedulerName, ClientSet, fc).Run(stopCh, 10)
+	go NewNodeWatcher(ClientSet, fc).Run(stopCh, 10)
+	go NewK8sPodWatcher(kubeVersionMajor, kubeVersionMinor, schedulerName, ClientSet, fc).controller.Run(stopCh)
 
 	// We block here.
 	<-stopCh
 }
 
 func init() {
+
+	glog.Info("k8sclient init called")
 	BindChannel = make(chan BindInfo, 1000)
+	PodToK8sPodLock = new(sync.Mutex)
+	ProcessedPodEventsLock = new(sync.Mutex)
+	PodToK8sPod = make(map[PodIdentifier]*v1.Pod)
+	ProcessedPodEvents = make(map[PodIdentifier]*v1.Pod)
 }
 
 // Run starts a pod watcher.

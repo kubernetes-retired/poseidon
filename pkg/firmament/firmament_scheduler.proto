@@ -51,6 +51,7 @@ message ScheduleRequest {}
 
 message SchedulingDeltas {
   repeated SchedulingDelta deltas = 1;
+  repeated uint64 unscheduled_tasks = 2;
 }
 
 message TaskCompletedResponse {

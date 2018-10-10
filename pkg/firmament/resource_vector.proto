@@ -35,4 +35,6 @@ message ResourceVector {
   uint64 net_tx_bw = 6;
   // net_tx_bw is receive network packets in KB.
   uint64 net_rx_bw = 7;
+  // ephemeral storage
+  uint64 ephemeral_cap = 8;
 }

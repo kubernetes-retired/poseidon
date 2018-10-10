@@ -20,6 +20,7 @@ import (
 	"sync"
 
 	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
+	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
@@ -88,6 +89,8 @@ type Node struct {
 	MemCapacityKb    int64
 	MemAllocatableKb int64
 	PodAllocatable   int64
+	EphemeralCapKb   int64
+	EphemeralAllocKb int64
 	Labels           map[string]string
 	Annotations      map[string]string
 	Taints           []Taint
@@ -211,6 +214,7 @@ type Pod struct {
 	State           PodPhase
 	CPURequest      int64
 	MemRequestKb    int64
+	EphemeralReqKb  int64
 	Labels          map[string]string
 	Annotations     map[string]string
 	NodeSelector    map[string]string
@@ -256,3 +260,9 @@ type K8sPodWatcher struct {
 	K8sPods    map[string]*firmament.TaskInfo
 	sync.Mutex
 }
+
+// PodToTD maps Kubernetes pod identifier(namespace + name) to firmament task descriptor.
+var ProcessedPodEvents map[PodIdentifier]*v1.Pod // map will have all the pods whose failure/unscheduled events are processed
+var ProcessedPodEventsLock *sync.Mutex
+var PodToK8sPod map[PodIdentifier]*v1.Pod
+var PodToK8sPodLock *sync.Mutex

@@ -134,9 +134,10 @@ func NewPodWatcher(kubeVerMajor, kubeVerMinor int, schedulerName string, client 
 	return podWatcher
 }
 
-func (pw *PodWatcher) getCPUMemRequest(pod *v1.Pod) (int64, int64) {
+func (pw *PodWatcher) getCPUMemEphemeralRequest(pod *v1.Pod) (int64, int64, int64) {
 	cpuReq := int64(0)
 	memReq := int64(0)
+	ephemeralReq := int64(0)
 	for _, container := range pod.Spec.Containers {
 		request := container.Resources.Requests
 		cpuReqQuantity := request[v1.ResourceCPU]
@@ -144,8 +145,11 @@ func (pw *PodWatcher) getCPUMemRequest(pod *v1.Pod) (int64, int64) {
 		memReqQuantity := request[v1.ResourceMemory]
 		memReqCont, _ := memReqQuantity.AsInt64()
 		memReq += memReqCont
+		ephemeralReqQuantity := request[v1.ResourceEphemeralStorage]
+		ephemeralReqCont, _ := ephemeralReqQuantity.AsInt64()
+		ephemeralReq += ephemeralReqCont
 	}
-	return cpuReq, memReq
+	return cpuReq, memReq, ephemeralReq
 }
 
 func (pw *PodWatcher) getNodeSelectorTerm(pod *v1.Pod) []NodeSelectorTerm {
@@ -239,7 +243,7 @@ func (pw *PodWatcher) getTolerations(pod *v1.Pod) []Toleration {
 }
 
 func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
-	cpuReq, memReq := pw.getCPUMemRequest(pod)
+	cpuReq, memReq, ephemeralReq := pw.getCPUMemEphemeralRequest(pod)
 	podPhase := PodUnknown
 	switch pod.Status.Phase {
 	case v1.PodPending:
@@ -256,13 +260,14 @@ func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 			Name:      pod.Name,
 			Namespace: pod.Namespace,
 		},
-		State:        podPhase,
-		CPURequest:   cpuReq,
-		MemRequestKb: memReq / bytesToKb,
-		Labels:       pod.Labels,
-		Annotations:  pod.Annotations,
-		NodeSelector: pod.Spec.NodeSelector,
-		OwnerRef:     GetOwnerReference(pod),
+		State:          podPhase,
+		CPURequest:     cpuReq,
+		MemRequestKb:   memReq / bytesToKb,
+		EphemeralReqKb: ephemeralReq / bytesToKb,
+		Labels:         pod.Labels,
+		Annotations:    pod.Annotations,
+		NodeSelector:   pod.Spec.NodeSelector,
+		OwnerRef:       GetOwnerReference(pod),
 		Affinity: &Affinity{
 			NodeAffinity: &NodeAffinity{
 				HardScheduling: &NodeSelector{
@@ -287,6 +292,31 @@ func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 func (pw *PodWatcher) enqueuePodAddition(key interface{}, obj interface{}) {
 	pod := obj.(*v1.Pod)
 	addedPod := pw.parsePod(pod)
+
+	// if the pod had volumes
+	// check for the bounded volumes
+	if len(pod.Spec.Volumes) > 0 {
+		newPod := pod.DeepCopy()
+		newPod, ok := pw.getPVNodeAffinity(pod.Spec.Volumes, newPod)
+		if ok {
+			addedPod = pw.parsePod(newPod)
+		} else {
+			// Note: after we ignore this pod, the same pod we could get updated
+			// this case has to be handled
+			// also we need to broadcast the pod failure event here.
+			glog.Error("Falied to find the matching volumes for the pod", addedPod)
+			return
+		}
+	}
+	// update the pod
+	// Note the sequence is importatnt
+	PodToK8sPodLock.Lock()
+	identifier := PodIdentifier{
+		Name:      pod.Name,
+		Namespace: pod.Namespace,
+	}
+	PodToK8sPod[identifier] = pod.DeepCopy()
+	PodToK8sPodLock.Unlock()
 	pw.podWorkQueue.Add(key, addedPod)
 	glog.V(2).Info("enqueuePodAddition: Added pod ", addedPod.Identifier)
 }
@@ -303,7 +333,19 @@ func (pw *PodWatcher) enqueuePodDeletion(key interface{}, obj interface{}) {
 			State:    PodDeleted,
 			OwnerRef: GetOwnerReference(pod),
 		}
+		ProcessedPodEventsLock.Lock()
+		if _, ok := ProcessedPodEvents[deletedPod.Identifier]; ok {
+			delete(ProcessedPodEvents, deletedPod.Identifier)
+		}
+		ProcessedPodEventsLock.Unlock()
+		PodToK8sPodLock.Lock()
+		if _, ok := PodToK8sPod[deletedPod.Identifier]; ok {
+			// the only place where the pod is deleted from the map
+			delete(PodToK8sPod, deletedPod.Identifier)
+		}
+		PodToK8sPodLock.Unlock()
 		pw.podWorkQueue.Add(key, deletedPod)
+
 		glog.V(2).Info("enqueuePodDeletion: Added pod ", deletedPod.Identifier)
 	}
 }
@@ -314,21 +356,30 @@ func (pw *PodWatcher) enqueuePodUpdate(key, oldObj, newObj interface{}) {
 	if oldPod.Status.Phase != newPod.Status.Phase {
 		// TODO(ionel): pw code assumes that if other fields changed as well then Firmament will automatically update them upon state transition. pw is currently not true.
 		updatedPod := pw.parsePod(newPod)
+		// update the pod
+		PodToK8sPodLock.Lock()
+		identifier := PodIdentifier{
+			Name:      newPod.Name,
+			Namespace: newPod.Namespace,
+		}
+		PodToK8sPod[identifier] = newPod.DeepCopy()
+		PodToK8sPodLock.Unlock()
 		pw.podWorkQueue.Add(key, updatedPod)
 		glog.V(2).Infof("enqueuePodUpdate: Updated pod state change %v %s", updatedPod.Identifier, updatedPod.State)
 		return
 	}
-	oldCPUReq, oldMemReq := pw.getCPUMemRequest(oldPod)
-	newCPUReq, newMemReq := pw.getCPUMemRequest(newPod)
-	if oldCPUReq != newCPUReq || oldMemReq != newMemReq ||
+	oldCPUReq, oldMemReq, oldEphemeralReq := pw.getCPUMemEphemeralRequest(oldPod)
+	newCPUReq, newMemReq, newEphemeralReq := pw.getCPUMemEphemeralRequest(newPod)
+	if oldCPUReq != newCPUReq || oldMemReq != newMemReq || oldEphemeralReq != newEphemeralReq ||
 		!reflect.DeepEqual(oldPod.Labels, newPod.Labels) ||
 		!reflect.DeepEqual(oldPod.Annotations, newPod.Annotations) ||
 		!reflect.DeepEqual(oldPod.Spec.NodeSelector, newPod.Spec.NodeSelector) {
-		updatedPod := pw.parsePod(newPod)
-		// we need to change the state here
-		updatedPod.State = PodUpdated
-		pw.podWorkQueue.Add(key, updatedPod)
-		glog.V(2).Info("enqueuePodUpdate: Updated pod ", updatedPod.Identifier)
+		if updatedPod := pw.parsePod(newPod); updatedPod != nil {
+			// we need to change the state here
+			updatedPod.State = PodUpdated
+			pw.podWorkQueue.Add(key, updatedPod)
+			glog.V(2).Infof("enqueuePodUpdate: Updated pod ", updatedPod.Identifier)
+		}
 		return
 	}
 }
@@ -359,7 +410,6 @@ func (pw *PodWatcher) Run(stopCh <-chan struct{}, nWorkers int) {
 }
 
 func (pw *PodWatcher) podWorker() {
-
 	func() {
 		wg := new(sync.WaitGroup)
 		defer func() {
@@ -434,7 +484,8 @@ func (pw *PodWatcher) podWorker() {
 						td, ok := PodToTD[pod.Identifier]
 						PodMux.RUnlock()
 						if !ok {
-							glog.Fatalf("Pod %s does not exist", pod.Identifier)
+							glog.Infof("Pod %s does not exist", pod.Identifier)
+							continue
 						}
 						// TODO(jiaxuanzhou) need to metric the task remove latency ?
 						firmament.TaskRemoved(pw.fc, &firmament.TaskUID{TaskUid: td.Uid})
@@ -473,10 +524,12 @@ func (pw *PodWatcher) podWorker() {
 						td, okPod := PodToTD[pod.Identifier]
 						PodMux.Unlock()
 						if !okJob {
-							glog.Fatalf("Pod's %v job does not exist", pod.Identifier)
+							glog.Infof("Pod's %v job does not exist", pod.Identifier)
+							continue
 						}
 						if !okPod {
-							glog.Fatalf("Pod %v does not exist", pod.Identifier)
+							glog.Infof("Pod %v does not exist", pod.Identifier)
+							continue
 						}
 						pw.updateTask(pod, td)
 						taskDescription := &firmament.TaskDescription{
@@ -574,8 +627,9 @@ func (pw *PodWatcher) addTaskToJob(pod *Pod, jdUid string, jdName string, tdID i
 		JobId:     jdUid,
 		ResourceRequest: &firmament.ResourceVector{
 			// TODO(ionel): Update types so no cast is required.
-			CpuCores: float32(pod.CPURequest),
-			RamCap:   uint64(pod.MemRequestKb),
+			CpuCores:     float32(pod.CPURequest),
+			RamCap:       uint64(pod.MemRequestKb),
+			EphemeralCap: uint64(pod.EphemeralReqKb),
 		},
 	}
 
@@ -639,7 +693,6 @@ func (pw *PodWatcher) addTaskToJob(pod *Pod, jdUid string, jdName string, tdID i
 	setTaskType(task)
 	// No need to update the RootTask.Spawned here, it will be updated by firmament on processing the task submit call.
 	task.Uid = pw.generateTaskID(jdName, tdID)
-
 	return task
 }
 
@@ -780,4 +833,156 @@ func setTaskType(td *firmament.TaskDescriptor) {
 			}
 		}
 	}
+}
+
+// getPVNodeAffinity this method will check if the pod have any PVC's which are pre-bound to a PV and
+// this will create an node selector term in the Pod's NodeAffinity section, based on the PV's node-selector and pass it on to firmamnet.
+// When firmament see a node selector it will try to schdeule the task on that Node, provided all the other
+// constraints are satisfied.
+func (pw *PodWatcher) getPVNodeAffinity(volumes []v1.Volume, pod *v1.Pod) (*v1.Pod, bool) {
+
+	var pvcName string
+	if pod.Spec.Affinity != nil && pod.Spec.Affinity.NodeAffinity != nil {
+		glog.V(2).Info("Pod already has an node affinity field ", pod.Spec.Affinity.NodeAffinity)
+	}
+	for _, v := range volumes {
+		glog.V(2).Info(v, " is the volume name for pod ", pod.Name)
+		if v.VolumeSource.PersistentVolumeClaim != nil {
+			pvcName = v.VolumeSource.PersistentVolumeClaim.ClaimName
+			glog.V(3).Info("Found a PV claim name ", pvcName, " for Pod", pod.Name)
+		} else {
+			glog.V(3).Info("No PV claim found for the Pod ", pod.Name)
+			continue
+		}
+		// get the PVc object associated with the PV claim name from the api-server
+		pvc, err := pw.clientset.CoreV1().PersistentVolumeClaims(pod.Namespace).Get(pvcName, metav1.GetOptions{})
+		if err != nil {
+			glog.Error(err, " Unable to retrieve the PVC object for PVC ", pvcName, " associated with Pod ", pod.Name)
+			return nil, false
+		}
+		if pvc.Spec.VolumeName != "" {
+			// search for PV associated with this PVC
+			pv, err := pw.clientset.CoreV1().PersistentVolumes().Get(pvc.Spec.VolumeName, metav1.GetOptions{})
+			if err != nil {
+				glog.Error(err, "Unable to get the PV associated with the PVC volume name", pvc.Spec.VolumeName)
+				return nil, false
+			}
+			var pvNodeSelector *v1.NodeSelector
+			if pv.Spec.NodeAffinity != nil && pv.Spec.NodeAffinity.Required != nil {
+				pvNodeSelector = pv.Spec.NodeAffinity.Required
+			} else {
+				glog.V(2).Info("No matching node selector for PV volume found", pvc.Spec.VolumeName)
+				continue
+			}
+			// update the pods NodeAfiinity field with he PV's NodeAffinity term
+			if pod.Spec.Affinity != nil {
+				podNodeAffinity := pod.Spec.Affinity.NodeAffinity
+				if podNodeAffinity != nil {
+					// Check if the NodeAffinity Hard section is available, update only the RequiredDuringSchedulingIgnoredDuringExecution section
+					// of the pod NodeAffinity
+					if podNodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution != nil {
+						podNodeSelector := podNodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution
+
+						// check Pods NodeSelectorTerms and prepend PV's Node selector requirement to the first NodeSelectorTerms
+						if len(podNodeSelector.NodeSelectorTerms) > 0 {
+							//get the first nodeselector term and update the match expression with our term
+							nodeSelectorTerm := podNodeSelector.NodeSelectorTerms[0]
+							for _, pvNodeSelector := range pvNodeSelector.NodeSelectorTerms {
+								//Note: we don't use the node fields terms
+								nodeSelectorTerm.MatchExpressions = append(nodeSelectorTerm.MatchExpressions, pvNodeSelector.MatchExpressions...)
+							}
+							podNodeSelector.NodeSelectorTerms[0] = nodeSelectorTerm
+						} else {
+							podNodeSelector.NodeSelectorTerms = append(podNodeSelector.NodeSelectorTerms, pvNodeSelector.NodeSelectorTerms...)
+						}
+					} else {
+						podNodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution = &v1.NodeSelector{
+							NodeSelectorTerms: pvNodeSelector.NodeSelectorTerms,
+						}
+					}
+				} else {
+					pod.Spec.Affinity.NodeAffinity = &v1.NodeAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
+							NodeSelectorTerms: pvNodeSelector.NodeSelectorTerms,
+						}}
+				}
+			} else {
+				pod.Spec.Affinity = &v1.Affinity{
+					NodeAffinity: &v1.NodeAffinity{
+						RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
+							NodeSelectorTerms: pvNodeSelector.NodeSelectorTerms,
+						},
+					},
+				}
+			}
+		} else {
+			// cannot find the right pv
+			glog.V(2).Info("Cannot schedule this pod since no matchin PV found", pod.Name)
+			return nil, false
+		}
+	}
+
+	return pod, true
+}
+
+func Update(pw kubernetes.Interface, pod *v1.Pod, condition *v1.PodCondition) error {
+	glog.V(1).Infof("Updating pod condition for %s/%s to (%s==%s)", pod.Namespace, pod.Name, condition.Type, condition.Status)
+	if UpdatePodCondition(&pod.Status, condition) {
+		_, err := pw.CoreV1().Pods(pod.Namespace).UpdateStatus(pod)
+		return err
+	}
+	return nil
+}
+
+// Updates existing pod condition or creates a new one. Sets LastTransitionTime to now if the
+// status has changed.
+// Returns true if pod condition has changed or has been added.
+func UpdatePodCondition(status *v1.PodStatus, condition *v1.PodCondition) bool {
+	condition.LastTransitionTime = metav1.Now()
+	// Try to find this pod condition.
+	conditionIndex, oldCondition := GetPodCondition(status, condition.Type)
+
+	if oldCondition == nil {
+		// We are adding new pod condition.
+		status.Conditions = append(status.Conditions, *condition)
+		return true
+	} else {
+		// We are updating an existing condition, so we need to check if it has changed.
+		if condition.Status == oldCondition.Status {
+			condition.LastTransitionTime = oldCondition.LastTransitionTime
+		}
+
+		isEqual := condition.Status == oldCondition.Status &&
+			condition.Reason == oldCondition.Reason &&
+			condition.Message == oldCondition.Message &&
+			condition.LastProbeTime.Equal(&oldCondition.LastProbeTime) &&
+			condition.LastTransitionTime.Equal(&oldCondition.LastTransitionTime)
+
+		status.Conditions[conditionIndex] = *condition
+		// Return true if one of the fields have changed.
+		return !isEqual
+	}
+}
+
+// GetPodCondition extracts the provided condition from the given status and returns that.
+// Returns nil and -1 if the condition is not present, and the index of the located condition.
+func GetPodCondition(status *v1.PodStatus, conditionType v1.PodConditionType) (int, *v1.PodCondition) {
+	if status == nil {
+		return -1, nil
+	}
+	return GetPodConditionFromList(status.Conditions, conditionType)
+}
+
+// GetPodConditionFromList extracts the provided condition from the given list of condition and
+// returns the index of the condition and the condition. Returns -1 and nil if the condition is not present.
+func GetPodConditionFromList(conditions []v1.PodCondition, conditionType v1.PodConditionType) (int, *v1.PodCondition) {
+	if conditions == nil {
+		return -1, nil
+	}
+	for i := range conditions {
+		if conditions[i].Type == conditionType {
+			return i, &conditions[i]
+		}
+	}
+	return -1, nil
 }
