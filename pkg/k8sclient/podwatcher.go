@@ -134,9 +134,10 @@ func NewPodWatcher(kubeVerMajor, kubeVerMinor int, schedulerName string, client 
 	return podWatcher
 }
 
-func (pw *PodWatcher) getCPUMemRequest(pod *v1.Pod) (int64, int64) {
+func (pw *PodWatcher) getCPUMemEphemeralRequest(pod *v1.Pod) (int64, int64, int64) {
 	cpuReq := int64(0)
 	memReq := int64(0)
+	ephemeralReq := int64(0)
 	for _, container := range pod.Spec.Containers {
 		request := container.Resources.Requests
 		cpuReqQuantity := request[v1.ResourceCPU]
@@ -144,8 +145,11 @@ func (pw *PodWatcher) getCPUMemRequest(pod *v1.Pod) (int64, int64) {
 		memReqQuantity := request[v1.ResourceMemory]
 		memReqCont, _ := memReqQuantity.AsInt64()
 		memReq += memReqCont
+		ephemeralReqQuantity := request[v1.ResourceEphemeralStorage]
+		ephemeralReqCont, _ := ephemeralReqQuantity.AsInt64()
+		ephemeralReq += ephemeralReqCont
 	}
-	return cpuReq, memReq
+	return cpuReq, memReq, ephemeralReq
 }
 
 func (pw *PodWatcher) getNodeSelectorTerm(pod *v1.Pod) []NodeSelectorTerm {
@@ -239,7 +243,7 @@ func (pw *PodWatcher) getTolerations(pod *v1.Pod) []Toleration {
 }
 
 func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
-	cpuReq, memReq := pw.getCPUMemRequest(pod)
+	cpuReq, memReq, ephemeralReq := pw.getCPUMemEphemeralRequest(pod)
 	podPhase := PodUnknown
 	switch pod.Status.Phase {
 	case v1.PodPending:
@@ -256,13 +260,14 @@ func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 			Name:      pod.Name,
 			Namespace: pod.Namespace,
 		},
-		State:        podPhase,
-		CPURequest:   cpuReq,
-		MemRequestKb: memReq / bytesToKb,
-		Labels:       pod.Labels,
-		Annotations:  pod.Annotations,
-		NodeSelector: pod.Spec.NodeSelector,
-		OwnerRef:     GetOwnerReference(pod),
+		State:          podPhase,
+		CPURequest:     cpuReq,
+		MemRequestKb:   memReq / bytesToKb,
+		EphemeralReqKb: ephemeralReq / bytesToKb,
+		Labels:         pod.Labels,
+		Annotations:    pod.Annotations,
+		NodeSelector:   pod.Spec.NodeSelector,
+		OwnerRef:       GetOwnerReference(pod),
 		Affinity: &Affinity{
 			NodeAffinity: &NodeAffinity{
 				HardScheduling: &NodeSelector{
@@ -363,9 +368,9 @@ func (pw *PodWatcher) enqueuePodUpdate(key, oldObj, newObj interface{}) {
 		glog.V(2).Infof("enqueuePodUpdate: Updated pod state change %v %s", updatedPod.Identifier, updatedPod.State)
 		return
 	}
-	oldCPUReq, oldMemReq := pw.getCPUMemRequest(oldPod)
-	newCPUReq, newMemReq := pw.getCPUMemRequest(newPod)
-	if oldCPUReq != newCPUReq || oldMemReq != newMemReq ||
+	oldCPUReq, oldMemReq, oldEphemeralReq := pw.getCPUMemEphemeralRequest(oldPod)
+	newCPUReq, newMemReq, newEphemeralReq := pw.getCPUMemEphemeralRequest(newPod)
+	if oldCPUReq != newCPUReq || oldMemReq != newMemReq || oldEphemeralReq != newEphemeralReq ||
 		!reflect.DeepEqual(oldPod.Labels, newPod.Labels) ||
 		!reflect.DeepEqual(oldPod.Annotations, newPod.Annotations) ||
 		!reflect.DeepEqual(oldPod.Spec.NodeSelector, newPod.Spec.NodeSelector) {
@@ -622,8 +627,9 @@ func (pw *PodWatcher) addTaskToJob(pod *Pod, jdUid string, jdName string, tdID i
 		JobId:     jdUid,
 		ResourceRequest: &firmament.ResourceVector{
 			// TODO(ionel): Update types so no cast is required.
-			CpuCores: float32(pod.CPURequest),
-			RamCap:   uint64(pod.MemRequestKb),
+			CpuCores:     float32(pod.CPURequest),
+			RamCap:       uint64(pod.MemRequestKb),
+			EphemeralCap: uint64(pod.EphemeralReqKb),
 		},
 	}
 
@@ -687,7 +693,6 @@ func (pw *PodWatcher) addTaskToJob(pod *Pod, jdUid string, jdName string, tdID i
 	setTaskType(task)
 	// No need to update the RootTask.Spawned here, it will be updated by firmament on processing the task submit call.
 	task.Uid = pw.generateTaskID(jdName, tdID)
-
 	return task
 }
 

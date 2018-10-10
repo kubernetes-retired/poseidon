@@ -88,6 +88,8 @@ type Node struct {
 	CPUAllocatable   int64
 	MemCapacityKb    int64
 	MemAllocatableKb int64
+	EphemeralCapKb   int64
+	EphemeralAllocKb int64
 	Labels           map[string]string
 	Annotations      map[string]string
 	Taints           []Taint
@@ -211,6 +213,7 @@ type Pod struct {
 	State           PodPhase
 	CPURequest      int64
 	MemRequestKb    int64
+	EphemeralReqKb  int64
 	Labels          map[string]string
 	Annotations     map[string]string
 	NodeSelector    map[string]string

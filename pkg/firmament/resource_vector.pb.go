@@ -49,7 +49,9 @@ type ResourceVector struct {
 	// net_tx_bw is transmit network packets in KB.
 	NetTxBw uint64 `protobuf:"varint,6,opt,name=net_tx_bw,json=netTxBw,proto3" json:"net_tx_bw,omitempty"`
 	// net_tx_bw is receive network packets in KB.
-	NetRxBw              uint64   `protobuf:"varint,7,opt,name=net_rx_bw,json=netRxBw,proto3" json:"net_rx_bw,omitempty"`
+	NetRxBw uint64 `protobuf:"varint,7,opt,name=net_rx_bw,json=netRxBw" json:"net_rx_bw,omitempty"`
+	// ephemeral storage
+	EphemeralCap         uint64   `protobuf:"varint,8,opt,name=ephemeral_cap,json=ephemeralCap" json:"ephemeral_cap,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -125,6 +127,13 @@ func (m *ResourceVector) GetNetTxBw() uint64 {
 func (m *ResourceVector) GetNetRxBw() uint64 {
 	if m != nil {
 		return m.NetRxBw
+	}
+	return 0
+}
+
+func (m *ResourceVector) GetEphemeralCap() uint64 {
+	if m != nil {
+		return m.EphemeralCap
 	}
 	return 0
 }
