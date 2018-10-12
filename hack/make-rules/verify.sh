@@ -77,7 +77,7 @@ function run-cmd {
   return ${tr}
 }
 
-# Collect Failed tests in this Array , initalize it to nil
+# Collect Failed tests in this Array , initialize it to nil
 FAILED_TESTS=()
 
 function print-failed-tests {

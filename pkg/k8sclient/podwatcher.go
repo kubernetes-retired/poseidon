@@ -434,7 +434,7 @@ func (pw *PodWatcher) podWorker() {
 						PodMux.Lock()
 
 						// check if the pod already exists
-						// this cases happend when Replicaset are used.
+						// this cases happened when Replicaset are used.
 						// When a replicaset is delete it creates more pods with the same name
 						_, ok := PodToTD[pod.Identifier]
 						if ok {

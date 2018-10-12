@@ -18,7 +18,7 @@ syntax = "proto3";
 
 package stats;
 
-// PoseidonStats is a service that is responsbile for receiving node and pod stats.
+// PoseidonStats is a service that is responsible for receiving node and pod stats.
 service PoseidonStats {
   rpc ReceiveNodeStats(stream NodeStats) returns (stream NodeStatsResponse) {}
   rpc ReceivePodStats(stream PodStats) returns (stream PodStatsResponse) {}
