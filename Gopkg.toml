@@ -27,6 +27,8 @@
 required = [
   "github.com/onsi/ginkgo/ginkgo",
   "github.com/docker/distribution",
+  "github.com/client9/misspell",
+  "github.com/client9/misspell/cmd/misspell",
 ]
 
 [[constraint]]
