@@ -88,6 +88,7 @@ type Node struct {
 	CPUAllocatable   int64
 	MemCapacityKb    int64
 	MemAllocatableKb int64
+	PodAllocatable   int64
 	EphemeralCapKb   int64
 	EphemeralAllocKb int64
 	Labels           map[string]string
@@ -249,6 +250,16 @@ type BindInfo struct {
 }
 
 var BindChannel chan BindInfo
+
+// PodWatcher is a Kubernetes pod watcher.
+type K8sPodWatcher struct {
+	//ID string
+	clientset  kubernetes.Interface
+	controller cache.Controller
+	fc         firmament.FirmamentSchedulerClient
+	K8sPods    map[string]*firmament.TaskInfo
+	sync.Mutex
+}
 
 // PodToTD maps Kubernetes pod identifier(namespace + name) to firmament task descriptor.
 var ProcessedPodEvents map[PodIdentifier]*v1.Pod // map will have all the pods whose failure/unscheduled events are processed

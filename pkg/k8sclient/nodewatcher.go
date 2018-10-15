@@ -113,6 +113,7 @@ func (nw *NodeWatcher) parseNode(node *v1.Node, phase NodePhase) *Node {
 	memCap, _ := memCapQuantity.AsInt64()
 	memAllocQuantity := node.Status.Allocatable[v1.ResourceMemory]
 	memAlloc, _ := memAllocQuantity.AsInt64()
+	podAllocQuantity := node.Status.Allocatable[v1.ResourcePods]
 	ephemeralCapQty := node.Status.Capacity[v1.ResourceEphemeralStorage]
 	ephemeralCap, _ := ephemeralCapQty.AsInt64()
 	ephemeralAllocQty := node.Status.Allocatable[v1.ResourceEphemeralStorage]
@@ -127,6 +128,7 @@ func (nw *NodeWatcher) parseNode(node *v1.Node, phase NodePhase) *Node {
 		CPUAllocatable:   cpuAllocQuantity.MilliValue(),
 		MemCapacityKb:    memCap / bytesToKb,
 		MemAllocatableKb: memAlloc / bytesToKb,
+		PodAllocatable:   podAllocQuantity.Value(),
 		EphemeralCapKb:   ephemeralCap / bytesToKb,
 		EphemeralAllocKb: ephemeralAlloc / bytesToKb,
 		Labels:           node.Labels,
@@ -254,6 +256,7 @@ func (nw *NodeWatcher) nodeWorker() {
 						continue
 					}
 					NodeToRTND[node.Hostname] = rtnd
+					glog.Info(NodeToRTND, " in Nodedded")
 					ResIDToNode[rtnd.GetResourceDesc().GetUuid()] = node.Hostname
 					NodeMux.Unlock()
 					firmament.NodeAdded(nw.fc, rtnd)
@@ -272,6 +275,7 @@ func (nw *NodeWatcher) nodeWorker() {
 					delete(NodeToRTND, node.Hostname)
 					delete(ResIDToNode, resID)
 					NodeMux.Unlock()
+					glog.Info(NodeToRTND, " in NodeDeleted")
 				case NodeFailed:
 					NodeMux.RLock()
 					rtnd, ok := NodeToRTND[node.Hostname]
@@ -286,6 +290,7 @@ func (nw *NodeWatcher) nodeWorker() {
 					delete(NodeToRTND, node.Hostname)
 					delete(ResIDToNode, resID)
 					NodeMux.Unlock()
+					glog.Info(NodeToRTND, " in NodFailed")
 				case NodeUpdated:
 					NodeMux.RLock()
 					rtnd, ok := NodeToRTND[node.Hostname]
@@ -295,6 +300,7 @@ func (nw *NodeWatcher) nodeWorker() {
 					nw.updateResourceDescriptor(node, rtnd)
 					NodeMux.RUnlock()
 					firmament.NodeUpdated(nw.fc, rtnd)
+					glog.Info(NodeToRTND, " in NodeUpdated")
 				default:
 					glog.Fatalf("Unexpected node %s phase %s", node.Hostname, node.Phase)
 				}
@@ -324,6 +330,7 @@ func (nw *NodeWatcher) createResourceTopologyForNode(node *Node) *firmament.Reso
 				CpuCores:     float32(node.CPUCapacity),
 				EphemeralCap: uint64(node.EphemeralCapKb),
 			},
+			MaxPods: uint64(node.PodAllocatable),
 		},
 	}
 	ResIDToNode[resUUID] = node.Hostname
