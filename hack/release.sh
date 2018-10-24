@@ -53,7 +53,7 @@ kube::version::get_version_vars
 
 # This is to prevent the script from starting if its on a dirty commit.
 if [[ "${KUBE_GIT_VERSION}" != "${RELEASE_TAG}" ]]; then
-  echo "Version being build: ${KUBE_GIT_VERSION} does not match the release version: ${RELEASE_TAG}, there probably is uncommited work."
+  echo "Version being build: ${KUBE_GIT_VERSION} does not match the release version: ${RELEASE_TAG}, there probably is uncommitted work."
   exit 1
 else
   echo "Using ${RELEASE_TAG} for release push"

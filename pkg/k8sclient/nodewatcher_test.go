@@ -268,7 +268,7 @@ func TestNodeWatcher_enqueueNodeAddition(t *testing.T) {
 	defer testObj.mockCtrl.Finish()
 
 	nodeWatch := NewNodeWatcher(testObj.kubeClient, testObj.firmamentClient)
-	keychan := make(chan interface{})
+	keychain := make(chan interface{})
 	itemschan := make(chan []interface{})
 
 	for _, testValue := range testData {
@@ -279,13 +279,13 @@ func TestNodeWatcher_enqueueNodeAddition(t *testing.T) {
 		nodeWatch.enqueueNodeAddition(key, testValue.node)
 		go func() {
 			newkey, newitems, _ := nodeWatch.nodeWorkQueue.Get()
-			keychan <- newkey
+			keychain <- newkey
 			itemschan <- newitems
 		}()
 		waitTimer := time.NewTimer(time.Second * 5)
 		select {
 		case <-waitTimer.C:
-		case newkey := <-keychan:
+		case newkey := <-keychain:
 			newitem := <-itemschan
 
 			for _, item := range newitem {

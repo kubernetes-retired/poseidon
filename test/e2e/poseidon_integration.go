@@ -595,7 +595,7 @@ var _ = Describe("Poseidon", func() {
 			By("Trying to get a schedulable node")
 			schedulableNodes := framework.ListSchedulableNodes(clientset)
 			if len(schedulableNodes) < 1 {
-				Skip(fmt.Sprintf("Skipping this test case as the required minimum nodes not avaliable "))
+				Skip(fmt.Sprintf("Skipping this test case as the required minimum nodes not available "))
 			}
 			nodeOne := schedulableNodes[0]
 
@@ -679,7 +679,7 @@ var _ = Describe("Poseidon", func() {
 			By("Trying to get a schedulable node")
 			schedulableNodes := framework.ListSchedulableNodes(clientset)
 			if len(schedulableNodes) < 1 {
-				Skip(fmt.Sprintf("Skipping this test case as the required minimum nodes not avaliable "))
+				Skip(fmt.Sprintf("Skipping this test case as the required minimum nodes not available "))
 			}
 			nodeOne := schedulableNodes[0]
 
@@ -777,7 +777,7 @@ var _ = Describe("Poseidon", func() {
 			By("Trying to get a schedulable node")
 			schedulableNodes := framework.ListSchedulableNodes(clientset)
 			if len(schedulableNodes) < 2 {
-				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of two node and only %d nodes avaliable", len(schedulableNodes)))
+				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of two node and only %d nodes available", len(schedulableNodes)))
 			}
 			nodeOne = schedulableNodes[0]
 			nodeTwo = schedulableNodes[1]
@@ -890,7 +890,7 @@ var _ = Describe("Poseidon", func() {
 			By("Trying to get a schedulable node")
 			schedulableNodes := framework.ListSchedulableNodes(clientset)
 			if len(schedulableNodes) < 3 {
-				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of three node and only %d nodes avaliable", len(schedulableNodes)))
+				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of three node and only %d nodes available", len(schedulableNodes)))
 			}
 			nodeOne = schedulableNodes[0]
 			nodeTwo = schedulableNodes[1]
@@ -992,7 +992,7 @@ var _ = Describe("Poseidon", func() {
 			By("Trying to get a schedulable node")
 			schedulableNodes := framework.ListSchedulableNodes(clientset)
 			if len(schedulableNodes) < 2 {
-				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of three node and only %d nodes avaliable", len(schedulableNodes)))
+				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of three node and only %d nodes available", len(schedulableNodes)))
 			}
 			nodeOne = schedulableNodes[0]
 			nodeTwo = schedulableNodes[1]
@@ -1840,7 +1840,7 @@ var _ = Describe("Poseidon", func() {
 			By("Trying to get a schedulable node")
 			schedulableNodes := framework.ListSchedulableNodes(clientset)
 			if len(schedulableNodes) < 2 {
-				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of two node and only %d nodes avaliable", len(schedulableNodes)))
+				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of two node and only %d nodes available", len(schedulableNodes)))
 			}
 			nodeOne = schedulableNodes[0]
 			nodeTwo = schedulableNodes[1]
@@ -1896,7 +1896,7 @@ var _ = Describe("Poseidon", func() {
 			By("Trying to get a schedulable node")
 			schedulableNodes := framework.ListSchedulableNodes(clientset)
 			if len(schedulableNodes) < 2 {
-				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of two node and only %d nodes avaliable", len(schedulableNodes)))
+				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of two node and only %d nodes available", len(schedulableNodes)))
 			}
 			nodeOne = schedulableNodes[0]
 			nodeTwo = schedulableNodes[1]
@@ -1950,7 +1950,7 @@ var _ = Describe("Poseidon", func() {
 			By("Trying to get a schedulable node")
 			schedulableNodes := framework.ListSchedulableNodes(clientset)
 			if len(schedulableNodes) < 2 {
-				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of two node and only %d nodes avaliable", len(schedulableNodes)))
+				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of two node and only %d nodes available", len(schedulableNodes)))
 			}
 			nodeOne = schedulableNodes[0]
 			nodeTwo = schedulableNodes[1]
@@ -2011,7 +2011,7 @@ var _ = Describe("Poseidon", func() {
 			By("Trying to get a schedulable node")
 			schedulableNodes := framework.ListSchedulableNodes(clientset)
 			if len(schedulableNodes) < 2 {
-				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of two node and only %d nodes avaliable", len(schedulableNodes)))
+				Skip(fmt.Sprintf("Skipping this test case as this requires minimum of two node and only %d nodes available", len(schedulableNodes)))
 			}
 			nodeOne = schedulableNodes[0]
 			nodeTwo = schedulableNodes[1]

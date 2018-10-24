@@ -212,7 +212,7 @@ func TestNewPodWatcher(t *testing.T) {
 func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 	var empty map[string]string
 	fakeNow := metav1.Now()
-	keychan := make(chan interface{})
+	keychain := make(chan interface{})
 	itemschan := make(chan []interface{})
 	fakeOwnerRef := "abcdfe12345"
 
@@ -511,13 +511,13 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 		podWatch.enqueuePodAddition(key, podData.pod)
 		go func() {
 			newkey, newitems, _ := podWatch.podWorkQueue.Get()
-			keychan <- newkey
+			keychain <- newkey
 			itemschan <- newitems
 		}()
 		waitTimer := time.NewTimer(time.Second * 2)
 		select {
 		case <-waitTimer.C:
-		case newkey := <-keychan:
+		case newkey := <-keychain:
 			newitems := <-itemschan
 			for _, item := range newitems {
 				if newItem, ok := item.(*Pod); ok {
