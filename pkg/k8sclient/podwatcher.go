@@ -48,7 +48,8 @@ type NodeSelectors map[string]string
 // Redefine below Annotation key as that is deprecated from original Kubernetes.
 const (
 	// CreatedByAnnotation represents the original Kubernetes `kubernetes.io/created-by` annotation.
-	CreatedByAnnotation = "kubernetes.io/created-by"
+	CreatedByAnnotation      = "kubernetes.io/created-by"
+	GangSchedulingAnnotation = "firmament-gang-scheduling"
 )
 
 // SortNodeSelectorsKey sort node selectors keys and return an slice of sorted keys.
@@ -378,7 +379,7 @@ func (pw *PodWatcher) enqueuePodUpdate(key, oldObj, newObj interface{}) {
 			// we need to change the state here
 			updatedPod.State = PodUpdated
 			pw.podWorkQueue.Add(key, updatedPod)
-			glog.V(2).Infof("enqueuePodUpdate: Updated pod ", updatedPod.Identifier)
+			glog.V(2).Infof("enqueuePodUpdate: Updated pod %v", updatedPod.Identifier)
 		}
 		return
 	}
@@ -448,6 +449,8 @@ func (pw *PodWatcher) podWorker() {
 						jd, ok := jobIDToJD[jobID]
 						if !ok {
 							jd = pw.createNewJob(pod.OwnerRef)
+							// get requirement for gang scheduling if enabled
+							jd = pw.updateGangSchedulingrequireent(pod, jd)
 							jobIDToJD[jobID] = jd
 							jobNumTasksToRemove[jobID] = 0
 						}
@@ -712,6 +715,7 @@ func (pw *PodWatcher) generateTaskID(jdUID string, taskNum int) uint64 {
 func GetOwnerReference(pod *v1.Pod) string {
 	// Return if owner reference exists.
 	ownerRefs := pod.GetObjectMeta().GetOwnerReferences()
+	glog.Info("ownerRefs", ownerRefs)
 	if len(ownerRefs) != 0 {
 		for x := range ownerRefs {
 			ref := &ownerRefs[x]
@@ -985,4 +989,151 @@ func GetPodConditionFromList(conditions []v1.PodCondition, conditionType v1.PodC
 		}
 	}
 	return -1, nil
+}
+
+// GetGangSchedulingReference to get the parent object reference
+func (pw *PodWatcher) GetGangSchedulingReferenceCount(pod *Pod) int32 {
+	var podOwnerReference metav1.OwnerReference
+	var k8sPodref *v1.Pod
+	if len(pod.Annotations) >= 0 {
+		if gangSchedulingAnnotation, ok := pod.Annotations[GangSchedulingAnnotation]; ok {
+			// get gang scheduling value from the annotation
+			// gangSchedulingAnnotation is the percent value of the min no of pods needed in the job
+			minGangRequirement, err := strconv.ParseInt(gangSchedulingAnnotation, 10, 32)
+			if err != nil || minGangRequirement > 100 {
+				glog.Errorf("unable to convert the gang scheduling requirement %v for %v and the percentage requirement should not exceed 100", err, gangSchedulingAnnotation)
+				return 0
+			}
+			// get the k8spod
+			PodToK8sPodLock.Lock()
+			k8sPodref = PodToK8sPod[pod.Identifier]
+			PodToK8sPodLock.Unlock()
+			// Return if owner reference exists.
+			ownerRefs := k8sPodref.GetObjectMeta().GetOwnerReferences()
+			if len(ownerRefs) > 0 {
+				// a pod could have many owner since its an array we take the first owner here
+				podOwnerReference = ownerRefs[0]
+			} else {
+				glog.V(2).Info("GetGangSchedulingReferenceCount: ownerRefs is zero", ownerRefs)
+				return 0
+			}
+
+			if podOwnerReference.Kind != "" && podOwnerReference.Name != "" {
+				switch podOwnerReference.Kind {
+				case "ReplicaSet":
+					{
+						return pw.getGangSchedulingRequirementFromRS(pod.Identifier.Namespace, podOwnerReference.Name, int32(minGangRequirement))
+					}
+				case "Job":
+					{
+						return pw.getGangSchedulingRequirementFromJob(pod.Identifier.Namespace, podOwnerReference.Name, int32(minGangRequirement))
+					}
+
+				case "Deployment":
+					{
+						return pw.getGangSchedulingRequirementFromDeployment(pod.Identifier.Namespace, podOwnerReference.Name, int32(minGangRequirement))
+					}
+				default:
+					{
+						glog.Error("We don't currently support this kind in gang scheduling", podOwnerReference.Kind, podOwnerReference.Name)
+						return 0
+					}
+				}
+			}
+		}
+	}
+	return 0
+}
+
+// getGangSchedulingRequirementFromJob will return the gang scheduling requirement for job
+func (pw *PodWatcher) getGangSchedulingRequirementFromJob(nameSpace string, jobName string, minGangRequirement int32) int32 {
+	var podCountInjob int32
+
+	job, err := pw.clientset.BatchV1().Jobs(nameSpace).Get(jobName, metav1.GetOptions{})
+	if err != nil {
+		glog.Errorf("unable to fetch the job info of the pod %v", err)
+		return 0
+	}
+
+	// Note: we consider Parallelism field of the job
+	if job.Spec.Parallelism == nil {
+		glog.V(2).Info(job, " has no parallelism set")
+		return 0
+	} else {
+		podCountInjob = *job.Spec.Parallelism
+		if podCountInjob == 0 || podCountInjob == 1 {
+			if minGangRequirement < 100 {
+				glog.Errorf("job with a single pod cannot have a fractional gang scheduling requirement")
+				return 0
+			}
+			podCountInjob = 1
+		}
+	}
+	minGangPods := float64(podCountInjob) * float64(float64(minGangRequirement)/100)
+
+	return int32(minGangPods)
+}
+
+// getGangSchedulingRequirementFromRS will return the gang scheduling requirement for replicasets
+func (pw *PodWatcher) getGangSchedulingRequirementFromRS(nameSpace string, rsName string, minGangRequirement int32) int32 {
+	var podCountInrs int32
+	rs, err := pw.clientset.AppsV1().ReplicaSets(nameSpace).Get(rsName, metav1.GetOptions{})
+	if err != nil {
+		glog.Errorf("unable to fetch the replicaset info of the pod %v", err)
+		return 0
+	}
+	// Note: this considers Replicas field of the ReplicaSet
+	if rs.Spec.Replicas == nil {
+		glog.V(2).Info(rs, " has no replicas")
+		return 0
+	} else {
+		podCountInrs = *rs.Spec.Replicas
+		if podCountInrs == 0 || podCountInrs == 1 {
+			if minGangRequirement < 100 {
+				glog.Errorf("Replicaset with a single pod cannot have a fractional gang scheduling requirement")
+				return 0
+			}
+			podCountInrs = 1
+		}
+	}
+	minGangPods := float64(podCountInrs) * float64(float64(minGangRequirement)/100)
+	return int32(minGangPods)
+}
+
+// getGangSchedulingRequirementFromDeployment will return the gang scheduling requirement for Deployments
+func (pw *PodWatcher) getGangSchedulingRequirementFromDeployment(nameSpace string, deploymentName string, minGangRequirement int32) int32 {
+	var podCountdp int32
+	dp, err := pw.clientset.AppsV1().Deployments(nameSpace).Get(deploymentName, metav1.GetOptions{})
+	if err != nil {
+		glog.Errorf("unable to fetch the deployments info of the pod %v", err)
+		return 0
+	}
+	// Note: this considers Replicas field of the Deployment
+	if dp.Spec.Replicas == nil {
+		glog.V(2).Info(dp, " has no replicas")
+		return 0
+	} else {
+		podCountdp = *dp.Spec.Replicas
+		if podCountdp == 0 || podCountdp == 1 {
+			if minGangRequirement < 100 {
+				glog.Errorf("deployment with a single pod cannot have a fractional gang scheduling requirement")
+				return 0
+			}
+			podCountdp = 1
+		}
+	}
+	minGangPods := float64(podCountdp) * float64(float64(minGangRequirement)/100)
+	return int32(minGangPods)
+}
+
+func (pw *PodWatcher) updateGangSchedulingrequireent(pod *Pod, job *firmament.JobDescriptor) *firmament.JobDescriptor {
+
+	minPodRequired := pw.GetGangSchedulingReferenceCount(pod)
+	if minPodRequired == 0 {
+		return job
+	} else {
+		job.MinNumberOfTasks = uint64(minPodRequired)
+		job.IsGangSchedulingJob = true
+	}
+	return job
 }
