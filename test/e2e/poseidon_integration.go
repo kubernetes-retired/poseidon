@@ -67,28 +67,29 @@ var _ = Describe("Poseidon", func() {
 				labels := make(map[string]string)
 				labels["schedulerName"] = "poseidon"
 				// Create a K8s Pod with poseidon
-				pod, err := clientset.CoreV1().Pods(ns).Create(&v1.Pod{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:   name,
-						Labels: labels,
-					},
-					Spec: v1.PodSpec{
-						SchedulerName: "poseidon",
-						Containers: []v1.Container{{
-							Name:            fmt.Sprintf("container-%s", name),
-							Image:           "nginx:latest",
-							ImagePullPolicy: "IfNotPresent",
-						}}},
-				})
-
-				Expect(err).NotTo(HaveOccurred())
+				f.WaitForSchedulerAfterAction(func() error {
+					_, err := clientset.CoreV1().Pods(ns).Create(&v1.Pod{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:   name,
+							Labels: labels,
+						},
+						Spec: v1.PodSpec{
+							SchedulerName: "poseidon",
+							Containers: []v1.Container{{
+								Name:            fmt.Sprintf("container-%s", name),
+								Image:           "nginx:latest",
+								ImagePullPolicy: "IfNotPresent",
+							}}},
+					})
+					return err
+				}, f.Namespace.Name, name, true)
 
 				By("Waiting for the pod to have running status")
-				err = f.WaitForPodRunning(pod.Name)
+				err := f.WaitForPodRunning(name)
 				Expect(err).NotTo(HaveOccurred())
 				// This will list all pods in the namespace
 				f.ListPodsInNamespace(f.Namespace.Name)
-				pod, err = clientset.CoreV1().Pods(ns).Get(name, metav1.GetOptions{})
+				pod, err := clientset.CoreV1().Pods(ns).Get(name, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 				glog.Info("pod status =", string(pod.Status.Phase))
 				Expect(string(pod.Status.Phase)).To(Equal("Running"))
