@@ -378,7 +378,7 @@ func (pw *PodWatcher) enqueuePodUpdate(key, oldObj, newObj interface{}) {
 			// we need to change the state here
 			updatedPod.State = PodUpdated
 			pw.podWorkQueue.Add(key, updatedPod)
-			glog.V(2).Infof("enqueuePodUpdate: Updated pod ", updatedPod.Identifier)
+			glog.V(2).Infof("enqueuePodUpdate: Updated pod %v", updatedPod.Identifier)
 		}
 		return
 	}
