@@ -153,7 +153,7 @@ type ResourceDescriptor struct {
 	TraceMachineId uint64 `protobuf:"varint,21,opt,name=trace_machine_id,json=traceMachineId,proto3" json:"trace_machine_id,omitempty"`
 	// Resource labels
 	Labels []*Label `protobuf:"bytes,32,rep,name=labels,proto3" json:"labels,omitempty"`
-	// Taints
+	//Taints
 	Taints               []*Taint `protobuf:"bytes,33,rep,name=taints,proto3" json:"taints,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`

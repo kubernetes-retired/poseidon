@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: 2-test-gang-job
+spec:
+  parallelism: 5
+  template:
+    metadata:
+      name: test-2
+      annotations:
+        "firmament-gang-scheduling" : "80"
+    spec:
+      schedulerName: poseidon
+      containers:
+      - name: nginx
+        image: "nginx:1.11.1-alpine"
+        resources:
+          requests:
+           memory: "120Mi"
+           cpu: "1200m"
+          limits:
+            memory: "130Mi"
+            cpu: "1300m"
+      restartPolicy: Never
