@@ -170,11 +170,11 @@ type TaskDescriptor struct {
 	Labels []*Label `protobuf:"bytes,32,rep,name=labels,proto3" json:"labels,omitempty"`
 	// Resource label selectors
 	LabelSelectors []*LabelSelector `protobuf:"bytes,33,rep,name=label_selectors,json=labelSelectors,proto3" json:"label_selectors,omitempty"`
-	// Affinity
+	//Affinity
 	Affinity *Affinity `protobuf:"bytes,34,opt,name=affinity,proto3" json:"affinity,omitempty"`
-	// NameSpace
+	//NameSpace
 	Namespace string `protobuf:"bytes,35,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	// Toleration
+	//Toleration
 	Toleration           []*Toleration `protobuf:"bytes,36,rep,name=toleration,proto3" json:"toleration,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`

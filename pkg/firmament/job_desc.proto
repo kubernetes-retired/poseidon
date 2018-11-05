@@ -39,5 +39,9 @@ message JobDescriptor {
   JobState state = 3;
   TaskDescriptor root_task = 4;
   repeated bytes output_ids = 5;
+  // For gang scheduling jobs.
+  uint64 min_number_of_tasks = 6;
+  uint64 scheduled_tasks_count = 7;
+  bool is_gang_scheduling_job = 8;
 }
 
