@@ -112,7 +112,7 @@ func (posiedonEvents *PoseidonEvents) ProcessFailureEvents(unscheduledTasks []ui
 			if poseidonToK8sPod, ok := PodToK8sPod[podIdentifier]; ok {
 				ProcessedPodEvents[podIdentifier] = poseidonToK8sPod
 				// send the failure event and update the pods status
-				posiedonEvents.podEvents.Recorder.Eventf(poseidonToK8sPod, corev1.EventTypeWarning, "FailedScheduling", "Firmament failed to schedule the pod %s in %s namespace", podIdentifier.Name, podIdentifier.Namespace)
+				posiedonEvents.podEvents.Recorder.Eventf(poseidonToK8sPod, corev1.EventTypeWarning, "FailedScheduling", "Firmament failed to schedule the pod %s in %s namespace", podIdentifier.Namespace, podIdentifier.Name)
 				Update(posiedonEvents.k8sClient, poseidonToK8sPod, &corev1.PodCondition{
 					Type:    corev1.PodScheduled,
 					Status:  corev1.ConditionFalse,
@@ -158,7 +158,7 @@ func (posiedonEvents *PoseidonEvents) ProcessSuccessEvents(scheduledTasks []*fir
 				nodeName, ok := ResIDToNode[taskId.GetResourceId()]
 				NodeMux.RUnlock()
 				if ok {
-					posiedonEvents.podEvents.Recorder.Eventf(poseidonToK8sPod, corev1.EventTypeNormal, "Scheduled", "Successfully assigned %v/%v to %v", podIdentifier.Name, podIdentifier.Namespace, nodeName)
+					posiedonEvents.podEvents.Recorder.Eventf(poseidonToK8sPod, corev1.EventTypeNormal, "Scheduled", "Successfully assigned %v/%v to %v", podIdentifier.Namespace, podIdentifier.Name, nodeName)
 				} else {
 					glog.Error("Node not found in Node to Resource Id mapping", taskId.GetResourceId())
 				}
