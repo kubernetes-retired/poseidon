@@ -25,6 +25,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/kubernetes-sigs/poseidon/pkg/config"
 	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 	"github.com/kubernetes-sigs/poseidon/pkg/metrics"
 
@@ -81,14 +82,17 @@ func NewPodWatcher(kubeVerMajor, kubeVerMinor int, schedulerName string, client 
 	}
 	schedulerSelector := fields.Everything()
 	podSelector := labels.Everything()
-	if kubeVerMajor >= 1 && kubeVerMinor >= 6 {
-		// schedulerName is only available in Kubernetes >= 1.6.
-		schedulerSelector = fields.ParseSelectorOrDie("spec.schedulerName==" + schedulerName)
-	} else {
-		var err error
-		podSelector, err = labels.Parse("scheduler in (" + schedulerName + ")")
-		if err != nil {
-			glog.Fatal("Failed to parse scheduler label selector")
+
+	if config.GetDefaultBehaviour() == false {
+		if kubeVerMajor >= 1 && kubeVerMinor >= 6 {
+			// schedulerName is only available in Kubernetes >= 1.6.
+			schedulerSelector = fields.ParseSelectorOrDie("spec.schedulerName==" + schedulerName)
+		} else {
+			var err error
+			podSelector, err = labels.Parse("scheduler in (" + schedulerName + ")")
+			if err != nil {
+				glog.Fatal("Failed to parse scheduler label selector")
+			}
 		}
 	}
 	_, controller := cache.NewInformer(
@@ -292,8 +296,14 @@ func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 
 func (pw *PodWatcher) enqueuePodAddition(key interface{}, obj interface{}) {
 	pod := obj.(*v1.Pod)
-	addedPod := pw.parsePod(pod)
+	if config.GetDefaultBehaviour() == true {
+		//check if its a kube-system pod or SchedulerName is not set ignore the pod
+		if pod.Namespace == "kube-system" || pod.Spec.SchedulerName == "" {
+			return
+		}
+	}
 
+	addedPod := pw.parsePod(pod)
 	// if the pod had volumes
 	// check for the bounded volumes
 	if len(pod.Spec.Volumes) > 0 {
@@ -324,6 +334,13 @@ func (pw *PodWatcher) enqueuePodAddition(key interface{}, obj interface{}) {
 
 func (pw *PodWatcher) enqueuePodDeletion(key interface{}, obj interface{}) {
 	pod := obj.(*v1.Pod)
+	if config.GetDefaultBehaviour() == true {
+		//check if its a kube-system pod or SchedulerName is not set ignore the pod
+		if pod.Namespace == "kube-system" || pod.Spec.SchedulerName == "" {
+			return
+		}
+	}
+
 	if pod.DeletionTimestamp != nil {
 		// Only delete pods if they have a DeletionTimestamp.
 		deletedPod := &Pod{
@@ -354,6 +371,14 @@ func (pw *PodWatcher) enqueuePodDeletion(key interface{}, obj interface{}) {
 func (pw *PodWatcher) enqueuePodUpdate(key, oldObj, newObj interface{}) {
 	oldPod := oldObj.(*v1.Pod)
 	newPod := newObj.(*v1.Pod)
+
+	if config.GetDefaultBehaviour() == true {
+		//check if its a kube-system pod or SchedulerName is not set ignore the pod
+		if oldPod.Namespace == "kube-system" || oldPod.Spec.SchedulerName == "" {
+			return
+		}
+	}
+
 	if oldPod.Status.Phase != newPod.Status.Phase {
 		// TODO(ionel): pw code assumes that if other fields changed as well then Firmament will automatically update them upon state transition. pw is currently not true.
 		updatedPod := pw.parsePod(newPod)
@@ -715,7 +740,6 @@ func (pw *PodWatcher) generateTaskID(jdUID string, taskNum int) uint64 {
 func GetOwnerReference(pod *v1.Pod) string {
 	// Return if owner reference exists.
 	ownerRefs := pod.GetObjectMeta().GetOwnerReferences()
-	glog.Info("ownerRefs", ownerRefs)
 	if len(ownerRefs) != 0 {
 		for x := range ownerRefs {
 			ref := &ownerRefs[x]

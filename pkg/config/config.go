@@ -43,6 +43,7 @@ type poseidonConfig struct {
 	HealthCheckAddress string  `json:"healthCheckAddress,omitempty"`
 	K8sBurst           int     `json:"k8sBurst,omitempty"`
 	K8sQPS             float32 `json:"k8sQPS,omitempty"`
+	DefaultBehaviour   bool    `json:"defaultBehaviour,omitempty"`
 }
 
 // GetSchedulerName returns the SchedulerName from config
@@ -148,6 +149,10 @@ func GetBurst() int {
 	return config.K8sBurst
 }
 
+func GetDefaultBehaviour() bool {
+	return config.DefaultBehaviour
+}
+
 // ReadFromCommandLineFlags reads command line flags and these will override poseidonConfig file flags.
 func ReadFromCommandLineFlags() {
 	pflag.StringVar(&config.SchedulerName, "schedulerName", "poseidon", "The scheduler name with which pods are labeled")
@@ -165,6 +170,7 @@ func ReadFromCommandLineFlags() {
 	pflag.StringVar(&config.HealthCheckAddress, "healthCheckAddress", "0.0.0.0:8989", "Address on which to check the health status of poseidon")
 	pflag.Float32Var(&config.K8sQPS, "k8sQPS", 1000, "k8s Client QPS to configure")
 	pflag.IntVar(&config.K8sBurst, "k8sBurst", 500, "k8s clinet burst rate to configure")
+	pflag.BoolVar(&config.DefaultBehaviour, "defaultBehaviour", false, "Enable default scheduler behaviour")
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
