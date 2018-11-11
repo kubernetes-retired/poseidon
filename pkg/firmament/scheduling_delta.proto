@@ -24,7 +24,7 @@ package firmament;
 // SchedulingDelta is a scheduling decision from previous state.
 message SchedulingDelta {
   enum ChangeType {
-    // NOOP indicates does not change the previsou scheduling state.
+    // NOOP indicates does not change the previous scheduling state.
     NOOP = 0;
     // PLACE indicates schedule a task onto a node.
     PLACE = 1;

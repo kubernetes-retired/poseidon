@@ -169,7 +169,7 @@ func StartgRPCStatsServer(statsServerAddress, firmamentAddress string) {
 	grpcServer := grpc.NewServer()
 	fc, conn, err := firmament.New(firmamentAddress)
 	if err != nil {
-		glog.Fatalln("Unable to initialze Firmament client", err)
+		glog.Fatalln("Unable to initialize Firmament client", err)
 
 	}
 	defer conn.Close()

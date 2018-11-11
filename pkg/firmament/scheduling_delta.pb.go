@@ -39,7 +39,7 @@ const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 type SchedulingDelta_ChangeType int32
 
 const (
-	// NOOP indicates does not change the previsou scheduling state.
+	// NOOP indicates does not change the previous scheduling state.
 	SchedulingDelta_NOOP SchedulingDelta_ChangeType = 0
 	// PLACE indicates schedule a task onto a node.
 	SchedulingDelta_PLACE SchedulingDelta_ChangeType = 1
