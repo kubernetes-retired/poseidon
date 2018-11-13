@@ -5,18 +5,10 @@ This document show how to build and run Poseidon and other components on a dev s
 * Dependency 
    * Kubernetes :- Running instance of a [kubernetes cluster](https://kubernetes.io/docs/setup/) is required. 
    * Firmament  :- For Firmament build info please refer [here](https://github.com/camsas/firmament/blob/master/README.md#building-instructions).
-   * Heapster   :- For deploying heapster with Poseidon sink. please use these [instructions](https://github.com/kubernetes-sigs/poseidon/tree/master/docs/install#steps).
-
+   
 Before running Poseidon all the above three components must be running.
 
-**Note:** 
 
-   Heapster sink for Poseidon is not yet merged in the heapster repo.
-   We will be doing that shortly. Please refer to the deployment scripts already created for [heapster](https://raw.githubusercontent.com/kubernetes-sigs/poseidon/master/deploy/heapster-poseidon.yaml). 
-   
-   For more info on the Heapster sink for Poseidon please refer [here](https://github.com/camsas/heapster).
-   
-   
 # System requirements
   * Go 1.9+
   * Ubuntu 16.04
