@@ -42,7 +42,7 @@ Firmament is a flow-based scheduler that models the workload (running and submit
 A flow network is a directed graph whose arcs carry flow from source nodes (i.e., pod nodes) to a sink node. A cost and capacity associated with each arc constrain the flow, and specify preferential routes for it. Figure 1 shows an example of a flow network for a cluster with five pods and four nodes. Each pod node Pi on the left hand side, is a source of one unit of flow. All such flow must be drained into the sink node (S) for a feasible solution to the optimization problem.
  
    <p align="center">
-  <img src="docs/design/images/fig_one.png"> 
+  <img src="images/fig_one.png"> 
 <p align="center"> <b>Figure 1:</b> Example of a flow network for a four-node cluster with five pods. Pod P<sub>0</sub> has a preference for running on node N<sub>0</sub>, pod P<sub>1</sub> has a preference for running on node N<sub>2</sub>, and pod P<sub>4</sub> has a preference for running on any node from rack R<sub>1</sub>. The remaining pods (P<sub>2</sub> and P<sub>3</sub>) do not have preferences and are connected to C, a node denoting the cluster.
 </p>
 </p>
@@ -90,7 +90,7 @@ The Firmament scheduler is open source and available at https://github.com/camsa
 
 
    <p align="center">
-  <img src="docs/design/images/fig_two.png"> 
+  <img src="images/fig_two.png"> 
 <p align="center"> <b>Figure 2:</b> Firmament Kubernetes integration overview.</p>
 </p> 
 
@@ -111,7 +111,7 @@ communicate with the Firmament scheduler gRPC service. The service expects to be
 transition events (e.g., task submission, task completion, node failure). See [Firmament gRPC service](https://github.com/camsas/firmament/blob/master/src/scheduling/firmament_scheduler.proto) for more details.
 
    <p align="center">
-  <img src="docs/design/images/fig_three.png"> 
+  <img src="images/fig_three.png"> 
 <p align="center"> <b>Figure 3:</b> Poseidon design overview.</p>
 </p>  
 
@@ -135,7 +135,7 @@ This flow graph is submitted to min-cost flow solver which computes the optimal 
 extracts the task placements with the overall minimum cost for its scheduling policy.
  
    <p align="center">
-  <img src="docs/design/images/fig_four.png"> 
+  <img src="images/fig_four.png"> 
 <p align="center"> <b>Figure 4:</b> Firmament scheduler overview.</p>
 </p>  
  
@@ -158,7 +158,7 @@ See [Section 7.3](https://people.csail.mit.edu/malte/pub/dissertations/phd-final
 Many of Firmament’s scheduling policies use real cluster utilization information when making decisions. In our Kubernetes integration, we use Heapster to get statistics information in Poseidon, and ultimately in Firmament. In Figure 5, we show the design of our Poseidon Heapster sink.
 
    <p align="center">
-  <img src="docs/design/images/fig_five.png"> 
+  <img src="images/fig_five.png"> 
 <p align="center"> <b>Figure 5:</b> Poseidon Heapster sink design.</p>
 </p>  
 
