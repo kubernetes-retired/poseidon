@@ -19,11 +19,11 @@
    'Poseidon' and 'Firmament' as a standalone process or as docker containers as well.
 
 ## Overview
-   The [architecture diagram](https://github.com/kubernetes-sigs/poseidon#design) shows the various components of Posedion integration.
+   The [architecture diagram](https://github.com/kubernetes-sigs/poseidon#design) shows the various components of Poseidon integration.
    
    Both Poseidon and Firmament run as deployment each exposed as a service to communicate with each other.
    Firmament's service is used by Poseidon to send nodes, pods and other information.
-   For more detail info on the design please refer design [docs](https://docs.google.com/document/d/1VNoaw1GoRK-yop_Oqzn7wZhxMxvN3pdNjuaICjXLarA/edit?usp=sharing).
+   For more detail info on the design please refer design [docs](https://github.com/kubernetes-sigs/poseidon/blob/master/docs/design/README.md).
    
    
   The easiest way is to use the deployment [scripts](../../deploy/).
