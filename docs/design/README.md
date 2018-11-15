@@ -73,7 +73,7 @@ Firmament currently supports several scheduling policies:
 4. a simple load-spreading policy based on the number of running pods. See the [OSDI paper](https://www.usenix.org/system/files/conference/osdi16/osdi16-gog.pdf) for more details.
 
 We decided to bring Firmament to Kubernetes because it offers several advantages over the default Kubernetes scheduler:
-1.  Tremendous throughput performance benefits due to efficient amortization of work across Replicasets/Deplyments/Jobs.
+1.  Substantial throughput benefits using Firmament scheduler as long as resource requirements (CPU/Memory) for incoming Pods is uniform across Replicasets/Deployments/Jobs. This is mainly due to efficient amortization of work across Replicasets/Deplyments/Jobs. For “Big Data/AI” jobs consisting of large no. of tasks, throughput benefits are tremendous. This is also true for service or batch job scenarios where workload resource requirements are uniform across Replicasets/Deplyments/Jobs.
 2.	It makes globally optimal scheduling decisions for its policies because it uses a min-cost flow optimization that 
     finds the pod placements with the minimum overall cost.
 3.	Firmament supports task re-scheduling. In each scheduler run it considers all pods, including running pods, and as 
