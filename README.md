@@ -33,7 +33,7 @@ As we all know that as part of the Kubernetes multiple schedulers support, each 
 
 
 
-For more details about the design of this project see the [design document](https://github.com/kubernetes-sigs/poseidon/blob/master/docs/design/README.md) doc. We would like highlight one very important piece of information related to “Heapster” in the design document. Collection of real time resource utilization stats using Heapster is no longer supported any more as Heapster has been deprecated. Initially, we had this functionality available in order to provide support for real-time resource utilization based scheduling within Poseidon/Firmament. We are planning to switch to “metrics-server” in the future, which works conceptually similar to how Heapster works.
+For more details about the design of this project see the [design document](https://github.com/kubernetes-sigs/poseidon/blob/master/docs/design/README.md).
 
 In the meanwhile, we are leaving Heapster related information in the design document in order to conceptually demonstrate how real-time resource utilization based Poseidon/Firmament scheduling works. Currently, in the absence of real-time metrics information, Poseidon/Firmament scheduler relies on static resource reservation information defined as part of Pod specifications.
 
