@@ -64,13 +64,13 @@ interference, fairness, priority preemption.
 
 Firmament currently supports several scheduling policies: 
 
-(i) a data locality policy that trade-offs pod data locality versus pod preemption costs and pod scheduling wait time
+1. a data locality policy that trade-offs pod data locality versus pod preemption costs and pod scheduling wait time
 
-(ii) a policy that avoids pod co-location interference
+2. a policy that avoids pod co-location interference
 
-(iii) a network-aware policy that avoids overloading nodes’ network connections
+3. a network-aware policy that avoids overloading nodes’ network connections
 
-(iv) a simple load-spreading policy based on the number of running pods. See the [OSDI paper](https://www.usenix.org/system/files/conference/osdi16/osdi16-gog.pdf) for more details.
+4. a simple load-spreading policy based on the number of running pods. See the [OSDI paper](https://www.usenix.org/system/files/conference/osdi16/osdi16-gog.pdf) for more details.
 
 We decided to bring Firmament to Kubernetes because it offers several advantages over the default Kubernetes scheduler:
 1.  Tremendous throughput performance benefits due to efficient amortization of work across Replicasets/Deplyments/Jobs.
