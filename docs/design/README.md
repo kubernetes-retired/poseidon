@@ -111,7 +111,7 @@ communicate with the Firmament scheduler gRPC service. The service expects to be
 transition events (e.g., task submission, task completion, node failure). See [Firmament gRPC service](https://github.com/camsas/firmament/blob/master/src/scheduling/firmament_scheduler.proto) for more details.
 
    <p align="center">
-  <img src="images/fig_three.png" width=500> 
+  <img src="images/fig_three.png" width=400> 
 <p align="center"> <b>Figure 3:</b> Poseidon design overview.</p>
 </p>  
 
@@ -135,7 +135,7 @@ This flow graph is submitted to min-cost flow solver which computes the optimal 
 extracts the task placements with the overall minimum cost for its scheduling policy.
  
    <p align="center">
-  <img src="images/fig_four.png" width=500> 
+  <img src="images/fig_four.png" width=300> 
 <p align="center"> <b>Figure 4:</b> Firmament scheduler overview.</p>
 </p>  
  
@@ -158,7 +158,7 @@ See [Section 7.3](https://people.csail.mit.edu/malte/pub/dissertations/phd-final
 Many of Firmament’s scheduling policies use real cluster utilization information when making decisions. In our Kubernetes integration, we use Heapster to get statistics information in Poseidon, and ultimately in Firmament. In Figure 5, we show the design of our Poseidon Heapster sink.
 
    <p align="center">
-  <img src="images/fig_five.png" width=500> 
+  <img src="images/fig_five.png" width=300> 
 <p align="center"> <b>Figure 5:</b> Poseidon Heapster sink design.</p>
 </p>  
 
