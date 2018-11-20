@@ -291,6 +291,7 @@ func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 		},
 		CreateTimeStamp: pod.CreationTimestamp,
 		Tolerations:     pw.getTolerations(pod),
+		OwnerKind:       GetOwnersKind(pod),
 	}
 }
 
@@ -659,6 +660,7 @@ func (pw *PodWatcher) addTaskToJob(pod *Pod, jdUid string, jdName string, tdID i
 			RamCap:       uint64(pod.MemRequestKb),
 			EphemeralCap: uint64(pod.EphemeralReqKb),
 		},
+		OwnerRefKind: pod.OwnerKind,
 	}
 
 	// Add labels.
@@ -1160,4 +1162,21 @@ func (pw *PodWatcher) updateGangSchedulingrequireent(pod *Pod, job *firmament.Jo
 		job.IsGangSchedulingJob = true
 	}
 	return job
+}
+
+// GetOwnerReference to get the parent object reference
+func GetOwnersKind(pod *v1.Pod) string {
+	var empty string
+	// Return if owner reference exists.
+	ownerRefs := pod.GetObjectMeta().GetOwnerReferences()
+	if len(ownerRefs) != 0 {
+		for x := range ownerRefs {
+			ref := &ownerRefs[x]
+			if ref.Controller != nil && *ref.Controller {
+				return ref.Kind
+			}
+		}
+	}
+
+	return empty
 }
