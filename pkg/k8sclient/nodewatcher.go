@@ -419,11 +419,11 @@ func GetAvoidPodsFromNodeAnnotations(annotations map[string]string) ([]*firmamen
 
 	for _, avoidPod := range avoidPods.PreferAvoidPods {
 		if avoidPod.PodSignature.PodController != nil {
-			uid := GenerateUUID(string(avoidPod.PodSignature.PodController.UID))
+			//uid := GenerateUUID(string(avoidPod.PodSignature.PodController.UID))
 			firmamentAvoidPodsAnnotation = append(firmamentAvoidPodsAnnotation,
 				&firmament.AvoidPodsAnnotation{
 					Kind: avoidPod.PodSignature.PodController.Kind,
-					Uid:  uid,
+					Uid:  string(avoidPod.PodSignature.PodController.UID),
 				})
 		}
 	}

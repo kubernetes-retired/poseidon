@@ -249,6 +249,7 @@ func (pw *PodWatcher) getTolerations(pod *v1.Pod) []Toleration {
 
 func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 	cpuReq, memReq, ephemeralReq := pw.getCPUMemEphemeralRequest(pod)
+	kind, uid := GetOwnersKindandUid(pod)
 	podPhase := PodUnknown
 	switch pod.Status.Phase {
 	case v1.PodPending:
@@ -291,7 +292,8 @@ func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 		},
 		CreateTimeStamp: pod.CreationTimestamp,
 		Tolerations:     pw.getTolerations(pod),
-		OwnerKind:       GetOwnersKind(pod),
+		OwnerKind:       kind,
+		OwnerUid:        uid,
 	}
 }
 
@@ -661,6 +663,7 @@ func (pw *PodWatcher) addTaskToJob(pod *Pod, jdUid string, jdName string, tdID i
 			EphemeralCap: uint64(pod.EphemeralReqKb),
 		},
 		OwnerRefKind: pod.OwnerKind,
+		OwnerRefUid:  pod.OwnerUid,
 	}
 
 	// Add labels.
@@ -1165,7 +1168,7 @@ func (pw *PodWatcher) updateGangSchedulingrequireent(pod *Pod, job *firmament.Jo
 }
 
 // GetOwnerReference to get the parent object reference
-func GetOwnersKind(pod *v1.Pod) string {
+func GetOwnersKindandUid(pod *v1.Pod) (string, string) {
 	var empty string
 	// Return if owner reference exists.
 	ownerRefs := pod.GetObjectMeta().GetOwnerReferences()
@@ -1173,10 +1176,10 @@ func GetOwnersKind(pod *v1.Pod) string {
 		for x := range ownerRefs {
 			ref := &ownerRefs[x]
 			if ref.Controller != nil && *ref.Controller {
-				return ref.Kind
+				return ref.Kind, string(ref.UID)
 			}
 		}
 	}
 
-	return empty
+	return empty, empty
 }
