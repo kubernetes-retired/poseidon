@@ -48,30 +48,6 @@ For more details about the design of this project see the [design document](http
 To view details related to coordinated release process between Firmament & Poseidon repos, refer [here](https://github.com/kubernetes-sigs/poseidon/blob/master/docs/releases/release-process.md).
 
 # Roadmap
-  * **Release 0.1** – Released on 3rd May 2018:
-    * Baseline Poseidon/Firmament Scheduling capabilities using new multi-dimensional CPU/Memory cost model is part of 
-      this release. Currently, this does not include node and pod level affinity/anti-affinity capabilities. 
-      As shown below, we are building all this out as part of the upcoming releases.    
-    * Entire test.infra BOT automation jobs are in place as part of this release.
-    
-  * **Release 0.2** – Released on 27th May 2018:
-    * Node level Affinity and Anti-Affinity implementation.
-  * **Release 0.3** – Released on 21st June 2018:
-    * Pod level Affinity and Anti-Affinity implementation using multi-round scheduling based affinity and anti-affinity.
-  * **Release 0.4** – Released on 18th August 2018:
-    * Taints & Tolerations.
-    * Support for Pod anti-affinity symmetry.
-    * Throughput Performance Optimizations.
-  * **Release 0.5** – Released on 25th October 2018:
-    * Support for Ephemeral Storage, in addition to CPU/Memory.
-    * Implementation for Success/Failure of scheduling events.
-    * Scheduling support for “Pre-bound Persistence Volume Provisioning”.  
-  * **Release 0.6** – Target Date 12th November:
-    * Gang Scheduling.
-* **Release 0.7** – Target Date 19th November:
-    * Support for Max. Pods per Node.
-    * Co-Existence with Default Scheduler.
-    * Node Prefer/Avoid pods priority function.
 * **Release 0.8** onwards:
     * Provide High Availability/Failover for in-memory Firmament/Poseidon processes.
     *	Scheduling support for “Dynamic Persistence Volume Provisioning”.  
@@ -81,3 +57,26 @@ To view details related to coordinated release process between Firmament & Posei
     * Continuous running scheduling loop versus scheduling intervals mechanism.
     * Priority Pre-emption support.
     * Priority based scheduling.
+* **Release 0.7** – Target Date 19th November:
+    * Support for Max. Pods per Node.
+    * Co-Existence with Default Scheduler.
+    * Node Prefer/Avoid pods priority function.
+* **Release 0.6** – Target Date 12th November:
+    * Gang Scheduling.
+* **Release 0.5** – Released on 25th October 2018:
+    * Support for Ephemeral Storage, in addition to CPU/Memory.
+    * Implementation for Success/Failure of scheduling events.
+    * Scheduling support for “Pre-bound Persistence Volume Provisioning”. 
+* **Release 0.4** – Released on 18th August 2018:
+    * Taints & Tolerations.
+    * Support for Pod anti-affinity symmetry.
+    * Throughput Performance Optimizations.
+* **Release 0.3** – Released on 21st June 2018:
+    * Pod level Affinity and Anti-Affinity implementation using multi-round scheduling based affinity and anti-affinity.
+* **Release 0.2** – Released on 27th May 2018:
+    * Node level Affinity and Anti-Affinity implementation.
+* **Release 0.1** – Released on 3rd May 2018:
+    * Baseline Poseidon/Firmament Scheduling capabilities using new multi-dimensional CPU/Memory cost model is part of 
+      this release. Currently, this does not include node and pod level affinity/anti-affinity capabilities. 
+      As shown below, we are building all this out as part of the upcoming releases.    
+    * Entire test.infra BOT automation jobs are in place as part of this release.
