@@ -47,6 +47,9 @@ For more details about the design of this project see the [design document](http
 # Release Process
 To view details related to coordinated release process between Firmament & Poseidon repos, refer [here](https://github.com/kubernetes-sigs/poseidon/blob/master/docs/releases/release-process.md).
 
+# Latest Benchmarking Results
+Please refer to [link](https://github.com/kubernetes-sigs/poseidon/blob/master/docs/benchmark/README.md) for detail throughput performance comparison test results between Poseidon/Firmament scheduler and Kubernetes default scheduler.
+
 # Roadmap
 * **Release 0.8** onwards:
     * Provide High Availability/Failover for in-memory Firmament/Poseidon processes.
