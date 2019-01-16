@@ -229,7 +229,7 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 					Namespace: "Poseidon-Namespace",
 				},
 				CPURequest:   2000,
-				MemRequestKb: 1,
+				MemRequestKb: 1024000,
 				OwnerRef:     fakeOwnerRef,
 				Affinity: &Affinity{
 					NodeAffinity: &NodeAffinity{
@@ -299,7 +299,7 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 					Namespace: "Poseidon-Namespace",
 				},
 				CPURequest:   2000,
-				MemRequestKb: 1,
+				MemRequestKb: 1024000,
 				OwnerRef:     fakeOwnerRef,
 				Affinity: &Affinity{
 					NodeAffinity: &NodeAffinity{
@@ -369,7 +369,7 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 					Namespace: "Poseidon-Namespace",
 				},
 				CPURequest:   2000,
-				MemRequestKb: 1,
+				MemRequestKb: 1024000,
 				OwnerRef:     fakeOwnerRef,
 				Affinity: &Affinity{
 					NodeAffinity: &NodeAffinity{
@@ -439,7 +439,7 @@ func TestPodWatcher_enqueuePodAddition(t *testing.T) {
 					Namespace: "Poseidon-Namespace",
 				},
 				CPURequest:   2000,
-				MemRequestKb: 1,
+				MemRequestKb: 1024000,
 				OwnerRef:     fakeOwnerRef,
 				Affinity: &Affinity{
 					NodeAffinity: &NodeAffinity{
