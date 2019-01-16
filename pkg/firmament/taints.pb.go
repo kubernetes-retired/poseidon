@@ -19,11 +19,9 @@ limitations under the License.
 
 package firmament
 
-import (
-	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
-	math "math"
-)
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -34,7 +32,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 // The node this Taint is attached to has the "effect" on
 // any pod that does not tolerate the Taint.
@@ -57,17 +55,16 @@ func (m *Taint) Reset()         { *m = Taint{} }
 func (m *Taint) String() string { return proto.CompactTextString(m) }
 func (*Taint) ProtoMessage()    {}
 func (*Taint) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1d857553183faf2, []int{0}
+	return fileDescriptor_taints_e5525c5d4d4e0272, []int{0}
 }
-
 func (m *Taint) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Taint.Unmarshal(m, b)
 }
 func (m *Taint) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Taint.Marshal(b, m, deterministic)
 }
-func (m *Taint) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Taint.Merge(m, src)
+func (dst *Taint) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Taint.Merge(dst, src)
 }
 func (m *Taint) XXX_Size() int {
 	return xxx_messageInfo_Taint.Size(m)
@@ -103,9 +100,9 @@ func init() {
 	proto.RegisterType((*Taint)(nil), "firmament.Taint")
 }
 
-func init() { proto.RegisterFile("taints.proto", fileDescriptor_b1d857553183faf2) }
+func init() { proto.RegisterFile("taints.proto", fileDescriptor_taints_e5525c5d4d4e0272) }
 
-var fileDescriptor_b1d857553183faf2 = []byte{
+var fileDescriptor_taints_e5525c5d4d4e0272 = []byte{
 	// 107 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x29, 0x49, 0xcc, 0xcc,
 	0x2b, 0x29, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x4c, 0xcb, 0x2c, 0xca, 0x4d, 0xcc,

@@ -19,11 +19,9 @@ limitations under the License.
 
 package firmament
 
-import (
-	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
-	math "math"
-)
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -34,7 +32,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 type TaskDescriptor_TaskState int32
 
@@ -63,7 +61,6 @@ var TaskDescriptor_TaskState_name = map[int32]string{
 	8: "DELEGATED",
 	9: "UNKNOWN",
 }
-
 var TaskDescriptor_TaskState_value = map[string]int32{
 	"CREATED":   0,
 	"BLOCKING":  1,
@@ -80,9 +77,8 @@ var TaskDescriptor_TaskState_value = map[string]int32{
 func (x TaskDescriptor_TaskState) String() string {
 	return proto.EnumName(TaskDescriptor_TaskState_name, int32(x))
 }
-
 func (TaskDescriptor_TaskState) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_37c54fe0f119fae3, []int{0, 0}
+	return fileDescriptor_task_desc_5d418c25e1058e8b, []int{0, 0}
 }
 
 type TaskDescriptor_TaskType int32
@@ -100,7 +96,6 @@ var TaskDescriptor_TaskType_name = map[int32]string{
 	2: "DEVIL",
 	3: "TURTLE",
 }
-
 var TaskDescriptor_TaskType_value = map[string]int32{
 	"SHEEP":  0,
 	"RABBIT": 1,
@@ -111,9 +106,8 @@ var TaskDescriptor_TaskType_value = map[string]int32{
 func (x TaskDescriptor_TaskType) String() string {
 	return proto.EnumName(TaskDescriptor_TaskType_name, int32(x))
 }
-
 func (TaskDescriptor_TaskType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_37c54fe0f119fae3, []int{0, 1}
+	return fileDescriptor_task_desc_5d418c25e1058e8b, []int{0, 1}
 }
 
 // TaskDescriptor describes a task in firmament scheduler.
@@ -170,15 +164,15 @@ type TaskDescriptor struct {
 	Labels []*Label `protobuf:"bytes,32,rep,name=labels,proto3" json:"labels,omitempty"`
 	// Resource label selectors
 	LabelSelectors []*LabelSelector `protobuf:"bytes,33,rep,name=label_selectors,json=labelSelectors,proto3" json:"label_selectors,omitempty"`
-	//Affinity
+	// Affinity
 	Affinity *Affinity `protobuf:"bytes,34,opt,name=affinity,proto3" json:"affinity,omitempty"`
-	//NameSpace
+	// NameSpace
 	Namespace string `protobuf:"bytes,35,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	//Toleration
+	// Toleration
 	Toleration []*Toleration `protobuf:"bytes,36,rep,name=toleration,proto3" json:"toleration,omitempty"`
 	// Owner reference kind
 	OwnerRefKind string `protobuf:"bytes,37,opt,name=owner_ref_kind,json=ownerRefKind,proto3" json:"owner_ref_kind,omitempty"`
-	//Owner reference uid
+	// Owner reference uid
 	OwnerRefUid          string   `protobuf:"bytes,38,opt,name=owner_ref_uid,json=ownerRefUid,proto3" json:"owner_ref_uid,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -189,17 +183,16 @@ func (m *TaskDescriptor) Reset()         { *m = TaskDescriptor{} }
 func (m *TaskDescriptor) String() string { return proto.CompactTextString(m) }
 func (*TaskDescriptor) ProtoMessage()    {}
 func (*TaskDescriptor) Descriptor() ([]byte, []int) {
-	return fileDescriptor_37c54fe0f119fae3, []int{0}
+	return fileDescriptor_task_desc_5d418c25e1058e8b, []int{0}
 }
-
 func (m *TaskDescriptor) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_TaskDescriptor.Unmarshal(m, b)
 }
 func (m *TaskDescriptor) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_TaskDescriptor.Marshal(b, m, deterministic)
 }
-func (m *TaskDescriptor) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_TaskDescriptor.Merge(m, src)
+func (dst *TaskDescriptor) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskDescriptor.Merge(dst, src)
 }
 func (m *TaskDescriptor) XXX_Size() int {
 	return xxx_messageInfo_TaskDescriptor.Size(m)
@@ -477,14 +470,14 @@ func (m *TaskDescriptor) GetOwnerRefUid() string {
 }
 
 func init() {
+	proto.RegisterType((*TaskDescriptor)(nil), "firmament.TaskDescriptor")
 	proto.RegisterEnum("firmament.TaskDescriptor_TaskState", TaskDescriptor_TaskState_name, TaskDescriptor_TaskState_value)
 	proto.RegisterEnum("firmament.TaskDescriptor_TaskType", TaskDescriptor_TaskType_name, TaskDescriptor_TaskType_value)
-	proto.RegisterType((*TaskDescriptor)(nil), "firmament.TaskDescriptor")
 }
 
-func init() { proto.RegisterFile("task_desc.proto", fileDescriptor_37c54fe0f119fae3) }
+func init() { proto.RegisterFile("task_desc.proto", fileDescriptor_task_desc_5d418c25e1058e8b) }
 
-var fileDescriptor_37c54fe0f119fae3 = []byte{
+var fileDescriptor_task_desc_5d418c25e1058e8b = []byte{
 	// 1014 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x55, 0xdd, 0x6f, 0x1a, 0x47,
 	0x10, 0x0f, 0xc1, 0x60, 0x18, 0x3e, 0x7c, 0x5e, 0x1b, 0x7b, 0x43, 0x93, 0x98, 0x90, 0x0f, 0x21,

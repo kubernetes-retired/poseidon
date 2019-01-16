@@ -19,11 +19,9 @@ limitations under the License.
 
 package firmament
 
-import (
-	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
-	math "math"
-)
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -34,7 +32,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 type MatchLabels struct {
 	Key                  string   `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -48,17 +46,16 @@ func (m *MatchLabels) Reset()         { *m = MatchLabels{} }
 func (m *MatchLabels) String() string { return proto.CompactTextString(m) }
 func (*MatchLabels) ProtoMessage()    {}
 func (*MatchLabels) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f260e0ec83421d4c, []int{0}
+	return fileDescriptor_pod_affinity_1351749bee063135, []int{0}
 }
-
 func (m *MatchLabels) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_MatchLabels.Unmarshal(m, b)
 }
 func (m *MatchLabels) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_MatchLabels.Marshal(b, m, deterministic)
 }
-func (m *MatchLabels) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MatchLabels.Merge(m, src)
+func (dst *MatchLabels) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MatchLabels.Merge(dst, src)
 }
 func (m *MatchLabels) XXX_Size() int {
 	return xxx_messageInfo_MatchLabels.Size(m)
@@ -96,17 +93,16 @@ func (m *LabelSelectorRequirement) Reset()         { *m = LabelSelectorRequireme
 func (m *LabelSelectorRequirement) String() string { return proto.CompactTextString(m) }
 func (*LabelSelectorRequirement) ProtoMessage()    {}
 func (*LabelSelectorRequirement) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f260e0ec83421d4c, []int{1}
+	return fileDescriptor_pod_affinity_1351749bee063135, []int{1}
 }
-
 func (m *LabelSelectorRequirement) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_LabelSelectorRequirement.Unmarshal(m, b)
 }
 func (m *LabelSelectorRequirement) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_LabelSelectorRequirement.Marshal(b, m, deterministic)
 }
-func (m *LabelSelectorRequirement) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_LabelSelectorRequirement.Merge(m, src)
+func (dst *LabelSelectorRequirement) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LabelSelectorRequirement.Merge(dst, src)
 }
 func (m *LabelSelectorRequirement) XXX_Size() int {
 	return xxx_messageInfo_LabelSelectorRequirement.Size(m)
@@ -150,17 +146,16 @@ func (m *PodLabelSelector) Reset()         { *m = PodLabelSelector{} }
 func (m *PodLabelSelector) String() string { return proto.CompactTextString(m) }
 func (*PodLabelSelector) ProtoMessage()    {}
 func (*PodLabelSelector) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f260e0ec83421d4c, []int{2}
+	return fileDescriptor_pod_affinity_1351749bee063135, []int{2}
 }
-
 func (m *PodLabelSelector) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PodLabelSelector.Unmarshal(m, b)
 }
 func (m *PodLabelSelector) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_PodLabelSelector.Marshal(b, m, deterministic)
 }
-func (m *PodLabelSelector) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PodLabelSelector.Merge(m, src)
+func (dst *PodLabelSelector) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PodLabelSelector.Merge(dst, src)
 }
 func (m *PodLabelSelector) XXX_Size() int {
 	return xxx_messageInfo_PodLabelSelector.Size(m)
@@ -199,17 +194,16 @@ func (m *PodAffinityTerm) Reset()         { *m = PodAffinityTerm{} }
 func (m *PodAffinityTerm) String() string { return proto.CompactTextString(m) }
 func (*PodAffinityTerm) ProtoMessage()    {}
 func (*PodAffinityTerm) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f260e0ec83421d4c, []int{3}
+	return fileDescriptor_pod_affinity_1351749bee063135, []int{3}
 }
-
 func (m *PodAffinityTerm) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PodAffinityTerm.Unmarshal(m, b)
 }
 func (m *PodAffinityTerm) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_PodAffinityTerm.Marshal(b, m, deterministic)
 }
-func (m *PodAffinityTerm) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PodAffinityTerm.Merge(m, src)
+func (dst *PodAffinityTerm) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PodAffinityTerm.Merge(dst, src)
 }
 func (m *PodAffinityTerm) XXX_Size() int {
 	return xxx_messageInfo_PodAffinityTerm.Size(m)
@@ -256,17 +250,16 @@ func (m *WeightedPodAffinityTerm) Reset()         { *m = WeightedPodAffinityTerm
 func (m *WeightedPodAffinityTerm) String() string { return proto.CompactTextString(m) }
 func (*WeightedPodAffinityTerm) ProtoMessage()    {}
 func (*WeightedPodAffinityTerm) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f260e0ec83421d4c, []int{4}
+	return fileDescriptor_pod_affinity_1351749bee063135, []int{4}
 }
-
 func (m *WeightedPodAffinityTerm) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_WeightedPodAffinityTerm.Unmarshal(m, b)
 }
 func (m *WeightedPodAffinityTerm) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_WeightedPodAffinityTerm.Marshal(b, m, deterministic)
 }
-func (m *WeightedPodAffinityTerm) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_WeightedPodAffinityTerm.Merge(m, src)
+func (dst *WeightedPodAffinityTerm) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WeightedPodAffinityTerm.Merge(dst, src)
 }
 func (m *WeightedPodAffinityTerm) XXX_Size() int {
 	return xxx_messageInfo_WeightedPodAffinityTerm.Size(m)
@@ -303,17 +296,16 @@ func (m *PodAffinity) Reset()         { *m = PodAffinity{} }
 func (m *PodAffinity) String() string { return proto.CompactTextString(m) }
 func (*PodAffinity) ProtoMessage()    {}
 func (*PodAffinity) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f260e0ec83421d4c, []int{5}
+	return fileDescriptor_pod_affinity_1351749bee063135, []int{5}
 }
-
 func (m *PodAffinity) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PodAffinity.Unmarshal(m, b)
 }
 func (m *PodAffinity) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_PodAffinity.Marshal(b, m, deterministic)
 }
-func (m *PodAffinity) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PodAffinity.Merge(m, src)
+func (dst *PodAffinity) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PodAffinity.Merge(dst, src)
 }
 func (m *PodAffinity) XXX_Size() int {
 	return xxx_messageInfo_PodAffinity.Size(m)
@@ -347,9 +339,9 @@ func init() {
 	proto.RegisterType((*PodAffinity)(nil), "firmament.PodAffinity")
 }
 
-func init() { proto.RegisterFile("pod_affinity.proto", fileDescriptor_f260e0ec83421d4c) }
+func init() { proto.RegisterFile("pod_affinity.proto", fileDescriptor_pod_affinity_1351749bee063135) }
 
-var fileDescriptor_f260e0ec83421d4c = []byte{
+var fileDescriptor_pod_affinity_1351749bee063135 = []byte{
 	// 404 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x53, 0x41, 0x8b, 0xd3, 0x40,
 	0x14, 0x26, 0x0d, 0x5b, 0xcc, 0x0b, 0xb2, 0x65, 0x90, 0x1a, 0x56, 0x90, 0x10, 0x2f, 0x3d, 0x45,

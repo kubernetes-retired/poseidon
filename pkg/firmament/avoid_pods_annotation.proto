@@ -1,0 +1,12 @@
+// The Firmament project
+// Copyright (c) The Firmament Authors.
+//
+
+syntax = "proto3";
+
+package firmament;
+
+message AvoidPodsAnnotation {
+  string kind = 1;
+  string uid = 2;
+}

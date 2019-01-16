@@ -19,11 +19,9 @@ limitations under the License.
 
 package firmament
 
-import (
-	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
-	math "math"
-)
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -34,7 +32,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 type JobDescriptor_JobState int32
 
@@ -57,7 +55,6 @@ var JobDescriptor_JobState_name = map[int32]string{
 	5: "ABORTED",
 	6: "UNKNOWN",
 }
-
 var JobDescriptor_JobState_value = map[string]int32{
 	"NEW":       0,
 	"CREATED":   1,
@@ -71,9 +68,8 @@ var JobDescriptor_JobState_value = map[string]int32{
 func (x JobDescriptor_JobState) String() string {
 	return proto.EnumName(JobDescriptor_JobState_name, int32(x))
 }
-
 func (JobDescriptor_JobState) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_4f2b7ee7452ce50f, []int{0, 0}
+	return fileDescriptor_job_desc_32b15611d30ec88a, []int{0, 0}
 }
 
 type JobDescriptor struct {
@@ -95,17 +91,16 @@ func (m *JobDescriptor) Reset()         { *m = JobDescriptor{} }
 func (m *JobDescriptor) String() string { return proto.CompactTextString(m) }
 func (*JobDescriptor) ProtoMessage()    {}
 func (*JobDescriptor) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4f2b7ee7452ce50f, []int{0}
+	return fileDescriptor_job_desc_32b15611d30ec88a, []int{0}
 }
-
 func (m *JobDescriptor) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_JobDescriptor.Unmarshal(m, b)
 }
 func (m *JobDescriptor) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_JobDescriptor.Marshal(b, m, deterministic)
 }
-func (m *JobDescriptor) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_JobDescriptor.Merge(m, src)
+func (dst *JobDescriptor) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_JobDescriptor.Merge(dst, src)
 }
 func (m *JobDescriptor) XXX_Size() int {
 	return xxx_messageInfo_JobDescriptor.Size(m)
@@ -173,13 +168,13 @@ func (m *JobDescriptor) GetIsGangSchedulingJob() bool {
 }
 
 func init() {
-	proto.RegisterEnum("firmament.JobDescriptor_JobState", JobDescriptor_JobState_name, JobDescriptor_JobState_value)
 	proto.RegisterType((*JobDescriptor)(nil), "firmament.JobDescriptor")
+	proto.RegisterEnum("firmament.JobDescriptor_JobState", JobDescriptor_JobState_name, JobDescriptor_JobState_value)
 }
 
-func init() { proto.RegisterFile("job_desc.proto", fileDescriptor_4f2b7ee7452ce50f) }
+func init() { proto.RegisterFile("job_desc.proto", fileDescriptor_job_desc_32b15611d30ec88a) }
 
-var fileDescriptor_4f2b7ee7452ce50f = []byte{
+var fileDescriptor_job_desc_32b15611d30ec88a = []byte{
 	// 369 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x54, 0x91, 0xcf, 0x8e, 0xd3, 0x30,
 	0x10, 0x87, 0xc9, 0x26, 0x4d, 0x93, 0x59, 0x76, 0x89, 0x5c, 0x81, 0x0c, 0x12, 0x52, 0xd8, 0x53,

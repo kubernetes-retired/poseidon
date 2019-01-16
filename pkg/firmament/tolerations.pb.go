@@ -19,11 +19,9 @@ limitations under the License.
 
 package firmament
 
-import (
-	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
-	math "math"
-)
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -34,7 +32,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 // The pod this Toleration is attached to tolerates any taint that matches
 // the triple <key,value,effect> using the matching operator <operator>.
@@ -72,17 +70,16 @@ func (m *Toleration) Reset()         { *m = Toleration{} }
 func (m *Toleration) String() string { return proto.CompactTextString(m) }
 func (*Toleration) ProtoMessage()    {}
 func (*Toleration) Descriptor() ([]byte, []int) {
-	return fileDescriptor_fa244b0f86e91dd3, []int{0}
+	return fileDescriptor_tolerations_aa2c6496805744bf, []int{0}
 }
-
 func (m *Toleration) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Toleration.Unmarshal(m, b)
 }
 func (m *Toleration) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Toleration.Marshal(b, m, deterministic)
 }
-func (m *Toleration) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Toleration.Merge(m, src)
+func (dst *Toleration) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Toleration.Merge(dst, src)
 }
 func (m *Toleration) XXX_Size() int {
 	return xxx_messageInfo_Toleration.Size(m)
@@ -132,9 +129,9 @@ func init() {
 	proto.RegisterType((*Toleration)(nil), "firmament.Toleration")
 }
 
-func init() { proto.RegisterFile("tolerations.proto", fileDescriptor_fa244b0f86e91dd3) }
+func init() { proto.RegisterFile("tolerations.proto", fileDescriptor_tolerations_aa2c6496805744bf) }
 
-var fileDescriptor_fa244b0f86e91dd3 = []byte{
+var fileDescriptor_tolerations_aa2c6496805744bf = []byte{
 	// 149 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x2c, 0xc9, 0xcf, 0x49,
 	0x2d, 0x4a, 0x2c, 0xc9, 0xcc, 0xcf, 0x2b, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x4c,

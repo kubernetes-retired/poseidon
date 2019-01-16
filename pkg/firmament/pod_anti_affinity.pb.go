@@ -19,11 +19,9 @@ limitations under the License.
 
 package firmament
 
-import (
-	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
-	math "math"
-)
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -34,7 +32,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 type MatchLabelsAntiAff struct {
 	Key                  string   `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -48,17 +46,16 @@ func (m *MatchLabelsAntiAff) Reset()         { *m = MatchLabelsAntiAff{} }
 func (m *MatchLabelsAntiAff) String() string { return proto.CompactTextString(m) }
 func (*MatchLabelsAntiAff) ProtoMessage()    {}
 func (*MatchLabelsAntiAff) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6da546618ab8b92a, []int{0}
+	return fileDescriptor_pod_anti_affinity_a70367124b55a367, []int{0}
 }
-
 func (m *MatchLabelsAntiAff) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_MatchLabelsAntiAff.Unmarshal(m, b)
 }
 func (m *MatchLabelsAntiAff) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_MatchLabelsAntiAff.Marshal(b, m, deterministic)
 }
-func (m *MatchLabelsAntiAff) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MatchLabelsAntiAff.Merge(m, src)
+func (dst *MatchLabelsAntiAff) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MatchLabelsAntiAff.Merge(dst, src)
 }
 func (m *MatchLabelsAntiAff) XXX_Size() int {
 	return xxx_messageInfo_MatchLabelsAntiAff.Size(m)
@@ -96,17 +93,16 @@ func (m *LabelSelectorRequirementAntiAff) Reset()         { *m = LabelSelectorRe
 func (m *LabelSelectorRequirementAntiAff) String() string { return proto.CompactTextString(m) }
 func (*LabelSelectorRequirementAntiAff) ProtoMessage()    {}
 func (*LabelSelectorRequirementAntiAff) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6da546618ab8b92a, []int{1}
+	return fileDescriptor_pod_anti_affinity_a70367124b55a367, []int{1}
 }
-
 func (m *LabelSelectorRequirementAntiAff) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_LabelSelectorRequirementAntiAff.Unmarshal(m, b)
 }
 func (m *LabelSelectorRequirementAntiAff) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_LabelSelectorRequirementAntiAff.Marshal(b, m, deterministic)
 }
-func (m *LabelSelectorRequirementAntiAff) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_LabelSelectorRequirementAntiAff.Merge(m, src)
+func (dst *LabelSelectorRequirementAntiAff) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LabelSelectorRequirementAntiAff.Merge(dst, src)
 }
 func (m *LabelSelectorRequirementAntiAff) XXX_Size() int {
 	return xxx_messageInfo_LabelSelectorRequirementAntiAff.Size(m)
@@ -150,17 +146,16 @@ func (m *LabelSelectorAntiAff) Reset()         { *m = LabelSelectorAntiAff{} }
 func (m *LabelSelectorAntiAff) String() string { return proto.CompactTextString(m) }
 func (*LabelSelectorAntiAff) ProtoMessage()    {}
 func (*LabelSelectorAntiAff) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6da546618ab8b92a, []int{2}
+	return fileDescriptor_pod_anti_affinity_a70367124b55a367, []int{2}
 }
-
 func (m *LabelSelectorAntiAff) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_LabelSelectorAntiAff.Unmarshal(m, b)
 }
 func (m *LabelSelectorAntiAff) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_LabelSelectorAntiAff.Marshal(b, m, deterministic)
 }
-func (m *LabelSelectorAntiAff) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_LabelSelectorAntiAff.Merge(m, src)
+func (dst *LabelSelectorAntiAff) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LabelSelectorAntiAff.Merge(dst, src)
 }
 func (m *LabelSelectorAntiAff) XXX_Size() int {
 	return xxx_messageInfo_LabelSelectorAntiAff.Size(m)
@@ -199,17 +194,16 @@ func (m *PodAffinityTermAntiAff) Reset()         { *m = PodAffinityTermAntiAff{}
 func (m *PodAffinityTermAntiAff) String() string { return proto.CompactTextString(m) }
 func (*PodAffinityTermAntiAff) ProtoMessage()    {}
 func (*PodAffinityTermAntiAff) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6da546618ab8b92a, []int{3}
+	return fileDescriptor_pod_anti_affinity_a70367124b55a367, []int{3}
 }
-
 func (m *PodAffinityTermAntiAff) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PodAffinityTermAntiAff.Unmarshal(m, b)
 }
 func (m *PodAffinityTermAntiAff) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_PodAffinityTermAntiAff.Marshal(b, m, deterministic)
 }
-func (m *PodAffinityTermAntiAff) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PodAffinityTermAntiAff.Merge(m, src)
+func (dst *PodAffinityTermAntiAff) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PodAffinityTermAntiAff.Merge(dst, src)
 }
 func (m *PodAffinityTermAntiAff) XXX_Size() int {
 	return xxx_messageInfo_PodAffinityTermAntiAff.Size(m)
@@ -256,17 +250,16 @@ func (m *WeightedPodAffinityTermAntiAff) Reset()         { *m = WeightedPodAffin
 func (m *WeightedPodAffinityTermAntiAff) String() string { return proto.CompactTextString(m) }
 func (*WeightedPodAffinityTermAntiAff) ProtoMessage()    {}
 func (*WeightedPodAffinityTermAntiAff) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6da546618ab8b92a, []int{4}
+	return fileDescriptor_pod_anti_affinity_a70367124b55a367, []int{4}
 }
-
 func (m *WeightedPodAffinityTermAntiAff) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_WeightedPodAffinityTermAntiAff.Unmarshal(m, b)
 }
 func (m *WeightedPodAffinityTermAntiAff) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_WeightedPodAffinityTermAntiAff.Marshal(b, m, deterministic)
 }
-func (m *WeightedPodAffinityTermAntiAff) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_WeightedPodAffinityTermAntiAff.Merge(m, src)
+func (dst *WeightedPodAffinityTermAntiAff) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WeightedPodAffinityTermAntiAff.Merge(dst, src)
 }
 func (m *WeightedPodAffinityTermAntiAff) XXX_Size() int {
 	return xxx_messageInfo_WeightedPodAffinityTermAntiAff.Size(m)
@@ -303,17 +296,16 @@ func (m *PodAntiAffinity) Reset()         { *m = PodAntiAffinity{} }
 func (m *PodAntiAffinity) String() string { return proto.CompactTextString(m) }
 func (*PodAntiAffinity) ProtoMessage()    {}
 func (*PodAntiAffinity) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6da546618ab8b92a, []int{5}
+	return fileDescriptor_pod_anti_affinity_a70367124b55a367, []int{5}
 }
-
 func (m *PodAntiAffinity) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PodAntiAffinity.Unmarshal(m, b)
 }
 func (m *PodAntiAffinity) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_PodAntiAffinity.Marshal(b, m, deterministic)
 }
-func (m *PodAntiAffinity) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PodAntiAffinity.Merge(m, src)
+func (dst *PodAntiAffinity) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PodAntiAffinity.Merge(dst, src)
 }
 func (m *PodAntiAffinity) XXX_Size() int {
 	return xxx_messageInfo_PodAntiAffinity.Size(m)
@@ -347,9 +339,11 @@ func init() {
 	proto.RegisterType((*PodAntiAffinity)(nil), "firmament.PodAntiAffinity")
 }
 
-func init() { proto.RegisterFile("pod_anti_affinity.proto", fileDescriptor_6da546618ab8b92a) }
+func init() {
+	proto.RegisterFile("pod_anti_affinity.proto", fileDescriptor_pod_anti_affinity_a70367124b55a367)
+}
 
-var fileDescriptor_6da546618ab8b92a = []byte{
+var fileDescriptor_pod_anti_affinity_a70367124b55a367 = []byte{
 	// 425 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x93, 0xc1, 0x8e, 0xd3, 0x30,
 	0x10, 0x86, 0xe5, 0x46, 0x5b, 0x91, 0x89, 0xd0, 0xae, 0xac, 0x55, 0x89, 0x90, 0xd8, 0x0d, 0x39,
