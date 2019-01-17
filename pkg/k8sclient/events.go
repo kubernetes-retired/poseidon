@@ -18,6 +18,7 @@ package k8sclient
 
 import (
 	"github.com/golang/glog"
+	"github.com/kubernetes-sigs/poseidon/pkg/config"
 	"github.com/kubernetes-sigs/poseidon/pkg/firmament"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -90,7 +91,9 @@ func (posiedonEvents *PoseidonEvents) ProcessEvents(deltas *firmament.Scheduling
 	//process in success events and failure events in prallel
 	// Note we
 	go posiedonEvents.ProcessFailureEvents(deltas.GetUnscheduledTasks())
-	go poseidonEvents.ProcessSuccessEvents(deltas.GetDeltas())
+	if config.GetDisableEvents() == false {
+		go poseidonEvents.ProcessSuccessEvents(deltas.GetDeltas())
+	}
 }
 
 // ProcessFailureEvents The failed/unscheduled task events are sent only once

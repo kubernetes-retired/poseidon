@@ -64,6 +64,11 @@ func BuildFirmamentResourceDescriptor(
 				CpuCores: cpuCores,
 				RamCap:   ramCap,
 			},
+			AvailableResources: &firmament.ResourceVector{},
+			ReservedResources: &firmament.ResourceVector{
+				CpuCores: cpuCores,
+				RamCap:   ramCap,
+			},
 		},
 		Children: []*firmament.ResourceTopologyNodeDescriptor{
 			{
@@ -181,7 +186,7 @@ func TestNodeWatcher_parseNode(t *testing.T) {
 		expected *Node
 	}{
 		{
-			node: BuildNode("node0", "10", "10000000000", nil, []v1.NodeCondition{
+			node: BuildNode("node0", "10", "10000000", nil, []v1.NodeCondition{
 				{
 					Type:   v1.NodeOutOfDisk,
 					Status: v1.ConditionFalse,
@@ -195,7 +200,7 @@ func TestNodeWatcher_parseNode(t *testing.T) {
 				IsOutOfDisk:      false,
 				CPUCapacity:      10000,
 				CPUAllocatable:   0,
-				MemCapacityKb:    9765625,
+				MemCapacityKb:    10000000000,
 				MemAllocatableKb: 0,
 				Labels:           nil,
 				Annotations:      nil,
@@ -222,7 +227,7 @@ func TestNodeWatcher_enqueueNodeAddition(t *testing.T) {
 		expected *Node
 	}{
 		{
-			node: BuildNode("node0", "10", "10000000000", nil, []v1.NodeCondition{
+			node: BuildNode("node0", "10", "10000000", nil, []v1.NodeCondition{
 				{
 					Type:   v1.NodeOutOfDisk,
 					Status: v1.ConditionFalse,
@@ -236,14 +241,14 @@ func TestNodeWatcher_enqueueNodeAddition(t *testing.T) {
 				IsOutOfDisk:      false,
 				CPUCapacity:      10000,
 				CPUAllocatable:   0,
-				MemCapacityKb:    9765625,
+				MemCapacityKb:    10000000000,
 				MemAllocatableKb: 0,
 				Labels:           nil,
 				Annotations:      nil,
 			},
 		},
 		{
-			node: BuildNode("node1", "10", "10000000000", nil, []v1.NodeCondition{
+			node: BuildNode("node1", "10", "10000000", nil, []v1.NodeCondition{
 				{
 					Type:   v1.NodeOutOfDisk,
 					Status: v1.ConditionFalse,
@@ -257,7 +262,7 @@ func TestNodeWatcher_enqueueNodeAddition(t *testing.T) {
 				IsOutOfDisk:      false,
 				CPUCapacity:      10000,
 				CPUAllocatable:   0,
-				MemCapacityKb:    9765625,
+				MemCapacityKb:    10000000000,
 				MemAllocatableKb: 0,
 				Labels:           nil,
 				Annotations:      nil,

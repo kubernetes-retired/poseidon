@@ -111,13 +111,13 @@ func (nw *NodeWatcher) parseNode(node *v1.Node, phase NodePhase) *Node {
 	cpuCapQuantity := node.Status.Capacity[v1.ResourceCPU]
 	cpuAllocQuantity := node.Status.Allocatable[v1.ResourceCPU]
 	memCapQuantity := node.Status.Capacity[v1.ResourceMemory]
-	memCap, _ := memCapQuantity.AsInt64()
+	memCap := memCapQuantity.MilliValue()
 	memAllocQuantity := node.Status.Allocatable[v1.ResourceMemory]
-	memAlloc, _ := memAllocQuantity.AsInt64()
+	memAlloc := memAllocQuantity.MilliValue()
 	ephemeralCapQty := node.Status.Capacity[v1.ResourceEphemeralStorage]
-	ephemeralCap, _ := ephemeralCapQty.AsInt64()
+	ephemeralCap := ephemeralCapQty.MilliValue()
 	ephemeralAllocQty := node.Status.Allocatable[v1.ResourceEphemeralStorage]
-	ephemeralAlloc, _ := ephemeralAllocQty.AsInt64()
+	ephemeralAlloc := ephemeralAllocQty.MilliValue()
 
 	return &Node{
 		Hostname:         node.Name,
@@ -126,10 +126,10 @@ func (nw *NodeWatcher) parseNode(node *v1.Node, phase NodePhase) *Node {
 		IsOutOfDisk:      isOutOfDisk,
 		CPUCapacity:      cpuCapQuantity.MilliValue(),
 		CPUAllocatable:   cpuAllocQuantity.MilliValue(),
-		MemCapacityKb:    memCap / bytesToKb,
-		MemAllocatableKb: memAlloc / bytesToKb,
-		EphemeralCapKb:   ephemeralCap / bytesToKb,
-		EphemeralAllocKb: ephemeralAlloc / bytesToKb,
+		MemCapacityKb:    memCap,
+		MemAllocatableKb: memAlloc,
+		EphemeralCapKb:   ephemeralCap,
+		EphemeralAllocKb: ephemeralAlloc,
 		Labels:           node.Labels,
 		Annotations:      node.Annotations,
 		Taints:           nw.getTaints(node),
@@ -324,6 +324,16 @@ func (nw *NodeWatcher) createResourceTopologyForNode(node *Node) *firmament.Reso
 				RamCap:       uint64(node.MemCapacityKb),
 				CpuCores:     float32(node.CPUCapacity),
 				EphemeralCap: uint64(node.EphemeralCapKb),
+			},
+			AvailableResources: &firmament.ResourceVector{
+				RamCap:       uint64(node.MemAllocatableKb),
+				CpuCores:     float32(node.CPUAllocatable),
+				EphemeralCap: uint64(node.EphemeralAllocKb),
+			},
+			ReservedResources: &firmament.ResourceVector{
+				RamCap:       uint64(node.MemCapacityKb - node.MemAllocatableKb),
+				CpuCores:     float32(node.CPUCapacity - node.CPUAllocatable),
+				EphemeralCap: uint64(node.EphemeralCapKb - node.EphemeralAllocKb),
 			},
 		},
 	}
