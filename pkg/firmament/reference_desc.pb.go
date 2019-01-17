@@ -19,11 +19,9 @@ limitations under the License.
 
 package firmament
 
-import (
-	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
-	math "math"
-)
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -55,7 +53,6 @@ var ReferenceDescriptor_ReferenceType_name = map[int32]string{
 	4: "VALUE",
 	5: "ERROR",
 }
-
 var ReferenceDescriptor_ReferenceType_value = map[string]int32{
 	"TOMBSTONE": 0,
 	"FUTURE":    1,
@@ -68,9 +65,8 @@ var ReferenceDescriptor_ReferenceType_value = map[string]int32{
 func (x ReferenceDescriptor_ReferenceType) String() string {
 	return proto.EnumName(ReferenceDescriptor_ReferenceType_name, int32(x))
 }
-
 func (ReferenceDescriptor_ReferenceType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_e6a3305e4ee4d766, []int{0, 0}
+	return fileDescriptor_reference_desc_fc0e5b5f59264190, []int{0, 0}
 }
 
 type ReferenceDescriptor_ReferenceScope int32
@@ -85,7 +81,6 @@ var ReferenceDescriptor_ReferenceScope_name = map[int32]string{
 	0: "PUBLIC",
 	1: "PRIVATE",
 }
-
 var ReferenceDescriptor_ReferenceScope_value = map[string]int32{
 	"PUBLIC":  0,
 	"PRIVATE": 1,
@@ -94,9 +89,8 @@ var ReferenceDescriptor_ReferenceScope_value = map[string]int32{
 func (x ReferenceDescriptor_ReferenceScope) String() string {
 	return proto.EnumName(ReferenceDescriptor_ReferenceScope_name, int32(x))
 }
-
 func (ReferenceDescriptor_ReferenceScope) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_e6a3305e4ee4d766, []int{0, 1}
+	return fileDescriptor_reference_desc_fc0e5b5f59264190, []int{0, 1}
 }
 
 type ReferenceDescriptor struct {
@@ -119,17 +113,16 @@ func (m *ReferenceDescriptor) Reset()         { *m = ReferenceDescriptor{} }
 func (m *ReferenceDescriptor) String() string { return proto.CompactTextString(m) }
 func (*ReferenceDescriptor) ProtoMessage()    {}
 func (*ReferenceDescriptor) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e6a3305e4ee4d766, []int{0}
+	return fileDescriptor_reference_desc_fc0e5b5f59264190, []int{0}
 }
-
 func (m *ReferenceDescriptor) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ReferenceDescriptor.Unmarshal(m, b)
 }
 func (m *ReferenceDescriptor) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ReferenceDescriptor.Marshal(b, m, deterministic)
 }
-func (m *ReferenceDescriptor) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReferenceDescriptor.Merge(m, src)
+func (dst *ReferenceDescriptor) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReferenceDescriptor.Merge(dst, src)
 }
 func (m *ReferenceDescriptor) XXX_Size() int {
 	return xxx_messageInfo_ReferenceDescriptor.Size(m)
@@ -211,14 +204,16 @@ func (m *ReferenceDescriptor) GetVersion() uint64 {
 }
 
 func init() {
+	proto.RegisterType((*ReferenceDescriptor)(nil), "firmament.ReferenceDescriptor")
 	proto.RegisterEnum("firmament.ReferenceDescriptor_ReferenceType", ReferenceDescriptor_ReferenceType_name, ReferenceDescriptor_ReferenceType_value)
 	proto.RegisterEnum("firmament.ReferenceDescriptor_ReferenceScope", ReferenceDescriptor_ReferenceScope_name, ReferenceDescriptor_ReferenceScope_value)
-	proto.RegisterType((*ReferenceDescriptor)(nil), "firmament.ReferenceDescriptor")
 }
 
-func init() { proto.RegisterFile("reference_desc.proto", fileDescriptor_e6a3305e4ee4d766) }
+func init() {
+	proto.RegisterFile("reference_desc.proto", fileDescriptor_reference_desc_fc0e5b5f59264190)
+}
 
-var fileDescriptor_e6a3305e4ee4d766 = []byte{
+var fileDescriptor_reference_desc_fc0e5b5f59264190 = []byte{
 	// 395 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x92, 0xcf, 0x6e, 0xd3, 0x40,
 	0x10, 0x87, 0xeb, 0xd4, 0xf9, 0xe3, 0x69, 0x13, 0x96, 0x81, 0xc3, 0x8a, 0x0b, 0x56, 0x24, 0x90,

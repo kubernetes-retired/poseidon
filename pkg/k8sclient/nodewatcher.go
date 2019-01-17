@@ -17,6 +17,7 @@ limitations under the License.
 package k8sclient
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"sync"
@@ -336,6 +337,13 @@ func (nw *NodeWatcher) createResourceTopologyForNode(node *Node) *firmament.Reso
 			},
 		},
 	}
+
+	avoidPods, err := GetAvoidPodsFromNodeAnnotations(node.Annotations)
+	if err != nil {
+		glog.Error("Unable to retrieve avoid-pods annotation for the node", err)
+	}
+	rtnd.ResourceDesc.Avoids = avoidPods
+
 	ResIDToNode[resUUID] = node.Hostname
 	// TODO(ionel) Add annotations.
 	// Add labels.
@@ -407,4 +415,27 @@ func (nw *NodeWatcher) updateResourceDescriptor(node *Node, rtnd *firmament.Reso
 				Effect: taint.Effect,
 			})
 	}
+}
+
+func GetAvoidPodsFromNodeAnnotations(annotations map[string]string) ([]*firmament.AvoidPodsAnnotation, error) {
+	var avoidPods v1.AvoidPods
+	var firmamentAvoidPodsAnnotation []*firmament.AvoidPodsAnnotation
+	if len(annotations) > 0 && annotations[v1.PreferAvoidPodsAnnotationKey] != "" {
+		err := json.Unmarshal([]byte(annotations[v1.PreferAvoidPodsAnnotationKey]), &avoidPods)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for _, avoidPod := range avoidPods.PreferAvoidPods {
+		if avoidPod.PodSignature.PodController != nil {
+			//uid := GenerateUUID(string(avoidPod.PodSignature.PodController.UID))
+			firmamentAvoidPodsAnnotation = append(firmamentAvoidPodsAnnotation,
+				&firmament.AvoidPodsAnnotation{
+					Kind: avoidPod.PodSignature.PodController.Kind,
+					Uid:  string(avoidPod.PodSignature.PodController.UID),
+				})
+		}
+	}
+	return firmamentAvoidPodsAnnotation, nil
 }

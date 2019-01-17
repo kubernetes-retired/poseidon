@@ -19,11 +19,9 @@ limitations under the License.
 
 package firmament
 
-import (
-	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
-	math "math"
-)
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -69,17 +67,16 @@ func (m *ResourceStats) Reset()         { *m = ResourceStats{} }
 func (m *ResourceStats) String() string { return proto.CompactTextString(m) }
 func (*ResourceStats) ProtoMessage()    {}
 func (*ResourceStats) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4e63005a7ba86f07, []int{0}
+	return fileDescriptor_resource_stats_f32900eea586b10a, []int{0}
 }
-
 func (m *ResourceStats) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ResourceStats.Unmarshal(m, b)
 }
 func (m *ResourceStats) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ResourceStats.Marshal(b, m, deterministic)
 }
-func (m *ResourceStats) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ResourceStats.Merge(m, src)
+func (dst *ResourceStats) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ResourceStats.Merge(dst, src)
 }
 func (m *ResourceStats) XXX_Size() int {
 	return xxx_messageInfo_ResourceStats.Size(m)
@@ -180,17 +177,16 @@ func (m *CpuStats) Reset()         { *m = CpuStats{} }
 func (m *CpuStats) String() string { return proto.CompactTextString(m) }
 func (*CpuStats) ProtoMessage()    {}
 func (*CpuStats) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4e63005a7ba86f07, []int{1}
+	return fileDescriptor_resource_stats_f32900eea586b10a, []int{1}
 }
-
 func (m *CpuStats) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CpuStats.Unmarshal(m, b)
 }
 func (m *CpuStats) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_CpuStats.Marshal(b, m, deterministic)
 }
-func (m *CpuStats) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CpuStats.Merge(m, src)
+func (dst *CpuStats) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CpuStats.Merge(dst, src)
 }
 func (m *CpuStats) XXX_Size() int {
 	return xxx_messageInfo_CpuStats.Size(m)
@@ -234,9 +230,11 @@ func init() {
 	proto.RegisterType((*CpuStats)(nil), "firmament.CpuStats")
 }
 
-func init() { proto.RegisterFile("resource_stats.proto", fileDescriptor_4e63005a7ba86f07) }
+func init() {
+	proto.RegisterFile("resource_stats.proto", fileDescriptor_resource_stats_f32900eea586b10a)
+}
 
-var fileDescriptor_4e63005a7ba86f07 = []byte{
+var fileDescriptor_resource_stats_f32900eea586b10a = []byte{
 	// 330 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x5c, 0x92, 0x4f, 0x4e, 0xe3, 0x30,
 	0x1c, 0x85, 0xe5, 0xa6, 0xd3, 0x36, 0xee, 0xcc, 0x20, 0x19, 0x24, 0x2c, 0x84, 0x44, 0xe8, 0x86,

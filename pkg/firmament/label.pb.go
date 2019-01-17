@@ -19,11 +19,9 @@ limitations under the License.
 
 package firmament
 
-import (
-	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
-	math "math"
-)
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -50,17 +48,16 @@ func (m *Label) Reset()         { *m = Label{} }
 func (m *Label) String() string { return proto.CompactTextString(m) }
 func (*Label) ProtoMessage()    {}
 func (*Label) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6100d2b5ae808f16, []int{0}
+	return fileDescriptor_label_45d16cd723ffd978, []int{0}
 }
-
 func (m *Label) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Label.Unmarshal(m, b)
 }
 func (m *Label) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Label.Marshal(b, m, deterministic)
 }
-func (m *Label) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Label.Merge(m, src)
+func (dst *Label) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Label.Merge(dst, src)
 }
 func (m *Label) XXX_Size() int {
 	return xxx_messageInfo_Label.Size(m)
@@ -89,9 +86,9 @@ func init() {
 	proto.RegisterType((*Label)(nil), "firmament.Label")
 }
 
-func init() { proto.RegisterFile("label.proto", fileDescriptor_6100d2b5ae808f16) }
+func init() { proto.RegisterFile("label.proto", fileDescriptor_label_45d16cd723ffd978) }
 
-var fileDescriptor_6100d2b5ae808f16 = []byte{
+var fileDescriptor_label_45d16cd723ffd978 = []byte{
 	// 90 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0xce, 0x49, 0x4c, 0x4a,
 	0xcd, 0xd1, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x4c, 0xcb, 0x2c, 0xca, 0x4d, 0xcc, 0x4d,

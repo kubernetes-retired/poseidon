@@ -19,11 +19,9 @@ limitations under the License.
 
 package firmament
 
-import (
-	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
-	math "math"
-)
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -74,17 +72,16 @@ func (m *TaskStats) Reset()         { *m = TaskStats{} }
 func (m *TaskStats) String() string { return proto.CompactTextString(m) }
 func (*TaskStats) ProtoMessage()    {}
 func (*TaskStats) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7f3ecbfd86ea0c9c, []int{0}
+	return fileDescriptor_task_stats_ca4ed11c1fc1fd17, []int{0}
 }
-
 func (m *TaskStats) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_TaskStats.Unmarshal(m, b)
 }
 func (m *TaskStats) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_TaskStats.Marshal(b, m, deterministic)
 }
-func (m *TaskStats) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_TaskStats.Merge(m, src)
+func (dst *TaskStats) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskStats.Merge(dst, src)
 }
 func (m *TaskStats) XXX_Size() int {
 	return xxx_messageInfo_TaskStats.Size(m)
@@ -267,9 +264,9 @@ func init() {
 	proto.RegisterType((*TaskStats)(nil), "firmament.TaskStats")
 }
 
-func init() { proto.RegisterFile("task_stats.proto", fileDescriptor_7f3ecbfd86ea0c9c) }
+func init() { proto.RegisterFile("task_stats.proto", fileDescriptor_task_stats_ca4ed11c1fc1fd17) }
 
-var fileDescriptor_7f3ecbfd86ea0c9c = []byte{
+var fileDescriptor_task_stats_ca4ed11c1fc1fd17 = []byte{
 	// 433 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x93, 0x5f, 0x6f, 0xd3, 0x30,
 	0x14, 0xc5, 0x15, 0xb6, 0xa5, 0xcd, 0x2d, 0xa5, 0xab, 0xf7, 0xa7, 0x16, 0x20, 0xa8, 0xf6, 0x80,

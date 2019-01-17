@@ -4,6 +4,7 @@ go_library(
     name = "go_default_library",
     srcs = [
         "affinity.pb.go",
+        "avoid_pods_annotation.pb.go",
         "coco_interference_scores.pb.go",
         "firmament_client.go",
         "firmament_scheduler.pb.go",

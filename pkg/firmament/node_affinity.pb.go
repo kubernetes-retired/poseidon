@@ -19,11 +19,9 @@ limitations under the License.
 
 package firmament
 
-import (
-	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
-	math "math"
-)
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -49,17 +47,16 @@ func (m *NodeSelectorRequirement) Reset()         { *m = NodeSelectorRequirement
 func (m *NodeSelectorRequirement) String() string { return proto.CompactTextString(m) }
 func (*NodeSelectorRequirement) ProtoMessage()    {}
 func (*NodeSelectorRequirement) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4195d4f8cde27a8c, []int{0}
+	return fileDescriptor_node_affinity_7d95752a0a874ec8, []int{0}
 }
-
 func (m *NodeSelectorRequirement) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NodeSelectorRequirement.Unmarshal(m, b)
 }
 func (m *NodeSelectorRequirement) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_NodeSelectorRequirement.Marshal(b, m, deterministic)
 }
-func (m *NodeSelectorRequirement) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NodeSelectorRequirement.Merge(m, src)
+func (dst *NodeSelectorRequirement) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodeSelectorRequirement.Merge(dst, src)
 }
 func (m *NodeSelectorRequirement) XXX_Size() int {
 	return xxx_messageInfo_NodeSelectorRequirement.Size(m)
@@ -104,17 +101,16 @@ func (m *NodeSelectorTerm) Reset()         { *m = NodeSelectorTerm{} }
 func (m *NodeSelectorTerm) String() string { return proto.CompactTextString(m) }
 func (*NodeSelectorTerm) ProtoMessage()    {}
 func (*NodeSelectorTerm) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4195d4f8cde27a8c, []int{1}
+	return fileDescriptor_node_affinity_7d95752a0a874ec8, []int{1}
 }
-
 func (m *NodeSelectorTerm) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NodeSelectorTerm.Unmarshal(m, b)
 }
 func (m *NodeSelectorTerm) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_NodeSelectorTerm.Marshal(b, m, deterministic)
 }
-func (m *NodeSelectorTerm) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NodeSelectorTerm.Merge(m, src)
+func (dst *NodeSelectorTerm) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodeSelectorTerm.Merge(dst, src)
 }
 func (m *NodeSelectorTerm) XXX_Size() int {
 	return xxx_messageInfo_NodeSelectorTerm.Size(m)
@@ -144,17 +140,16 @@ func (m *NodeSelector) Reset()         { *m = NodeSelector{} }
 func (m *NodeSelector) String() string { return proto.CompactTextString(m) }
 func (*NodeSelector) ProtoMessage()    {}
 func (*NodeSelector) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4195d4f8cde27a8c, []int{2}
+	return fileDescriptor_node_affinity_7d95752a0a874ec8, []int{2}
 }
-
 func (m *NodeSelector) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NodeSelector.Unmarshal(m, b)
 }
 func (m *NodeSelector) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_NodeSelector.Marshal(b, m, deterministic)
 }
-func (m *NodeSelector) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NodeSelector.Merge(m, src)
+func (dst *NodeSelector) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodeSelector.Merge(dst, src)
 }
 func (m *NodeSelector) XXX_Size() int {
 	return xxx_messageInfo_NodeSelector.Size(m)
@@ -186,17 +181,16 @@ func (m *PreferredSchedulingTerm) Reset()         { *m = PreferredSchedulingTerm
 func (m *PreferredSchedulingTerm) String() string { return proto.CompactTextString(m) }
 func (*PreferredSchedulingTerm) ProtoMessage()    {}
 func (*PreferredSchedulingTerm) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4195d4f8cde27a8c, []int{3}
+	return fileDescriptor_node_affinity_7d95752a0a874ec8, []int{3}
 }
-
 func (m *PreferredSchedulingTerm) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PreferredSchedulingTerm.Unmarshal(m, b)
 }
 func (m *PreferredSchedulingTerm) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_PreferredSchedulingTerm.Marshal(b, m, deterministic)
 }
-func (m *PreferredSchedulingTerm) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PreferredSchedulingTerm.Merge(m, src)
+func (dst *PreferredSchedulingTerm) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PreferredSchedulingTerm.Merge(dst, src)
 }
 func (m *PreferredSchedulingTerm) XXX_Size() int {
 	return xxx_messageInfo_PreferredSchedulingTerm.Size(m)
@@ -233,17 +227,16 @@ func (m *NodeAffinity) Reset()         { *m = NodeAffinity{} }
 func (m *NodeAffinity) String() string { return proto.CompactTextString(m) }
 func (*NodeAffinity) ProtoMessage()    {}
 func (*NodeAffinity) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4195d4f8cde27a8c, []int{4}
+	return fileDescriptor_node_affinity_7d95752a0a874ec8, []int{4}
 }
-
 func (m *NodeAffinity) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NodeAffinity.Unmarshal(m, b)
 }
 func (m *NodeAffinity) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_NodeAffinity.Marshal(b, m, deterministic)
 }
-func (m *NodeAffinity) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NodeAffinity.Merge(m, src)
+func (dst *NodeAffinity) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodeAffinity.Merge(dst, src)
 }
 func (m *NodeAffinity) XXX_Size() int {
 	return xxx_messageInfo_NodeAffinity.Size(m)
@@ -276,9 +269,9 @@ func init() {
 	proto.RegisterType((*NodeAffinity)(nil), "firmament.NodeAffinity")
 }
 
-func init() { proto.RegisterFile("node_affinity.proto", fileDescriptor_4195d4f8cde27a8c) }
+func init() { proto.RegisterFile("node_affinity.proto", fileDescriptor_node_affinity_7d95752a0a874ec8) }
 
-var fileDescriptor_4195d4f8cde27a8c = []byte{
+var fileDescriptor_node_affinity_7d95752a0a874ec8 = []byte{
 	// 326 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x52, 0xcf, 0x4e, 0xf2, 0x40,
 	0x10, 0x4f, 0x69, 0x3e, 0xf2, 0x31, 0x78, 0xc0, 0x35, 0x81, 0x46, 0x2f, 0x64, 0x4f, 0x9c, 0x6a,

@@ -19,11 +19,9 @@ limitations under the License.
 
 package firmament
 
-import (
-	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
-	math "math"
-)
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -52,17 +50,16 @@ func (m *WhareMapStats) Reset()         { *m = WhareMapStats{} }
 func (m *WhareMapStats) String() string { return proto.CompactTextString(m) }
 func (*WhareMapStats) ProtoMessage()    {}
 func (*WhareMapStats) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d4a4ceac8dff9bab, []int{0}
+	return fileDescriptor_whare_map_stats_934d7fd21db64a82, []int{0}
 }
-
 func (m *WhareMapStats) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_WhareMapStats.Unmarshal(m, b)
 }
 func (m *WhareMapStats) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_WhareMapStats.Marshal(b, m, deterministic)
 }
-func (m *WhareMapStats) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_WhareMapStats.Merge(m, src)
+func (dst *WhareMapStats) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WhareMapStats.Merge(dst, src)
 }
 func (m *WhareMapStats) XXX_Size() int {
 	return xxx_messageInfo_WhareMapStats.Size(m)
@@ -112,9 +109,11 @@ func init() {
 	proto.RegisterType((*WhareMapStats)(nil), "firmament.WhareMapStats")
 }
 
-func init() { proto.RegisterFile("whare_map_stats.proto", fileDescriptor_d4a4ceac8dff9bab) }
+func init() {
+	proto.RegisterFile("whare_map_stats.proto", fileDescriptor_whare_map_stats_934d7fd21db64a82)
+}
 
-var fileDescriptor_d4a4ceac8dff9bab = []byte{
+var fileDescriptor_whare_map_stats_934d7fd21db64a82 = []byte{
 	// 184 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x3c, 0x8e, 0xb1, 0xaa, 0xc2, 0x30,
 	0x14, 0x86, 0xe9, 0xbd, 0xbd, 0x57, 0x1b, 0x71, 0x09, 0x08, 0x11, 0x11, 0xc5, 0xc9, 0xc9, 0xc5,

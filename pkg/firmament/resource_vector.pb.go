@@ -19,11 +19,9 @@ limitations under the License.
 
 package firmament
 
-import (
-	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
-	math "math"
-)
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -61,17 +59,16 @@ func (m *ResourceVector) Reset()         { *m = ResourceVector{} }
 func (m *ResourceVector) String() string { return proto.CompactTextString(m) }
 func (*ResourceVector) ProtoMessage()    {}
 func (*ResourceVector) Descriptor() ([]byte, []int) {
-	return fileDescriptor_dd2f68a0615029fb, []int{0}
+	return fileDescriptor_resource_vector_d16ce59d9299e166, []int{0}
 }
-
 func (m *ResourceVector) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ResourceVector.Unmarshal(m, b)
 }
 func (m *ResourceVector) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ResourceVector.Marshal(b, m, deterministic)
 }
-func (m *ResourceVector) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ResourceVector.Merge(m, src)
+func (dst *ResourceVector) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ResourceVector.Merge(dst, src)
 }
 func (m *ResourceVector) XXX_Size() int {
 	return xxx_messageInfo_ResourceVector.Size(m)
@@ -142,9 +139,11 @@ func init() {
 	proto.RegisterType((*ResourceVector)(nil), "firmament.ResourceVector")
 }
 
-func init() { proto.RegisterFile("resource_vector.proto", fileDescriptor_dd2f68a0615029fb) }
+func init() {
+	proto.RegisterFile("resource_vector.proto", fileDescriptor_resource_vector_d16ce59d9299e166)
+}
 
-var fileDescriptor_dd2f68a0615029fb = []byte{
+var fileDescriptor_resource_vector_d16ce59d9299e166 = []byte{
 	// 216 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x3c, 0xd0, 0xb1, 0x4e, 0xc3, 0x30,
 	0x10, 0x06, 0x60, 0xb9, 0xb4, 0x69, 0x72, 0x02, 0x06, 0x4b, 0x15, 0x01, 0x96, 0x0a, 0x96, 0x4e,

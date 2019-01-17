@@ -19,11 +19,9 @@ limitations under the License.
 
 package firmament
 
-import (
-	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
-	math "math"
-)
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -49,17 +47,16 @@ func (m *Affinity) Reset()         { *m = Affinity{} }
 func (m *Affinity) String() string { return proto.CompactTextString(m) }
 func (*Affinity) ProtoMessage()    {}
 func (*Affinity) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ebbe5e6b54524313, []int{0}
+	return fileDescriptor_affinity_28b43924d9e60798, []int{0}
 }
-
 func (m *Affinity) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Affinity.Unmarshal(m, b)
 }
 func (m *Affinity) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Affinity.Marshal(b, m, deterministic)
 }
-func (m *Affinity) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Affinity.Merge(m, src)
+func (dst *Affinity) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Affinity.Merge(dst, src)
 }
 func (m *Affinity) XXX_Size() int {
 	return xxx_messageInfo_Affinity.Size(m)
@@ -95,9 +92,9 @@ func init() {
 	proto.RegisterType((*Affinity)(nil), "firmament.Affinity")
 }
 
-func init() { proto.RegisterFile("affinity.proto", fileDescriptor_ebbe5e6b54524313) }
+func init() { proto.RegisterFile("affinity.proto", fileDescriptor_affinity_28b43924d9e60798) }
 
-var fileDescriptor_ebbe5e6b54524313 = []byte{
+var fileDescriptor_affinity_28b43924d9e60798 = []byte{
 	// 162 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x4b, 0x4c, 0x4b, 0xcb,
 	0xcc, 0xcb, 0x2c, 0xa9, 0xd4, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x4c, 0xcb, 0x2c, 0xca,
