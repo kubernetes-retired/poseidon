@@ -301,7 +301,7 @@ func (pw *PodWatcher) enqueuePodAddition(key interface{}, obj interface{}) {
 	pod := obj.(*v1.Pod)
 	if config.GetDefaultBehaviour() == true {
 		//check if its a kube-system pod or SchedulerName is not set ignore the pod
-		if pod.Namespace == "kube-system" || pod.Spec.SchedulerName == "" {
+		if pod.Spec.SchedulerName == "" {
 			return
 		}
 	}
@@ -339,7 +339,7 @@ func (pw *PodWatcher) enqueuePodDeletion(key interface{}, obj interface{}) {
 	pod := obj.(*v1.Pod)
 	if config.GetDefaultBehaviour() == true {
 		//check if its a kube-system pod or SchedulerName is not set ignore the pod
-		if pod.Namespace == "kube-system" || pod.Spec.SchedulerName == "" {
+		if pod.Spec.SchedulerName == "" {
 			return
 		}
 	}
