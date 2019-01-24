@@ -219,3 +219,11 @@ func New(address string) (FirmamentSchedulerClient, *grpc.ClientConn, error) {
 	fc := NewFirmamentSchedulerClient(conn)
 	return fc, conn, nil
 }
+
+// AddTaskStats sends task status to firmament server.
+func AddTaskInfo(client FirmamentSchedulerClient, ts *TaskInfo) {
+	_, err := client.AddTaskInfo(context.Background(), ts)
+	if err != nil {
+		grpclog.Fatalf("%v.AddTaskInfo(_) = _, %v: ", client, err)
+	}
+}

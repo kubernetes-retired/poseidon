@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "events.go",
         "k8sclient.go",
+        "k8spodwatcher.go",
         "keyed_queue.go",
         "nodewatcher.go",
         "podwatcher.go",

@@ -86,4 +86,6 @@ message ResourceDescriptor {
   repeated Taint taints = 33;
   // Avoid pods annotations
   repeated AvoidPodsAnnotation avoids = 34;
+  // Max pods allowed per node
+  uint64 max_pods = 35;
 }

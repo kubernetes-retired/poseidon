@@ -42,6 +42,9 @@ service FirmamentScheduler {
   rpc AddNodeStats (ResourceStats) returns (ResourceStatsResponse) {}
 
   rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
+
+  // AddTaskInfo sends task status to firmament server.
+  rpc AddTaskInfo (TaskInfo) returns (TaskInfoResponse);
 }
 
 message ScheduleRequest {}
@@ -141,4 +144,30 @@ message HealthCheckRequest {
 
 message HealthCheckResponse {
   ServingStatus status = 1;
+}
+
+// TaskInfo is the stats(including CPU, Memory and ephemeral) of a task.
+message TaskInfo {
+  string task_name = 1; // podname/namespace
+  string resource_id = 2;  // node name
+  int64 cpu_utilization = 3;
+  int64 mem_utilization = 4;
+  int64 ephemeral_storage_utilization = 5;
+  TaskInfoType type=6;
+}
+
+message TaskInfoResponse {
+  TaskInfoReplyType type = 1;
+}
+
+enum TaskInfoReplyType {
+  TASKINFO_SUBMITTED_OK = 0;
+  TASKINFO_REMOVED_OK = 2;
+  TASKINFO_SUBMIT_FAILED = 3;
+  TASKINFO_REMOVE_FAILED=4;
+}
+
+enum TaskInfoType{
+  TASKINFO_ADD =0;
+  TASKINFO_REMOVE=1;
 }

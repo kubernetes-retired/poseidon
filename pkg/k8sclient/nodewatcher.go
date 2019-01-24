@@ -118,6 +118,7 @@ func (nw *NodeWatcher) parseNode(node *v1.Node, phase NodePhase) *Node {
 	ephemeralCap := ephemeralCapQty.MilliValue()
 	ephemeralAllocQty := node.Status.Allocatable[v1.ResourceEphemeralStorage]
 	ephemeralAlloc := ephemeralAllocQty.MilliValue()
+	podAllocQuantity := node.Status.Allocatable[v1.ResourcePods]
 
 	return &Node{
 		Hostname:         node.Name,
@@ -130,6 +131,7 @@ func (nw *NodeWatcher) parseNode(node *v1.Node, phase NodePhase) *Node {
 		MemAllocatableKb: memAlloc,
 		EphemeralCapKb:   ephemeralCap,
 		EphemeralAllocKb: ephemeralAlloc,
+		PodAllocatable:   podAllocQuantity.Value(),
 		Labels:           node.Labels,
 		Annotations:      node.Annotations,
 		Taints:           nw.getTaints(node),
@@ -255,6 +257,7 @@ func (nw *NodeWatcher) nodeWorker() {
 						continue
 					}
 					NodeToRTND[node.Hostname] = rtnd
+					glog.Info(NodeToRTND, " in Nodedded")
 					ResIDToNode[rtnd.GetResourceDesc().GetUuid()] = node.Hostname
 					NodeMux.Unlock()
 					firmament.NodeAdded(nw.fc, rtnd)
@@ -273,6 +276,7 @@ func (nw *NodeWatcher) nodeWorker() {
 					delete(NodeToRTND, node.Hostname)
 					delete(ResIDToNode, resID)
 					NodeMux.Unlock()
+					glog.Info(NodeToRTND, " in NodeDeleted")
 				case NodeFailed:
 					NodeMux.RLock()
 					rtnd, ok := NodeToRTND[node.Hostname]
@@ -287,6 +291,7 @@ func (nw *NodeWatcher) nodeWorker() {
 					delete(NodeToRTND, node.Hostname)
 					delete(ResIDToNode, resID)
 					NodeMux.Unlock()
+					glog.Info(NodeToRTND, " in NodFailed")
 				case NodeUpdated:
 					NodeMux.RLock()
 					rtnd, ok := NodeToRTND[node.Hostname]
@@ -296,6 +301,7 @@ func (nw *NodeWatcher) nodeWorker() {
 					nw.updateResourceDescriptor(node, rtnd)
 					NodeMux.RUnlock()
 					firmament.NodeUpdated(nw.fc, rtnd)
+					glog.Info(NodeToRTND, " in NodeUpdated")
 				default:
 					glog.Fatalf("Unexpected node %s phase %s", node.Hostname, node.Phase)
 				}
@@ -335,6 +341,7 @@ func (nw *NodeWatcher) createResourceTopologyForNode(node *Node) *firmament.Reso
 				CpuCores:     float32(node.CPUCapacity - node.CPUAllocatable),
 				EphemeralCap: uint64(node.EphemeralCapKb - node.EphemeralAllocKb),
 			},
+			MaxPods: uint64(node.PodAllocatable),
 		},
 	}
 
