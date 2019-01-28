@@ -115,7 +115,7 @@ func (posiedonEvents *PoseidonEvents) ProcessFailureEvents(unscheduledTasks []ui
 			if poseidonToK8sPod, ok := PodToK8sPod[podIdentifier]; ok {
 				ProcessedPodEvents[podIdentifier] = poseidonToK8sPod
 				// send the failure event and update the pods status
-				posiedonEvents.podEvents.Recorder.Eventf(poseidonToK8sPod, corev1.EventTypeWarning, "FailedScheduling", "Firmament failed to schedule the pod %s in %s namespace", podIdentifier.Namespace, podIdentifier.Name)
+				posiedonEvents.podEvents.Recorder.Eventf(poseidonToK8sPod, corev1.EventTypeWarning, "FailedScheduling", "Firmament failed to schedule the pod %s in %s namespace", podIdentifier.Name, podIdentifier.Namespace)
 				Update(posiedonEvents.k8sClient, poseidonToK8sPod, &corev1.PodCondition{
 					Type:    corev1.PodScheduled,
 					Status:  corev1.ConditionFalse,
