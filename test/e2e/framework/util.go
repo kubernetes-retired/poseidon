@@ -539,3 +539,81 @@ func VerifyThatTaintIsGone(c clientset.Interface, nodeName string, taint *v1.Tai
 	}
 	Logf("%v taint completely removed from the node %v", taint, nodeName)
 }
+
+// GetPodsScheduled returns a number of currently scheduled and not scheduled Pods.
+func GetPodsScheduled(pods *v1.PodList) (scheduledPods, notScheduledPods []v1.Pod) {
+	for _, pod := range pods.Items {
+		if !IsMasterNode(pod.Spec.NodeName) {
+			if pod.Spec.NodeName != "" {
+				_, scheduledCondition := GetPodCondition(&pod.Status, v1.PodScheduled)
+				Expect(scheduledCondition != nil).To(Equal(true))
+				Expect(scheduledCondition.Status).To(Equal(v1.ConditionTrue))
+				scheduledPods = append(scheduledPods, pod)
+			} else {
+				_, scheduledCondition := GetPodCondition(&pod.Status, v1.PodScheduled)
+				Expect(scheduledCondition != nil).To(Equal(true))
+				Expect(scheduledCondition.Status).To(Equal(v1.ConditionFalse))
+				if scheduledCondition.Reason == "Unschedulable" {
+
+					notScheduledPods = append(notScheduledPods, pod)
+				}
+			}
+		}
+	}
+	return
+}
+
+// WaitForStableCluster waits until all existing pods are scheduled and returns their amount.
+func WaitForStableCluster(c clientset.Interface) int {
+	timeout := 10 * time.Minute
+	startTime := time.Now()
+
+	allPods, err := c.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{})
+	ExpectNoError(err)
+	// API server returns also Pods that succeeded. We need to filter them out.
+	currentPods := make([]v1.Pod, 0, len(allPods.Items))
+	for _, pod := range allPods.Items {
+		if pod.Status.Phase != v1.PodSucceeded && pod.Status.Phase != v1.PodFailed {
+			currentPods = append(currentPods, pod)
+		}
+
+	}
+	allPods.Items = currentPods
+	scheduledPods, currentlyNotScheduledPods := GetPodsScheduled(allPods)
+	for len(currentlyNotScheduledPods) != 0 {
+		time.Sleep(2 * time.Second)
+
+		allPods, err := c.CoreV1().Pods(metav1.NamespaceAll).List(metav1.ListOptions{})
+		ExpectNoError(err)
+		scheduledPods, currentlyNotScheduledPods = GetPodsScheduled(allPods)
+
+		if startTime.Add(timeout).Before(time.Now()) {
+			Failf("Timed out after %v waiting for stable cluster.", timeout)
+			break
+		}
+	}
+	return len(scheduledPods)
+}
+
+// GetPodCondition extracts the provided condition from the given status and returns that.
+// Returns nil and -1 if the condition is not present, and the index of the located condition.
+func GetPodCondition(status *v1.PodStatus, conditionType v1.PodConditionType) (int, *v1.PodCondition) {
+	if status == nil {
+		return -1, nil
+	}
+	return GetPodConditionFromList(status.Conditions, conditionType)
+}
+
+// GetPodConditionFromList extracts the provided condition from the given list of condition and
+// returns the index of the condition and the condition. Returns -1 and nil if the condition is not present.
+func GetPodConditionFromList(conditions []v1.PodCondition, conditionType v1.PodConditionType) (int, *v1.PodCondition) {
+	if conditions == nil {
+		return -1, nil
+	}
+	for i := range conditions {
+		if conditions[i].Type == conditionType {
+			return i, &conditions[i]
+		}
+	}
+	return -1, nil
+}

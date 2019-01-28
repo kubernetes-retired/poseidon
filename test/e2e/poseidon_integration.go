@@ -18,9 +18,6 @@ package test
 
 import (
 	"fmt"
-	"math/rand"
-	"os"
-
 	"github.com/golang/glog"
 	"github.com/kubernetes-sigs/poseidon/test/e2e/framework"
 	. "github.com/onsi/ginkgo"
@@ -32,6 +29,8 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"math/rand"
+	"os"
 	"time"
 )
 
@@ -2048,6 +2047,97 @@ var _ = Describe("Poseidon", func() {
 
 		})
 
+	})
+
+	Describe("Poseidon [Max-Pods Test]", func() {
+		// Test whether the kubelet flag max_pods works
+		// Currently the test uses the node's default max_pods value, i.e., we don't manually set the kubelet flag max_pods;
+		// And only test on one of the nodes.
+		It("validates MaxPods limit number of pods that are allowed to run [Slow]", func() {
+			var totalPodCapacity int64
+			var podsNeededForSaturation int32
+			totalPodCapacity = 0
+			schedulableNodes := framework.ListSchedulableNodes(clientset)
+			for _, node := range schedulableNodes {
+				podCapacity, found := node.Status.Capacity[v1.ResourcePods]
+				Expect(found).To(Equal(true))
+				totalPodCapacity += podCapacity.Value()
+			}
+			currentlyScheduledPods := framework.WaitForStableCluster(clientset)
+			podsNeededForSaturation = int32(totalPodCapacity) - int32(currentlyScheduledPods)
+			name := "max-pods"
+			if podsNeededForSaturation > 0 {
+				deployment, err := clientset.ExtensionsV1beta1().Deployments(f.Namespace.Name).Create(&v1beta1.Deployment{
+					ObjectMeta: metav1.ObjectMeta{
+						Labels: map[string]string{"app": "nginx"},
+						Name:   name,
+					},
+					Spec: v1beta1.DeploymentSpec{
+						Selector: &metav1.LabelSelector{
+							MatchLabels: map[string]string{"app": "nginx", "name": "test-max-pods"},
+						},
+						Replicas: &podsNeededForSaturation,
+						Template: v1.PodTemplateSpec{
+							ObjectMeta: metav1.ObjectMeta{
+								Labels: map[string]string{"name": "test-max-pods", "app": "nginx", "schedulerName": "poseidon"},
+								Name:   name,
+							},
+							Spec: v1.PodSpec{
+								SchedulerName: "poseidon",
+								Containers: []v1.Container{
+									{
+										Name:            fmt.Sprintf("container-%s", name),
+										Image:           "nginx:latest",
+										ImagePullPolicy: "IfNotPresent",
+									},
+								},
+							},
+						},
+					},
+				})
+				Expect(err).NotTo(HaveOccurred())
+
+				By("Waiting for the Deployment to have running status")
+				err = f.WaitForDeploymentComplete(deployment)
+				Expect(err).NotTo(HaveOccurred())
+				deployment, err = clientset.ExtensionsV1beta1().Deployments(ns).Get(name, metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+
+				By(fmt.Sprintf("Creation of deployment %q in namespace %q succeeded.", deployment.Name, ns))
+				Expect(deployment.Status.Replicas).To(Equal(deployment.Status.AvailableReplicas))
+
+				defer func() {
+					By("Pod was in Running state... Time to delete the deployment now...")
+					err = f.WaitForDeploymentDelete(deployment)
+					Expect(err).NotTo(HaveOccurred())
+					By("Waiting 5 seconds")
+					By("Check for deployment deletion")
+					_, err = clientset.ExtensionsV1beta1().Deployments(ns).Get(name, metav1.GetOptions{})
+					if err != nil {
+						Expect(errors.IsNotFound(err)).To(Equal(true))
+					}
+				}()
+
+			}
+			podName := "additional-pod"
+			// Create a K8s Pod with poseidon
+			f.WaitForSchedulerAfterAction(func() error {
+				_, err := clientset.CoreV1().Pods(ns).Create(&v1.Pod{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:   podName,
+						Labels: map[string]string{"name": "additional"},
+					},
+					Spec: v1.PodSpec{
+						SchedulerName: "poseidon",
+						Containers: []v1.Container{{
+							Name:            fmt.Sprintf("container-%s", podName),
+							Image:           "nginx:latest",
+							ImagePullPolicy: "IfNotPresent",
+						}}},
+				})
+				return err
+			}, f.Namespace.Name, podName, false)
+		})
 	})
 })
 
