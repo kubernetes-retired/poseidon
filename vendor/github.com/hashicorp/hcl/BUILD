@@ -8,6 +8,7 @@ go_library(
         "lex.go",
         "parse.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/hashicorp/hcl",
     importpath = "github.com/hashicorp/hcl",
     visibility = ["//visibility:public"],
     deps = [

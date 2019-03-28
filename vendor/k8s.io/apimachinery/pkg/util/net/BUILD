@@ -9,6 +9,7 @@ go_library(
         "port_split.go",
         "util.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/apimachinery/pkg/util/net",
     importpath = "k8s.io/apimachinery/pkg/util/net",
     visibility = ["//visibility:public"],
     deps = [

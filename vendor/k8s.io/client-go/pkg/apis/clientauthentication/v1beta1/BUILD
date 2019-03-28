@@ -11,6 +11,7 @@ go_library(
         "zz_generated.deepcopy.go",
         "zz_generated.defaults.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/client-go/pkg/apis/clientauthentication/v1beta1",
     importpath = "k8s.io/client-go/pkg/apis/clientauthentication/v1beta1",
     visibility = ["//visibility:public"],
     deps = [

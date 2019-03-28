@@ -8,6 +8,7 @@ go_library(
         "tables10.0.0.go",
         "tables9.0.0.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/golang.org/x/text/unicode/rangetable",
     importpath = "golang.org/x/text/unicode/rangetable",
     visibility = ["//visibility:public"],
 )

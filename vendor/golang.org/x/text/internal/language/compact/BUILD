@@ -9,6 +9,7 @@ go_library(
         "tables.go",
         "tags.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/golang.org/x/text/internal/language/compact",
     importpath = "golang.org/x/text/internal/language/compact",
     visibility = ["//vendor/golang.org/x/text:__subpackages__"],
     deps = ["//vendor/golang.org/x/text/internal/language:go_default_library"],

@@ -7,6 +7,7 @@ go_library(
         "logger.go",
         "loggerv2.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/google.golang.org/grpc/grpclog",
     importpath = "google.golang.org/grpc/grpclog",
     visibility = ["//visibility:public"],
 )

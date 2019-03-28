@@ -7,6 +7,7 @@ go_library(
         "go17.go",
         "go18.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/google.golang.org/grpc/resolver/dns",
     importpath = "google.golang.org/grpc/resolver/dns",
     visibility = ["//visibility:public"],
     deps = [

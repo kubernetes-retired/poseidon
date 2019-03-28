@@ -8,6 +8,7 @@ go_library(
         "fake_certificatesigningrequest.go",
         "fake_certificatesigningrequest_expansion.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/client-go/kubernetes/typed/certificates/v1beta1/fake",
     importpath = "k8s.io/client-go/kubernetes/typed/certificates/v1beta1/fake",
     visibility = ["//visibility:public"],
     deps = [

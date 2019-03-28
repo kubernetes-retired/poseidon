@@ -14,6 +14,7 @@ go_library(
         "tomltree_create.go",
         "tomltree_write.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/pelletier/go-toml",
     importpath = "github.com/pelletier/go-toml",
     visibility = ["//visibility:public"],
 )

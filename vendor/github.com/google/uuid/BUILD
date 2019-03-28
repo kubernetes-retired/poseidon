@@ -16,6 +16,7 @@ go_library(
         "version1.go",
         "version4.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/google/uuid",
     importpath = "github.com/google/uuid",
     visibility = ["//visibility:public"],
 )

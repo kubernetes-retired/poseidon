@@ -6,6 +6,7 @@ go_library(
         "error.go",
         "parser.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/hashicorp/hcl/hcl/parser",
     importpath = "github.com/hashicorp/hcl/hcl/parser",
     visibility = ["//visibility:public"],
     deps = [

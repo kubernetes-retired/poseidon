@@ -8,6 +8,7 @@ go_library(
         "round_trippers.go",
         "transport.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/client-go/transport",
     importpath = "k8s.io/client-go/transport",
     visibility = ["//visibility:public"],
     deps = [

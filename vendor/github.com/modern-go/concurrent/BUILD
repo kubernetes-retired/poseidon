@@ -9,6 +9,7 @@ go_library(
         "log.go",
         "unbounded_executor.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/modern-go/concurrent",
     importpath = "github.com/modern-go/concurrent",
     visibility = ["//visibility:public"],
 )

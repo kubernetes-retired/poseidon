@@ -8,6 +8,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["util.go"],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/kubernetes/pkg/api/v1/pod",
     importpath = "k8s.io/kubernetes/pkg/api/v1/pod",
     deps = [
         "//vendor/k8s.io/api/core/v1:go_default_library",

@@ -6,6 +6,7 @@ go_library(
         "euckr.go",
         "tables.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/golang.org/x/text/encoding/korean",
     importpath = "golang.org/x/text/encoding/korean",
     visibility = ["//visibility:public"],
     deps = [

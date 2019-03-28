@@ -3,6 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["stream.go"],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/beorn7/perks/quantile",
     importpath = "github.com/beorn7/perks/quantile",
     visibility = ["//visibility:public"],
 )

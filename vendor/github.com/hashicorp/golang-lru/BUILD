@@ -8,6 +8,7 @@ go_library(
         "doc.go",
         "lru.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/hashicorp/golang-lru",
     importpath = "github.com/hashicorp/golang-lru",
     visibility = ["//visibility:public"],
     deps = ["//vendor/github.com/hashicorp/golang-lru/simplelru:go_default_library"],

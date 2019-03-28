@@ -6,6 +6,7 @@ go_library(
         "doc.go",
         "fuzz.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/google/gofuzz",
     importpath = "github.com/google/gofuzz",
     visibility = ["//visibility:public"],
 )

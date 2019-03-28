@@ -11,6 +11,7 @@ go_library(
         "fake_replicaset.go",
         "fake_statefulset.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/client-go/kubernetes/typed/apps/v1/fake",
     importpath = "k8s.io/client-go/kubernetes/typed/apps/v1/fake",
     visibility = ["//visibility:public"],
     deps = [

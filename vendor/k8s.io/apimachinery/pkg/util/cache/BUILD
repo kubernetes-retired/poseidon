@@ -6,6 +6,7 @@ go_library(
         "cache.go",
         "lruexpirecache.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/apimachinery/pkg/util/cache",
     importpath = "k8s.io/apimachinery/pkg/util/cache",
     visibility = ["//visibility:public"],
     deps = ["//vendor/github.com/hashicorp/golang-lru:go_default_library"],

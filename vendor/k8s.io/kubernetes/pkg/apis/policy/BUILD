@@ -13,6 +13,7 @@ go_library(
         "types.go",
         "zz_generated.deepcopy.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/kubernetes/pkg/apis/policy",
     importpath = "k8s.io/kubernetes/pkg/apis/policy",
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",

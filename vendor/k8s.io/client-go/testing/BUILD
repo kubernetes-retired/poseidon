@@ -7,6 +7,7 @@ go_library(
         "fake.go",
         "fixture.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/client-go/testing",
     importpath = "k8s.io/client-go/testing",
     visibility = ["//visibility:public"],
     deps = [

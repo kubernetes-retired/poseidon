@@ -3,10 +3,11 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["proto.go"],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/google.golang.org/grpc/encoding/proto",
     importpath = "google.golang.org/grpc/encoding/proto",
     visibility = ["//visibility:public"],
     deps = [
-        "//vendor/github.com/golang/protobuf/proto:go_default_library",
         "//vendor/google.golang.org/grpc/encoding:go_default_library",
+        "@com_github_golang_protobuf//proto:go_default_library",
     ],
 )

@@ -9,6 +9,7 @@ go_library(
         "llrb-stats.go",
         "util.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/petar/GoLLRB/llrb",
     importpath = "github.com/petar/GoLLRB/llrb",
     visibility = ["//visibility:public"],
 )

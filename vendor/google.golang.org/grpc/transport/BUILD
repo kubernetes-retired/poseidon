@@ -14,14 +14,13 @@ go_library(
         "log.go",
         "transport.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/google.golang.org/grpc/transport",
     importpath = "google.golang.org/grpc/transport",
     visibility = ["//visibility:public"],
     deps = [
-        "//vendor/github.com/golang/protobuf/proto:go_default_library",
         "//vendor/golang.org/x/net/context:go_default_library",
         "//vendor/golang.org/x/net/http2:go_default_library",
         "//vendor/golang.org/x/net/http2/hpack:go_default_library",
-        "//vendor/google.golang.org/genproto/googleapis/rpc/status:go_default_library",
         "//vendor/google.golang.org/grpc/codes:go_default_library",
         "//vendor/google.golang.org/grpc/credentials:go_default_library",
         "//vendor/google.golang.org/grpc/grpclog:go_default_library",
@@ -31,5 +30,7 @@ go_library(
         "//vendor/google.golang.org/grpc/stats:go_default_library",
         "//vendor/google.golang.org/grpc/status:go_default_library",
         "//vendor/google.golang.org/grpc/tap:go_default_library",
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@go_googleapis//google/rpc:status_go_proto",
     ],
 )

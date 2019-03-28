@@ -6,6 +6,7 @@ go_library(
         "doc.go",
         "errors.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/apimachinery/pkg/api/errors",
     importpath = "k8s.io/apimachinery/pkg/api/errors",
     visibility = ["//visibility:public"],
     deps = [

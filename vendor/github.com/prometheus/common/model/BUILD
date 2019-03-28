@@ -15,6 +15,7 @@ go_library(
         "time.go",
         "value.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/prometheus/common/model",
     importpath = "github.com/prometheus/common/model",
     visibility = ["//visibility:public"],
 )

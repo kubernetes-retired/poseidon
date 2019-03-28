@@ -7,6 +7,7 @@ go_library(
         "doc.go",
         "import.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/client-go/kubernetes",
     importpath = "k8s.io/client-go/kubernetes",
     visibility = ["//visibility:public"],
     deps = [

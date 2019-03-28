@@ -13,6 +13,7 @@ go_library(
         "types.go",
         "well_known_labels.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/kubernetes/pkg/scheduler/algorithm",
     importpath = "k8s.io/kubernetes/pkg/scheduler/algorithm",
     deps = [
         "//vendor/k8s.io/api/apps/v1beta1:go_default_library",

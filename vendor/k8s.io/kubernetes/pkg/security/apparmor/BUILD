@@ -10,39 +10,9 @@ go_library(
     srcs = [
         "helpers.go",
         "validate.go",
-    ] + select({
-        "@io_bazel_rules_go//go/platform:android": [
-            "validate_disabled.go",
-        ],
-        "@io_bazel_rules_go//go/platform:darwin": [
-            "validate_disabled.go",
-        ],
-        "@io_bazel_rules_go//go/platform:dragonfly": [
-            "validate_disabled.go",
-        ],
-        "@io_bazel_rules_go//go/platform:freebsd": [
-            "validate_disabled.go",
-        ],
-        "@io_bazel_rules_go//go/platform:nacl": [
-            "validate_disabled.go",
-        ],
-        "@io_bazel_rules_go//go/platform:netbsd": [
-            "validate_disabled.go",
-        ],
-        "@io_bazel_rules_go//go/platform:openbsd": [
-            "validate_disabled.go",
-        ],
-        "@io_bazel_rules_go//go/platform:plan9": [
-            "validate_disabled.go",
-        ],
-        "@io_bazel_rules_go//go/platform:solaris": [
-            "validate_disabled.go",
-        ],
-        "@io_bazel_rules_go//go/platform:windows": [
-            "validate_disabled.go",
-        ],
-        "//conditions:default": [],
-    }),
+        "validate_disabled.go",
+    ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/kubernetes/pkg/security/apparmor",
     importpath = "k8s.io/kubernetes/pkg/security/apparmor",
     deps = [
         "//vendor/k8s.io/api/core/v1:go_default_library",

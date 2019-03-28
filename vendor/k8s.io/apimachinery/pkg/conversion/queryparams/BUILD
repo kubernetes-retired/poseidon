@@ -6,6 +6,7 @@ go_library(
         "convert.go",
         "doc.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/apimachinery/pkg/conversion/queryparams",
     importpath = "k8s.io/apimachinery/pkg/conversion/queryparams",
     visibility = ["//visibility:public"],
 )

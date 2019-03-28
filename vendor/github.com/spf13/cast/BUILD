@@ -6,6 +6,7 @@ go_library(
         "cast.go",
         "caste.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/spf13/cast",
     importpath = "github.com/spf13/cast",
     visibility = ["//visibility:public"],
 )

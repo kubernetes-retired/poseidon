@@ -6,6 +6,7 @@ go_library(
         "errors.go",
         "util.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/apimachinery/pkg/util/mergepatch",
     importpath = "k8s.io/apimachinery/pkg/util/mergepatch",
     visibility = ["//visibility:public"],
     deps = [

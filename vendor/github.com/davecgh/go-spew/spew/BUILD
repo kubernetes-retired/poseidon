@@ -12,6 +12,7 @@ go_library(
         "format.go",
         "spew.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/davecgh/go-spew/spew",
     importpath = "github.com/davecgh/go-spew/spew",
     visibility = ["//visibility:public"],
 )

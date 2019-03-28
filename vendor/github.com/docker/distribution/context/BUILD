@@ -11,6 +11,7 @@ go_library(
         "util.go",
         "version.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/docker/distribution/context",
     importpath = "github.com/docker/distribution/context",
     visibility = ["//visibility:public"],
     deps = [

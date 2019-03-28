@@ -8,6 +8,7 @@ go_library(
         "ecdh_es.go",
         "key_wrap.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/gopkg.in/square/go-jose.v2/cipher",
     importpath = "gopkg.in/square/go-jose.v2/cipher",
     visibility = ["//visibility:public"],
 )

@@ -12,6 +12,7 @@ go_library(
         "route.go",
         "test_helpers.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/gorilla/mux",
     importpath = "github.com/gorilla/mux",
     visibility = ["//visibility:public"],
     deps = ["//vendor/github.com/gorilla/context:go_default_library"],

@@ -8,6 +8,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["taints.go"],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/kubernetes/pkg/util/taints",
     importpath = "k8s.io/kubernetes/pkg/util/taints",
     deps = [
         "//vendor/k8s.io/api/core/v1:go_default_library",

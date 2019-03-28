@@ -8,6 +8,7 @@ go_library(
         "patch.go",
         "types.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/apimachinery/pkg/util/strategicpatch",
     importpath = "k8s.io/apimachinery/pkg/util/strategicpatch",
     visibility = ["//visibility:public"],
     deps = [

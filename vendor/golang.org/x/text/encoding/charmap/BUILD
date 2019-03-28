@@ -6,6 +6,7 @@ go_library(
         "charmap.go",
         "tables.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/golang.org/x/text/encoding/charmap",
     importpath = "golang.org/x/text/encoding/charmap",
     visibility = ["//visibility:public"],
     deps = [

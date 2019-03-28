@@ -13,6 +13,7 @@ go_library(
         "tables.go",
         "tags.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/golang.org/x/text/language",
     importpath = "golang.org/x/text/language",
     visibility = ["//visibility:public"],
     deps = [
