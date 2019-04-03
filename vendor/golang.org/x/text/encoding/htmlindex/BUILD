@@ -7,6 +7,7 @@ go_library(
         "map.go",
         "tables.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/golang.org/x/text/encoding/htmlindex",
     importpath = "golang.org/x/text/encoding/htmlindex",
     visibility = ["//visibility:public"],
     deps = [

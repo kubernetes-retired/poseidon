@@ -15,6 +15,7 @@ go_library(
         "pod_update.go",
         "types.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/kubernetes/pkg/kubelet/types",
     importpath = "k8s.io/kubernetes/pkg/kubelet/types",
     deps = [
         "//vendor/k8s.io/api/core/v1:go_default_library",

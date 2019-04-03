@@ -8,6 +8,7 @@ go_library(
         "selector.go",
         "zz_generated.deepcopy.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/apimachinery/pkg/labels",
     importpath = "k8s.io/apimachinery/pkg/labels",
     visibility = ["//visibility:public"],
     deps = [

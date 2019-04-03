@@ -10,6 +10,7 @@ go_library(
         "registry.go",
         "tags.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/docker/distribution",
     importpath = "github.com/docker/distribution",
     visibility = ["//visibility:public"],
     deps = [

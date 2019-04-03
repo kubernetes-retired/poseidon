@@ -29,6 +29,7 @@ go_library(
         "serviceaccount.go",
         "serviceaccount_expansion.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/client-go/kubernetes/typed/core/v1",
     importpath = "k8s.io/client-go/kubernetes/typed/core/v1",
     visibility = ["//visibility:public"],
     deps = [

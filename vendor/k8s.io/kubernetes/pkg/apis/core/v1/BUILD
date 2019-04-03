@@ -10,6 +10,7 @@ go_library(
         "zz_generated.conversion.go",
         "zz_generated.defaults.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/kubernetes/pkg/apis/core/v1",
     importpath = "k8s.io/kubernetes/pkg/apis/core/v1",
     visibility = ["//visibility:public"],
     deps = [

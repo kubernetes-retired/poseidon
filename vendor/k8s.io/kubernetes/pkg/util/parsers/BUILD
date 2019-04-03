@@ -8,6 +8,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["parsers.go"],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/kubernetes/pkg/util/parsers",
     importpath = "k8s.io/kubernetes/pkg/util/parsers",
     deps = ["//vendor/github.com/docker/distribution/reference:go_default_library"],
 )

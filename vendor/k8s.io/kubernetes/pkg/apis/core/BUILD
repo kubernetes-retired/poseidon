@@ -15,6 +15,7 @@ go_library(
         "types.go",
         "zz_generated.deepcopy.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/kubernetes/pkg/apis/core",
     importpath = "k8s.io/kubernetes/pkg/apis/core",
     visibility = ["//visibility:public"],
     deps = [

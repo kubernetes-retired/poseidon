@@ -11,6 +11,7 @@ go_library(
         "backoff_utils.go",
         "utils.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/kubernetes/pkg/scheduler/util",
     importpath = "k8s.io/kubernetes/pkg/scheduler/util",
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

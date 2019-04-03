@@ -8,6 +8,7 @@ go_library(
         "parse_nfs.go",
         "parse_nfsd.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/prometheus/procfs/nfs",
     importpath = "github.com/prometheus/procfs/nfs",
     visibility = ["//visibility:public"],
     deps = ["//vendor/github.com/prometheus/procfs/internal/util:go_default_library"],

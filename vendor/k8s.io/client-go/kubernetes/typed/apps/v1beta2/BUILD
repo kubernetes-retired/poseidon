@@ -13,6 +13,7 @@ go_library(
         "scale.go",
         "statefulset.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/client-go/kubernetes/typed/apps/v1beta2",
     importpath = "k8s.io/client-go/kubernetes/typed/apps/v1beta2",
     visibility = ["//visibility:public"],
     deps = [

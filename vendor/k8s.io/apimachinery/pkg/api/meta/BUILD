@@ -14,6 +14,7 @@ go_library(
         "priority.go",
         "restmapper.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/apimachinery/pkg/api/meta",
     importpath = "k8s.io/apimachinery/pkg/api/meta",
     visibility = ["//visibility:public"],
     deps = [

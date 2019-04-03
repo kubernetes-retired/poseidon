@@ -10,6 +10,7 @@ go_library(
         "events.go",
         "validation.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/kubernetes/pkg/apis/core/validation",
     importpath = "k8s.io/kubernetes/pkg/apis/core/validation",
     visibility = ["//visibility:public"],
     deps = [

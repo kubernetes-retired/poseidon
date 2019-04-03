@@ -11,6 +11,7 @@ go_library(
         "doc.go",
         "fieldpath.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/kubernetes/pkg/fieldpath",
     importpath = "k8s.io/kubernetes/pkg/fieldpath",
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/api/meta:go_default_library",

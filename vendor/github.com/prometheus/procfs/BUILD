@@ -18,6 +18,7 @@ go_library(
         "stat.go",
         "xfrm.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/prometheus/procfs",
     importpath = "github.com/prometheus/procfs",
     visibility = ["//visibility:public"],
     deps = [

@@ -8,6 +8,7 @@ go_library(
         "io.go",
         "pem.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/client-go/util/cert",
     importpath = "k8s.io/client-go/util/cert",
     visibility = ["//visibility:public"],
 )

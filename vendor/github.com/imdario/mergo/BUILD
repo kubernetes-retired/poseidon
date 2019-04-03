@@ -8,6 +8,7 @@ go_library(
         "merge.go",
         "mergo.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/imdario/mergo",
     importpath = "github.com/imdario/mergo",
     visibility = ["//visibility:public"],
 )

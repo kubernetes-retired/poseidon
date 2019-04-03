@@ -23,6 +23,7 @@ go_library(
         "thread_safe_store.go",
         "undelta_store.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/client-go/tools/cache",
     importpath = "k8s.io/client-go/tools/cache",
     visibility = ["//visibility:public"],
     deps = [

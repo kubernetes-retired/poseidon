@@ -7,6 +7,7 @@ go_library(
         "negotiated_codec.go",
         "protobuf_extension.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/apimachinery/pkg/runtime/serializer",
     importpath = "k8s.io/apimachinery/pkg/runtime/serializer",
     visibility = ["//visibility:public"],
     deps = [

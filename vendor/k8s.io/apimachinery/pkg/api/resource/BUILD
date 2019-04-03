@@ -12,6 +12,7 @@ go_library(
         "suffix.go",
         "zz_generated.deepcopy.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/apimachinery/pkg/api/resource",
     importpath = "k8s.io/apimachinery/pkg/api/resource",
     visibility = ["//visibility:public"],
     deps = [

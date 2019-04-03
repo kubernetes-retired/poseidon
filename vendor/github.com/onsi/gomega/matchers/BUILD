@@ -44,6 +44,7 @@ go_library(
         "type_support.go",
         "with_transform.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/onsi/gomega/matchers",
     importpath = "github.com/onsi/gomega/matchers",
     visibility = ["//visibility:public"],
     deps = [

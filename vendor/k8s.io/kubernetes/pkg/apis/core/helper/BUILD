@@ -8,6 +8,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["helpers.go"],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/kubernetes/pkg/apis/core/helper",
     importpath = "k8s.io/kubernetes/pkg/apis/core/helper",
     deps = [
         "//vendor/k8s.io/apimachinery/pkg/api/resource:go_default_library",

@@ -7,6 +7,7 @@ go_library(
         "fake_batch_client.go",
         "fake_job.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/client-go/kubernetes/typed/batch/v1/fake",
     importpath = "k8s.io/client-go/kubernetes/typed/batch/v1/fake",
     visibility = ["//visibility:public"],
     deps = [

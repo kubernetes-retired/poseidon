@@ -13,6 +13,7 @@ go_library(
         "synchronized_after_suite_node.go",
         "synchronized_before_suite_node.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/onsi/ginkgo/internal/leafnodes",
     importpath = "github.com/onsi/ginkgo/internal/leafnodes",
     visibility = ["//vendor/github.com/onsi/ginkgo:__subpackages__"],
     deps = [

@@ -9,6 +9,7 @@ go_library(
         "sort.go",
         "tables.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/golang.org/x/text/collate",
     importpath = "golang.org/x/text/collate",
     visibility = ["//visibility:public"],
     deps = [

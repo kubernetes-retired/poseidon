@@ -12,30 +12,13 @@ go_library(
         "json_formatter.go",
         "logger.go",
         "logrus.go",
+        "terminal_bsd.go",
         "terminal_check_notappengine.go",
+        "terminal_linux.go",
         "text_formatter.go",
         "writer.go",
-    ] + select({
-        "@io_bazel_rules_go//go/platform:darwin": [
-            "terminal_bsd.go",
-        ],
-        "@io_bazel_rules_go//go/platform:dragonfly": [
-            "terminal_bsd.go",
-        ],
-        "@io_bazel_rules_go//go/platform:freebsd": [
-            "terminal_bsd.go",
-        ],
-        "@io_bazel_rules_go//go/platform:linux": [
-            "terminal_linux.go",
-        ],
-        "@io_bazel_rules_go//go/platform:netbsd": [
-            "terminal_bsd.go",
-        ],
-        "@io_bazel_rules_go//go/platform:openbsd": [
-            "terminal_bsd.go",
-        ],
-        "//conditions:default": [],
-    }),
+    ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/Sirupsen/logrus",
     importpath = "github.com/Sirupsen/logrus",
     visibility = ["//visibility:public"],
     deps = [

@@ -7,6 +7,7 @@ go_library(
         "fake_storage_client.go",
         "fake_storageclass.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/client-go/kubernetes/typed/storage/v1/fake",
     importpath = "k8s.io/client-go/kubernetes/typed/storage/v1/fake",
     visibility = ["//visibility:public"],
     deps = [

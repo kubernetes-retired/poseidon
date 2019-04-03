@@ -21,14 +21,15 @@ go_library(
         "value.go",
         "vec.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/prometheus/client_golang/prometheus",
     importpath = "github.com/prometheus/client_golang/prometheus",
     visibility = ["//visibility:public"],
     deps = [
         "//vendor/github.com/beorn7/perks/quantile:go_default_library",
-        "//vendor/github.com/golang/protobuf/proto:go_default_library",
         "//vendor/github.com/prometheus/client_model/go:go_default_library",
         "//vendor/github.com/prometheus/common/expfmt:go_default_library",
         "//vendor/github.com/prometheus/common/model:go_default_library",
         "//vendor/github.com/prometheus/procfs:go_default_library",
+        "@com_github_golang_protobuf//proto:go_default_library",
     ],
 )

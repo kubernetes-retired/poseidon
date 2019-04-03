@@ -11,6 +11,7 @@ go_library(
         "doc.go",
         "ipnet.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/kubernetes/pkg/util/net/sets",
     importpath = "k8s.io/kubernetes/pkg/util/net/sets",
 )
 

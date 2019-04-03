@@ -9,6 +9,7 @@ go_library(
         "trie.go",
         "trieval.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/golang.org/x/net/idna",
     importpath = "golang.org/x/net/idna",
     visibility = ["//visibility:public"],
     deps = [

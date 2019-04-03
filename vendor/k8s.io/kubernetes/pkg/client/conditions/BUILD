@@ -8,6 +8,7 @@ load(
 go_library(
     name = "go_default_library",
     srcs = ["conditions.go"],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/kubernetes/pkg/client/conditions",
     importpath = "k8s.io/kubernetes/pkg/client/conditions",
     deps = [
         "//vendor/k8s.io/api/core/v1:go_default_library",

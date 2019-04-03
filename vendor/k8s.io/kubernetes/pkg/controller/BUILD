@@ -14,6 +14,7 @@ go_library(
         "doc.go",
         "lookup_cache.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/kubernetes/pkg/controller",
     importpath = "k8s.io/kubernetes/pkg/controller",
     deps = [
         "//vendor/github.com/golang/glog:go_default_library",

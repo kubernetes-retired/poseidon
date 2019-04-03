@@ -6,6 +6,7 @@ go_library(
         "gomega_dsl.go",
         "matchers.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/onsi/gomega",
     importpath = "github.com/onsi/gomega",
     visibility = ["//visibility:public"],
     deps = [

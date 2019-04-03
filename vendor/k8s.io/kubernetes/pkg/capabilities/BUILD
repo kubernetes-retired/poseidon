@@ -11,6 +11,7 @@ go_library(
         "capabilities.go",
         "doc.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/k8s.io/kubernetes/pkg/capabilities",
     importpath = "k8s.io/kubernetes/pkg/capabilities",
 )
 

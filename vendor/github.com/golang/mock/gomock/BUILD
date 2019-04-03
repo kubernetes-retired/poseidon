@@ -8,6 +8,7 @@ go_library(
         "controller.go",
         "matchers.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/golang/mock/gomock",
     importpath = "github.com/golang/mock/gomock",
     visibility = ["//visibility:public"],
     deps = ["//vendor/golang.org/x/net/context:go_default_library"],

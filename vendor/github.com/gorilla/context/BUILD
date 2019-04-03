@@ -6,6 +6,7 @@ go_library(
         "context.go",
         "doc.go",
     ],
+    importmap = "github.com/kubernetes-sigs/poseidon/vendor/github.com/gorilla/context",
     importpath = "github.com/gorilla/context",
     visibility = ["//visibility:public"],
 )
