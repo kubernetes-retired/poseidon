@@ -51,7 +51,7 @@ To view details related to coordinated release process between Firmament & Posei
 Please refer to [link](https://github.com/kubernetes-sigs/poseidon/blob/master/docs/benchmark/README.md) for detail throughput performance comparison test results between Poseidon/Firmament scheduler and Kubernetes default scheduler.
 
 # Roadmap
-* **Release 0.8** onwards:
+* **Release 0.9** onwards:
     * Provide High Availability/Failover for in-memory Firmament/Poseidon processes.
     *	Scheduling support for “Dynamic Persistence Volume Provisioning”.  
     *	Optimizations for reducing the no. of arcs by limiting the number of eligible nodes in a cluster.
@@ -60,25 +60,27 @@ Please refer to [link](https://github.com/kubernetes-sigs/poseidon/blob/master/d
     * Continuous running scheduling loop versus scheduling intervals mechanism.
     * Priority Pre-emption support.
     * Priority based scheduling.
-* **Release 0.7** – Target Date 19th November:
+* **Release 0.8** – Target Date 15th February, 2019:
+    * Pod Affinity/Anti-Affinity optimization in 'Firmament' code.
+* **Release 0.7** – Target Date 19th November, 2018:
     * Support for Max. Pods per Node.
     * Co-Existence with Default Scheduler.
     * Node Prefer/Avoid pods priority function.
-* **Release 0.6** – Target Date 12th November:
+* **Release 0.6** – Target Date 12th November, 2018:
     * Gang Scheduling.
 * **Release 0.5** – Released on 25th October 2018:
     * Support for Ephemeral Storage, in addition to CPU/Memory.
     * Implementation for Success/Failure of scheduling events.
     * Scheduling support for “Pre-bound Persistence Volume Provisioning”. 
-* **Release 0.4** – Released on 18th August 2018:
+* **Release 0.4** – Released on 18th August, 2018:
     * Taints & Tolerations.
     * Support for Pod anti-affinity symmetry.
     * Throughput Performance Optimizations.
-* **Release 0.3** – Released on 21st June 2018:
+* **Release 0.3** – Released on 21st June, 2018:
     * Pod level Affinity and Anti-Affinity implementation using multi-round scheduling based affinity and anti-affinity.
-* **Release 0.2** – Released on 27th May 2018:
+* **Release 0.2** – Released on 27th May, 2018:
     * Node level Affinity and Anti-Affinity implementation.
-* **Release 0.1** – Released on 3rd May 2018:
+* **Release 0.1** – Released on 3rd May, 2018:
     * Baseline Poseidon/Firmament Scheduling capabilities using new multi-dimensional CPU/Memory cost model is part of 
       this release. Currently, this does not include node and pod level affinity/anti-affinity capabilities. 
       As shown below, we are building all this out as part of the upcoming releases.    
