@@ -439,142 +439,138 @@ func (pw *PodWatcher) Run(stopCh <-chan struct{}, nWorkers int) {
 }
 
 func (pw *PodWatcher) podWorker() {
-	func() {
-		wg := new(sync.WaitGroup)
-		defer func() {
-			wg.Wait()
-		}()
-		for {
-			key, items, quit := pw.podWorkQueue.Get()
-			if quit {
-				return
-			}
-			wg.Add(1)
-			go func(key interface{}, items []interface{}, wg *sync.WaitGroup) {
-				defer func() {
-					pw.podWorkQueue.Done(key)
-					wg.Done()
-				}()
-				for _, item := range items {
-					pod := item.(*Pod)
-					switch pod.State {
-					case PodPending:
-						glog.V(2).Info("PodPending ", pod.Identifier)
-						PodMux.Lock()
-
-						// check if the pod already exists
-						// this cases happened when Replicaset are used.
-						// When a replicaset is delete it creates more pods with the same name
-						_, ok := PodToTD[pod.Identifier]
-						if ok {
-							// we ignore this since the pod already exists
-							// release the lock
-							glog.V(2).Info("Pod already added", pod.Identifier.Name, pod.Identifier.Namespace)
-							PodMux.Unlock()
-							continue
-						}
-						jobID := pw.generateJobID(pod.OwnerRef)
-						jd, ok := jobIDToJD[jobID]
-						if !ok {
-							jd = pw.createNewJob(pod.OwnerRef)
-							// get requirement for gang scheduling if enabled
-							jd = pw.updateGangSchedulingrequireent(pod, jd)
-							jobIDToJD[jobID] = jd
-							jobNumTasksToRemove[jobID] = 0
-						}
-						jobNumTasksToRemove[jobID]++
-						taskCount := jobNumTasksToRemove[jobID]
-						PodMux.Unlock()
-						td := pw.addTaskToJob(pod, jd.Uuid, jd.Name, (taskCount))
-						PodMux.Lock()
-						// if taskCount is '1' it means root task, update the RootTask pointer in the JobDescriptor
-						if taskCount == 1 {
-							jd.RootTask = td
-						}
-						PodToTD[pod.Identifier] = td
-						TaskIDToPod[td.GetUid()] = pod.Identifier
-						taskDescription := &firmament.TaskDescription{
-							TaskDescriptor: td,
-							JobDescriptor:  jd,
-						}
-						PodMux.Unlock()
-						metrics.SchedulingSubmitmLatency.Observe(metrics.SinceInMicroseconds(time.Time(pod.CreateTimeStamp.Time)))
-						firmament.TaskSubmitted(pw.fc, taskDescription)
-					case PodSucceeded:
-						glog.V(2).Info("PodSucceeded ", pod.Identifier)
-						PodMux.RLock()
-						td, ok := PodToTD[pod.Identifier]
-						PodMux.RUnlock()
-						if !ok {
-							glog.Fatalf("Pod %v does not exist", pod.Identifier)
-						}
-						firmament.TaskCompleted(pw.fc, &firmament.TaskUID{TaskUid: td.Uid})
-					case PodDeleted:
-						glog.V(2).Info("PodDeleted ", pod.Identifier)
-						PodMux.RLock()
-						td, ok := PodToTD[pod.Identifier]
-						PodMux.RUnlock()
-						if !ok {
-							glog.Infof("Pod %s does not exist", pod.Identifier)
-							continue
-						}
-						// TODO(jiaxuanzhou) need to metric the task remove latency ?
-						firmament.TaskRemoved(pw.fc, &firmament.TaskUID{TaskUid: td.Uid})
-						PodMux.Lock()
-						delete(PodToTD, pod.Identifier)
-						delete(TaskIDToPod, td.GetUid())
-						// TODO(ionel): Should we delete the task from JD's spawned field?
-						jobID := pw.generateJobID(pod.OwnerRef)
-						jobNumTasksToRemove[jobID]--
-						if jobNumTasksToRemove[jobID] == 0 {
-							// Clean state because the job doesn't have any tasks left.
-							delete(jobNumTasksToRemove, jobID)
-							delete(jobIDToJD, jobID)
-						}
-						PodMux.Unlock()
-					case PodFailed:
-						glog.V(2).Info("PodFailed ", pod.Identifier)
-						PodMux.RLock()
-						td, ok := PodToTD[pod.Identifier]
-						PodMux.RUnlock()
-						if !ok {
-							glog.Fatalf("Pod %s does not exist", pod.Identifier)
-						}
-						firmament.TaskFailed(pw.fc, &firmament.TaskUID{TaskUid: td.Uid})
-					case PodRunning:
-						glog.V(2).Info("PodRunning ", pod.Identifier)
-						// We don't have to do anything.
-					case PodUnknown:
-						glog.Errorf("Pod %s in unknown state", pod.Identifier)
-						// TODO(ionel): Handle Unknown case.
-					case PodUpdated:
-						glog.V(2).Info("PodUpdated ", pod.Identifier)
-						PodMux.Lock()
-						jobId := pw.generateJobID(pod.OwnerRef)
-						jd, okJob := jobIDToJD[jobId]
-						td, okPod := PodToTD[pod.Identifier]
-						PodMux.Unlock()
-						if !okJob {
-							glog.Infof("Pod's %v job does not exist", pod.Identifier)
-							continue
-						}
-						if !okPod {
-							glog.Infof("Pod %v does not exist", pod.Identifier)
-							continue
-						}
-						pw.updateTask(pod, td)
-						taskDescription := &firmament.TaskDescription{
-							TaskDescriptor: td,
-							JobDescriptor:  jd,
-						}
-						firmament.TaskUpdated(pw.fc, taskDescription)
-					default:
-						glog.Fatalf("Pod %v in unexpected state %v", pod.Identifier, pod.State)
-					}
-				}
-			}(key, items, wg)
+	wg := new(sync.WaitGroup)
+	for {
+		key, items, quit := pw.podWorkQueue.Get()
+		if quit {
+			return
 		}
-	}()
+		wg.Add(1)
+		go func(key interface{}, items []interface{}, wg *sync.WaitGroup) {
+			defer func() {
+				pw.podWorkQueue.Done(key)
+				wg.Done()
+			}()
+			for _, item := range items {
+				pod := item.(*Pod)
+				switch pod.State {
+				case PodPending:
+					glog.V(2).Info("PodPending ", pod.Identifier)
+					PodMux.Lock()
+
+					// check if the pod already exists
+					// this cases happened when Replicaset are used.
+					// When a replicaset is delete it creates more pods with the same name
+					_, ok := PodToTD[pod.Identifier]
+					if ok {
+						// we ignore this since the pod already exists
+						// release the lock
+						glog.V(2).Info("Pod already added", pod.Identifier.Name, pod.Identifier.Namespace)
+						PodMux.Unlock()
+						continue
+					}
+					jobID := pw.generateJobID(pod.OwnerRef)
+					jd, ok := jobIDToJD[jobID]
+					if !ok {
+						jd = pw.createNewJob(pod.OwnerRef)
+						// get requirement for gang scheduling if enabled
+						jd = pw.updateGangSchedulingrequireent(pod, jd)
+						jobIDToJD[jobID] = jd
+						jobNumTasksToRemove[jobID] = 0
+					}
+					jobNumTasksToRemove[jobID]++
+					taskCount := jobNumTasksToRemove[jobID]
+					PodMux.Unlock()
+					td := pw.addTaskToJob(pod, jd.Uuid, jd.Name, (taskCount))
+					PodMux.Lock()
+					// if taskCount is '1' it means root task, update the RootTask pointer in the JobDescriptor
+					if taskCount == 1 {
+						jd.RootTask = td
+					}
+					PodToTD[pod.Identifier] = td
+					TaskIDToPod[td.GetUid()] = pod.Identifier
+					taskDescription := &firmament.TaskDescription{
+						TaskDescriptor: td,
+						JobDescriptor:  jd,
+					}
+					PodMux.Unlock()
+					metrics.SchedulingSubmitmLatency.Observe(metrics.SinceInMicroseconds(time.Time(pod.CreateTimeStamp.Time)))
+					firmament.TaskSubmitted(pw.fc, taskDescription)
+				case PodSucceeded:
+					glog.V(2).Info("PodSucceeded ", pod.Identifier)
+					PodMux.RLock()
+					td, ok := PodToTD[pod.Identifier]
+					PodMux.RUnlock()
+					if !ok {
+						glog.Fatalf("Pod %v does not exist", pod.Identifier)
+					}
+					firmament.TaskCompleted(pw.fc, &firmament.TaskUID{TaskUid: td.Uid})
+				case PodDeleted:
+					glog.V(2).Info("PodDeleted ", pod.Identifier)
+					PodMux.RLock()
+					td, ok := PodToTD[pod.Identifier]
+					PodMux.RUnlock()
+					if !ok {
+						glog.Infof("Pod %s does not exist", pod.Identifier)
+						continue
+					}
+					// TODO(jiaxuanzhou) need to metric the task remove latency ?
+					firmament.TaskRemoved(pw.fc, &firmament.TaskUID{TaskUid: td.Uid})
+					PodMux.Lock()
+					delete(PodToTD, pod.Identifier)
+					delete(TaskIDToPod, td.GetUid())
+					// TODO(ionel): Should we delete the task from JD's spawned field?
+					jobID := pw.generateJobID(pod.OwnerRef)
+					jobNumTasksToRemove[jobID]--
+					if jobNumTasksToRemove[jobID] == 0 {
+						// Clean state because the job doesn't have any tasks left.
+						delete(jobNumTasksToRemove, jobID)
+						delete(jobIDToJD, jobID)
+					}
+					PodMux.Unlock()
+				case PodFailed:
+					glog.V(2).Info("PodFailed ", pod.Identifier)
+					PodMux.RLock()
+					td, ok := PodToTD[pod.Identifier]
+					PodMux.RUnlock()
+					if !ok {
+						glog.Fatalf("Pod %s does not exist", pod.Identifier)
+					}
+					firmament.TaskFailed(pw.fc, &firmament.TaskUID{TaskUid: td.Uid})
+				case PodRunning:
+					glog.V(2).Info("PodRunning ", pod.Identifier)
+					// We don't have to do anything.
+				case PodUnknown:
+					glog.Errorf("Pod %s in unknown state", pod.Identifier)
+					// TODO(ionel): Handle Unknown case.
+				case PodUpdated:
+					glog.V(2).Info("PodUpdated ", pod.Identifier)
+					PodMux.Lock()
+					jobId := pw.generateJobID(pod.OwnerRef)
+					jd, okJob := jobIDToJD[jobId]
+					td, okPod := PodToTD[pod.Identifier]
+					PodMux.Unlock()
+					if !okJob {
+						glog.Infof("Pod's %v job does not exist", pod.Identifier)
+						continue
+					}
+					if !okPod {
+						glog.Infof("Pod %v does not exist", pod.Identifier)
+						continue
+					}
+					pw.updateTask(pod, td)
+					taskDescription := &firmament.TaskDescription{
+						TaskDescriptor: td,
+						JobDescriptor:  jd,
+					}
+					firmament.TaskUpdated(pw.fc, taskDescription)
+				default:
+					glog.Fatalf("Pod %v in unexpected state %v", pod.Identifier, pod.State)
+				}
+			}
+		}(key, items, wg)
+	}
+	wg.Wait()
 }
 
 func (pw *PodWatcher) createNewJob(jobName string) *firmament.JobDescriptor {
