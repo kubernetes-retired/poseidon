@@ -159,82 +159,79 @@ func (pw *PodWatcher) getCPUMemEphemeralRequest(pod *v1.Pod) (int64, int64, int6
 
 func (pw *PodWatcher) getNodeSelectorTerm(pod *v1.Pod) []NodeSelectorTerm {
 	var nodeSelTerm []NodeSelectorTerm
-	if pod.Spec.Affinity != nil {
-		if pod.Spec.Affinity.NodeAffinity != nil {
-			if pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution != nil {
-				err := copier.Copy(&nodeSelTerm, pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms)
-				if err != nil {
-					glog.Errorf("NodeSelectorTerm %v could not be copied, err: %v", pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms, err)
-				}
+	if pod.Spec.Affinity == nil || pod.Spec.Affinity.NodeAffinity == nil ||
+		pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution == nil {
+		return nodeSelTerm
+	}
 
-			}
-		}
+	err := copier.Copy(&nodeSelTerm, pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms)
+	if err != nil {
+		glog.Errorf("NodeSelectorTerm %v could not be copied, err: %v", pod.Spec.Affinity.NodeAffinity.RequiredDuringSchedulingIgnoredDuringExecution.NodeSelectorTerms, err)
 	}
 	return nodeSelTerm
 }
 
 func (pw *PodWatcher) getPreferredSchedulingTerm(pod *v1.Pod) []PreferredSchedulingTerm {
 	var prefSchTerm []PreferredSchedulingTerm
-	if pod.Spec.Affinity != nil {
-		if pod.Spec.Affinity.NodeAffinity != nil {
-			err := copier.Copy(&prefSchTerm, pod.Spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution)
-			if err != nil {
-				glog.Errorf("PreferredSchedulingTerm %v could not be copied, err: %v", pod.Spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution, err)
-			}
-		}
+	if pod.Spec.Affinity == nil || pod.Spec.Affinity.NodeAffinity == nil {
+		return prefSchTerm
+	}
 
+	err := copier.Copy(&prefSchTerm, pod.Spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution)
+	if err != nil {
+		glog.Errorf("PreferredSchedulingTerm %v could not be copied, err: %v", pod.Spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution, err)
 	}
 	return prefSchTerm
 }
 
 func (pw *PodWatcher) getPodAffinityTerm(pod *v1.Pod) []PodAffinityTerm {
 	var podAffTerm []PodAffinityTerm
-	if pod.Spec.Affinity != nil {
-		if pod.Spec.Affinity.PodAffinity != nil {
-			err := copier.Copy(&podAffTerm, pod.Spec.Affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution)
-			if err != nil {
-				glog.Errorf("PodAffinityTerm %v could not be copied, err: %v", pod.Spec.Affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution, err)
-			}
-		}
+	if pod.Spec.Affinity == nil || pod.Spec.Affinity.PodAffinity == nil {
+		return podAffTerm
+	}
+
+	err := copier.Copy(&podAffTerm, pod.Spec.Affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution)
+	if err != nil {
+		glog.Errorf("PodAffinityTerm %v could not be copied, err: %v", pod.Spec.Affinity.PodAffinity.RequiredDuringSchedulingIgnoredDuringExecution, err)
 	}
 	return podAffTerm
 }
 
 func (pw *PodWatcher) getWgtPodAffinityTerm(pod *v1.Pod) []WeightedPodAffinityTerm {
 	var wgtPodAffTerm []WeightedPodAffinityTerm
-	if pod.Spec.Affinity != nil {
-		if pod.Spec.Affinity.PodAffinity != nil {
-			err := copier.Copy(&wgtPodAffTerm, pod.Spec.Affinity.PodAffinity.PreferredDuringSchedulingIgnoredDuringExecution)
-			if err != nil {
-				glog.Errorf("WeightedPodAffinityTerm %v could not be copied, err: %v", pod.Spec.Affinity.PodAffinity.PreferredDuringSchedulingIgnoredDuringExecution, err)
-			}
-		}
+	if pod.Spec.Affinity == nil || pod.Spec.Affinity.PodAffinity == nil {
+		return wgtPodAffTerm
+	}
+
+	err := copier.Copy(&wgtPodAffTerm, pod.Spec.Affinity.PodAffinity.PreferredDuringSchedulingIgnoredDuringExecution)
+	if err != nil {
+		glog.Errorf("WeightedPodAffinityTerm %v could not be copied, err: %v", pod.Spec.Affinity.PodAffinity.PreferredDuringSchedulingIgnoredDuringExecution, err)
 	}
 	return wgtPodAffTerm
 }
 
 func (pw *PodWatcher) getPodAffinityTermforPodAntiAffinity(pod *v1.Pod) []PodAffinityTerm {
 	var podAffTerm []PodAffinityTerm
-	if pod.Spec.Affinity != nil {
-		if pod.Spec.Affinity.PodAntiAffinity != nil {
-			err := copier.Copy(&podAffTerm, pod.Spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution)
-			if err != nil {
-				glog.Errorf("PodAffinityTerm %v for PodAntiAffinity could not be copied, err: %v", pod.Spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution, err)
-			}
-		}
+	if pod.Spec.Affinity == nil || pod.Spec.Affinity.PodAntiAffinity == nil {
+		return podAffTerm
+	}
+
+	err := copier.Copy(&podAffTerm, pod.Spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution)
+	if err != nil {
+		glog.Errorf("PodAffinityTerm %v for PodAntiAffinity could not be copied, err: %v", pod.Spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution, err)
 	}
 	return podAffTerm
 }
 
 func (pw *PodWatcher) getWgtPodAffinityTermforPodAntiAffinity(pod *v1.Pod) []WeightedPodAffinityTerm {
 	var wgtPodAffTerm []WeightedPodAffinityTerm
-	if pod.Spec.Affinity != nil {
-		if pod.Spec.Affinity.PodAntiAffinity != nil {
-			err := copier.Copy(&wgtPodAffTerm, pod.Spec.Affinity.PodAntiAffinity.PreferredDuringSchedulingIgnoredDuringExecution)
-			if err != nil {
-				glog.Errorf("WeightedPodAffinityTerm %v for PodAntiAffinity could not be copied, err: %v", pod.Spec.Affinity.PodAntiAffinity.PreferredDuringSchedulingIgnoredDuringExecution, err)
-			}
-		}
+	if pod.Spec.Affinity == nil || pod.Spec.Affinity.PodAntiAffinity == nil {
+		return wgtPodAffTerm
+	}
+
+	err := copier.Copy(&wgtPodAffTerm, pod.Spec.Affinity.PodAntiAffinity.PreferredDuringSchedulingIgnoredDuringExecution)
+	if err != nil {
+		glog.Errorf("WeightedPodAffinityTerm %v for PodAntiAffinity could not be copied, err: %v", pod.Spec.Affinity.PodAntiAffinity.PreferredDuringSchedulingIgnoredDuringExecution, err)
 	}
 	return wgtPodAffTerm
 }
@@ -979,22 +976,22 @@ func UpdatePodCondition(status *v1.PodStatus, condition *v1.PodCondition) bool {
 		// We are adding new pod condition.
 		status.Conditions = append(status.Conditions, *condition)
 		return true
-	} else {
-		// We are updating an existing condition, so we need to check if it has changed.
-		if condition.Status == oldCondition.Status {
-			condition.LastTransitionTime = oldCondition.LastTransitionTime
-		}
-
-		isEqual := condition.Status == oldCondition.Status &&
-			condition.Reason == oldCondition.Reason &&
-			condition.Message == oldCondition.Message &&
-			condition.LastProbeTime.Equal(&oldCondition.LastProbeTime) &&
-			condition.LastTransitionTime.Equal(&oldCondition.LastTransitionTime)
-
-		status.Conditions[conditionIndex] = *condition
-		// Return true if one of the fields have changed.
-		return !isEqual
 	}
+	// We are updating an existing condition, so we need to check if it has changed.
+	if condition.Status == oldCondition.Status {
+		condition.LastTransitionTime = oldCondition.LastTransitionTime
+	}
+
+	isEqual := condition.Status == oldCondition.Status &&
+		condition.Reason == oldCondition.Reason &&
+		condition.Message == oldCondition.Message &&
+		condition.LastProbeTime.Equal(&oldCondition.LastProbeTime) &&
+		condition.LastTransitionTime.Equal(&oldCondition.LastTransitionTime)
+
+	status.Conditions[conditionIndex] = *condition
+	// Return true if one of the fields have changed.
+	return !isEqual
+
 }
 
 // GetPodCondition extracts the provided condition from the given status and returns that.
@@ -1088,16 +1085,16 @@ func (pw *PodWatcher) getGangSchedulingRequirementFromJob(nameSpace string, jobN
 	if job.Spec.Parallelism == nil {
 		glog.V(2).Info(job, " has no parallelism set")
 		return 0
-	} else {
-		podCountInjob = *job.Spec.Parallelism
-		if podCountInjob == 0 || podCountInjob == 1 {
-			if minGangRequirement < 100 {
-				glog.Errorf("job with a single pod cannot have a fractional gang scheduling requirement")
-				return 0
-			}
-			podCountInjob = 1
-		}
 	}
+	podCountInjob = *job.Spec.Parallelism
+	if podCountInjob == 0 || podCountInjob == 1 {
+		if minGangRequirement < 100 {
+			glog.Errorf("job with a single pod cannot have a fractional gang scheduling requirement")
+			return 0
+		}
+		podCountInjob = 1
+	}
+
 	minGangPods := float64(podCountInjob) * float64(float64(minGangRequirement)/100)
 
 	return int32(minGangPods)
@@ -1141,16 +1138,16 @@ func (pw *PodWatcher) getGangSchedulingRequirementFromDeployment(nameSpace strin
 	if dp.Spec.Replicas == nil {
 		glog.V(2).Info(dp, " has no replicas")
 		return 0
-	} else {
-		podCountdp = *dp.Spec.Replicas
-		if podCountdp == 0 || podCountdp == 1 {
-			if minGangRequirement < 100 {
-				glog.Errorf("deployment with a single pod cannot have a fractional gang scheduling requirement")
-				return 0
-			}
-			podCountdp = 1
-		}
 	}
+	podCountdp = *dp.Spec.Replicas
+	if podCountdp == 0 || podCountdp == 1 {
+		if minGangRequirement < 100 {
+			glog.Errorf("deployment with a single pod cannot have a fractional gang scheduling requirement")
+			return 0
+		}
+		podCountdp = 1
+	}
+
 	minGangPods := float64(podCountdp) * float64(float64(minGangRequirement)/100)
 	return int32(minGangPods)
 }
@@ -1160,10 +1157,9 @@ func (pw *PodWatcher) updateGangSchedulingrequireent(pod *Pod, job *firmament.Jo
 	minPodRequired := pw.GetGangSchedulingReferenceCount(pod)
 	if minPodRequired == 0 {
 		return job
-	} else {
-		job.MinNumberOfTasks = uint64(minPodRequired)
-		job.IsGangSchedulingJob = true
 	}
+	job.MinNumberOfTasks = uint64(minPodRequired)
+	job.IsGangSchedulingJob = true
 	return job
 }
 
@@ -1172,14 +1168,16 @@ func GetOwnersKindandUid(pod *v1.Pod) (string, string) {
 	var empty string
 	// Return if owner reference exists.
 	ownerRefs := pod.GetObjectMeta().GetOwnerReferences()
-	if len(ownerRefs) != 0 {
-		for x := range ownerRefs {
-			ref := &ownerRefs[x]
-			if ref.Controller != nil && *ref.Controller {
-				return ref.Kind, string(ref.UID)
-			}
-		}
+	if len(ownerRefs) == 0 {
+		return empty, empty
 	}
 
+	for x := range ownerRefs {
+		ref := &ownerRefs[x]
+		if ref.Controller != nil && *ref.Controller {
+			return ref.Kind, string(ref.UID)
+		}
+	}
 	return empty, empty
+
 }
