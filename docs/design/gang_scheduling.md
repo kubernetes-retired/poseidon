@@ -3,7 +3,7 @@
 - [Gang scheduling what is it?](#gang-scheduling-what-is-it)
 - [Approaches](#approaches)
     - [Using Min-Capacity as part of Flow Graph](#using-min-capacity-as-part-of-flow-graph)
-    - [Process each Gang Scheduling Job separately one-job-at-a-time](#process-each-gang-scheduling-job-separately-one-job-at-a-time)
+    - [Rearrange the Scheduling Round Delta after the fact](#rearrange-the-scheduling-round-delta-after-the-fact)
     - [Process each Gang Scheduling Job separately one-job-at-a-time](#process-each-gang-scheduling-job-separately-one-job-at-a-time)
 
 # Gang scheduling what is it?
