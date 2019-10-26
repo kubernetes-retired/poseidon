@@ -223,7 +223,7 @@ type Pod struct {
 	CreateTimeStamp metav1.Time
 	Tolerations     []Toleration
 	OwnerKind       string
-	OwnerUid        string
+	OwnerUID        string
 }
 
 // NodeWatcher is a Kubernetes node watcher.

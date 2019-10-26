@@ -99,12 +99,12 @@ func (posiedonEvents *PoseidonEvents) ProcessEvents(deltas *firmament.Scheduling
 // ProcessFailureEvents The failed/unscheduled task events are sent only once
 func (posiedonEvents *PoseidonEvents) ProcessFailureEvents(unscheduledTasks []uint64) {
 	//get the pod name from the unscheduled_tasks id
-	for _, taskId := range unscheduledTasks {
+	for _, taskID := range unscheduledTasks {
 		PodMux.RLock()
-		podIdentifier, ok := TaskIDToPod[taskId]
+		podIdentifier, ok := TaskIDToPod[taskID]
 		PodMux.RUnlock()
 		if !ok {
-			glog.Error("Task id to Pod mapping not found ", taskId)
+			glog.Error("Task id to Pod mapping not found ", taskID)
 			continue
 		}
 

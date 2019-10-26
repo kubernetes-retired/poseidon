@@ -293,7 +293,7 @@ func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 		CreateTimeStamp: pod.CreationTimestamp,
 		Tolerations:     pw.getTolerations(pod),
 		OwnerKind:       kind,
-		OwnerUid:        uid,
+		OwnerUID:        uid,
 	}
 }
 
@@ -663,7 +663,7 @@ func (pw *PodWatcher) addTaskToJob(pod *Pod, jdUid string, jdName string, tdID i
 			EphemeralCap: uint64(pod.EphemeralReqKb),
 		},
 		OwnerRefKind: pod.OwnerKind,
-		OwnerRefUid:  pod.OwnerUid,
+		OwnerRefUid:  pod.OwnerUID,
 	}
 
 	// Add labels.
