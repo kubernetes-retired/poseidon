@@ -249,7 +249,7 @@ func (pw *PodWatcher) getTolerations(pod *v1.Pod) []Toleration {
 
 func (pw *PodWatcher) parsePod(pod *v1.Pod) *Pod {
 	cpuReq, memReq, ephemeralReq := pw.getCPUMemEphemeralRequest(pod)
-	kind, uid := GetOwnersKindandUid(pod)
+	kind, uid := GetOwnersKindandUID(pod)
 	podPhase := PodUnknown
 	switch pod.Status.Phase {
 	case v1.PodPending:
@@ -550,8 +550,8 @@ func (pw *PodWatcher) podWorker() {
 					case PodUpdated:
 						glog.V(2).Info("PodUpdated ", pod.Identifier)
 						PodMux.Lock()
-						jobId := pw.generateJobID(pod.OwnerRef)
-						jd, okJob := jobIDToJD[jobId]
+						jobID := pw.generateJobID(pod.OwnerRef)
+						jd, okJob := jobIDToJD[jobID]
 						td, okPod := PodToTD[pod.Identifier]
 						PodMux.Unlock()
 						if !okJob {
@@ -650,12 +650,12 @@ func (pw *PodWatcher) updateTask(pod *Pod, td *firmament.TaskDescriptor) {
 	}
 }
 
-func (pw *PodWatcher) addTaskToJob(pod *Pod, jdUid string, jdName string, tdID int) *firmament.TaskDescriptor {
+func (pw *PodWatcher) addTaskToJob(pod *Pod, jdUID string, jdName string, tdID int) *firmament.TaskDescriptor {
 	task := &firmament.TaskDescriptor{
 		Name:      pod.Identifier.UniqueName(),
 		Namespace: pod.Identifier.Namespace,
 		State:     firmament.TaskDescriptor_CREATED,
-		JobId:     jdUid,
+		JobId:     jdUID,
 		ResourceRequest: &firmament.ResourceVector{
 			// TODO(ionel): Update types so no cast is required.
 			CpuCores:     float32(pod.CPURequest),
@@ -979,22 +979,21 @@ func UpdatePodCondition(status *v1.PodStatus, condition *v1.PodCondition) bool {
 		// We are adding new pod condition.
 		status.Conditions = append(status.Conditions, *condition)
 		return true
-	} else {
-		// We are updating an existing condition, so we need to check if it has changed.
-		if condition.Status == oldCondition.Status {
-			condition.LastTransitionTime = oldCondition.LastTransitionTime
-		}
-
-		isEqual := condition.Status == oldCondition.Status &&
-			condition.Reason == oldCondition.Reason &&
-			condition.Message == oldCondition.Message &&
-			condition.LastProbeTime.Equal(&oldCondition.LastProbeTime) &&
-			condition.LastTransitionTime.Equal(&oldCondition.LastTransitionTime)
-
-		status.Conditions[conditionIndex] = *condition
-		// Return true if one of the fields have changed.
-		return !isEqual
 	}
+	// We are updating an existing condition, so we need to check if it has changed.
+	if condition.Status == oldCondition.Status {
+		condition.LastTransitionTime = oldCondition.LastTransitionTime
+	}
+
+	isEqual := condition.Status == oldCondition.Status &&
+		condition.Reason == oldCondition.Reason &&
+		condition.Message == oldCondition.Message &&
+		condition.LastProbeTime.Equal(&oldCondition.LastProbeTime) &&
+		condition.LastTransitionTime.Equal(&oldCondition.LastTransitionTime)
+
+	status.Conditions[conditionIndex] = *condition
+	// Return true if one of the fields have changed.
+	return !isEqual
 }
 
 // GetPodCondition extracts the provided condition from the given status and returns that.
@@ -1088,15 +1087,14 @@ func (pw *PodWatcher) getGangSchedulingRequirementFromJob(nameSpace string, jobN
 	if job.Spec.Parallelism == nil {
 		glog.V(2).Info(job, " has no parallelism set")
 		return 0
-	} else {
-		podCountInjob = *job.Spec.Parallelism
-		if podCountInjob == 0 || podCountInjob == 1 {
-			if minGangRequirement < 100 {
-				glog.Errorf("job with a single pod cannot have a fractional gang scheduling requirement")
-				return 0
-			}
-			podCountInjob = 1
+	}
+	podCountInjob = *job.Spec.Parallelism
+	if podCountInjob == 0 || podCountInjob == 1 {
+		if minGangRequirement < 100 {
+			glog.Errorf("job with a single pod cannot have a fractional gang scheduling requirement")
+			return 0
 		}
+		podCountInjob = 1
 	}
 	minGangPods := float64(podCountInjob) * float64(float64(minGangRequirement)/100)
 
@@ -1115,15 +1113,14 @@ func (pw *PodWatcher) getGangSchedulingRequirementFromRS(nameSpace string, rsNam
 	if rs.Spec.Replicas == nil {
 		glog.V(2).Info(rs, " has no replicas")
 		return 0
-	} else {
-		podCountInrs = *rs.Spec.Replicas
-		if podCountInrs == 0 || podCountInrs == 1 {
-			if minGangRequirement < 100 {
-				glog.Errorf("Replicaset with a single pod cannot have a fractional gang scheduling requirement")
-				return 0
-			}
-			podCountInrs = 1
+	}
+	podCountInrs = *rs.Spec.Replicas
+	if podCountInrs == 0 || podCountInrs == 1 {
+		if minGangRequirement < 100 {
+			glog.Errorf("Replicaset with a single pod cannot have a fractional gang scheduling requirement")
+			return 0
 		}
+		podCountInrs = 1
 	}
 	minGangPods := float64(podCountInrs) * float64(float64(minGangRequirement)/100)
 	return int32(minGangPods)
@@ -1141,15 +1138,14 @@ func (pw *PodWatcher) getGangSchedulingRequirementFromDeployment(nameSpace strin
 	if dp.Spec.Replicas == nil {
 		glog.V(2).Info(dp, " has no replicas")
 		return 0
-	} else {
-		podCountdp = *dp.Spec.Replicas
-		if podCountdp == 0 || podCountdp == 1 {
-			if minGangRequirement < 100 {
-				glog.Errorf("deployment with a single pod cannot have a fractional gang scheduling requirement")
-				return 0
-			}
-			podCountdp = 1
+	}
+	podCountdp = *dp.Spec.Replicas
+	if podCountdp == 0 || podCountdp == 1 {
+		if minGangRequirement < 100 {
+			glog.Errorf("deployment with a single pod cannot have a fractional gang scheduling requirement")
+			return 0
 		}
+		podCountdp = 1
 	}
 	minGangPods := float64(podCountdp) * float64(float64(minGangRequirement)/100)
 	return int32(minGangPods)
@@ -1160,15 +1156,14 @@ func (pw *PodWatcher) updateGangSchedulingrequireent(pod *Pod, job *firmament.Jo
 	minPodRequired := pw.GetGangSchedulingReferenceCount(pod)
 	if minPodRequired == 0 {
 		return job
-	} else {
-		job.MinNumberOfTasks = uint64(minPodRequired)
-		job.IsGangSchedulingJob = true
 	}
+	job.MinNumberOfTasks = uint64(minPodRequired)
+	job.IsGangSchedulingJob = true
 	return job
 }
 
 // GetOwnerReference to get the parent object reference
-func GetOwnersKindandUid(pod *v1.Pod) (string, string) {
+func GetOwnersKindandUID(pod *v1.Pod) (string, string) {
 	var empty string
 	// Return if owner reference exists.
 	ownerRefs := pod.GetObjectMeta().GetOwnerReferences()

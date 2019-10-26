@@ -99,12 +99,12 @@ func (posiedonEvents *PoseidonEvents) ProcessEvents(deltas *firmament.Scheduling
 // ProcessFailureEvents The failed/unscheduled task events are sent only once
 func (posiedonEvents *PoseidonEvents) ProcessFailureEvents(unscheduledTasks []uint64) {
 	//get the pod name from the unscheduled_tasks id
-	for _, taskId := range unscheduledTasks {
+	for _, taskID := range unscheduledTasks {
 		PodMux.RLock()
-		podIdentifier, ok := TaskIDToPod[taskId]
+		podIdentifier, ok := TaskIDToPod[taskID]
 		PodMux.RUnlock()
 		if !ok {
-			glog.Error("Task id to Pod mapping not found ", taskId)
+			glog.Error("Task id to Pod mapping not found ", taskID)
 			continue
 		}
 
@@ -136,14 +136,14 @@ func (posiedonEvents *PoseidonEvents) ProcessFailureEvents(unscheduledTasks []ui
 // ProcessSuccessEvents send success event to api-server
 func (posiedonEvents *PoseidonEvents) ProcessSuccessEvents(scheduledTasks []*firmament.SchedulingDelta) {
 	//get the pod name from the unscheduled_tasks id
-	for _, taskId := range scheduledTasks {
+	for _, taskID := range scheduledTasks {
 		// Note: We need to process only deltas of type PLACE
-		if taskId.GetType() == firmament.SchedulingDelta_PLACE {
+		if taskID.GetType() == firmament.SchedulingDelta_PLACE {
 			PodMux.RLock()
-			podIdentifier, ok := TaskIDToPod[taskId.GetTaskId()]
+			podIdentifier, ok := TaskIDToPod[taskID.GetTaskId()]
 			PodMux.RUnlock()
 			if !ok {
-				glog.Errorf("Task id %v to Pod mapping not found ", taskId)
+				glog.Errorf("Task id %v to Pod mapping not found ", taskID)
 				continue
 			}
 			ProcessedPodEventsLock.Lock()
@@ -158,12 +158,12 @@ func (posiedonEvents *PoseidonEvents) ProcessSuccessEvents(scheduledTasks []*fir
 			PodToK8sPodLock.Lock()
 			if poseidonToK8sPod, ok := PodToK8sPod[podIdentifier]; ok {
 				NodeMux.RLock()
-				nodeName, ok := ResIDToNode[taskId.GetResourceId()]
+				nodeName, ok := ResIDToNode[taskID.GetResourceId()]
 				NodeMux.RUnlock()
 				if ok {
 					posiedonEvents.podEvents.Recorder.Eventf(poseidonToK8sPod, corev1.EventTypeNormal, "Scheduled", "Successfully assigned %v/%v to %v", podIdentifier.Namespace, podIdentifier.Name, nodeName)
 				} else {
-					glog.Error("Node not found in Node to Resource Id mapping", taskId.GetResourceId())
+					glog.Error("Node not found in Node to Resource Id mapping", taskID.GetResourceId())
 				}
 			} else {
 				glog.Error("Pod mapping not found in PodToK8sPod map for Pod ", podIdentifier)
